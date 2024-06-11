@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Simulação de partículas</title>
+	<link rel="stylesheet" href="styles.css">
+	<style>
+		.controls {
+			display: flex;
+			justify-content: center;
+			align-items: center;
+		}
+	</style>
+</head>
+<main>
+<body>
+	<section id="simulacao-particulas" class="simulacao">
+      <!-- Controles -->
+      <div class="controls">
+        <!-- Input numero de partículas -->
+        <label for="num-particulas"># Partículas:</label>
+        <input type="number" id="num-particulas" value="10" min="1" max="100">
+        <!-- Input temperatura -->
+        <label for="temperatura">Temperatura:</label>
+        <input type="number" id="temperatura" value="100" min="0" max="1000">
+        <!-- Botões -->
+        <button onclick="iniciarSimulacao()">Iniciar Simulação</button>
+        <button onclick="pausarSimulacao()">Pausar</button>
+        <button onclick="reiniciarSimulacao()">Reiniciar</button>
+      </div>
+      <!-- Simulação em si -->
+      <div id="simulacao-container"></div>
+      <!-- Gráficos -->
+      <div class="graficos-container">
+        <canvas id="grafico-temperatura"></canvas>
+        <canvas id="grafico-energia"></canvas>    
+      </div>
+    </section>
+	<!-- Inclui a biblioteca p5.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.js"></script>
+    <!-- Inclui a biblioteca Chart.js -->
+  	<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Inclui o script da simulação -->
+    <script src="scripts/particulas.js"></script>
+</body>
+</main>
+</html>
