@@ -1,0 +1,261 @@
+:root {
+	--bg-color: rgb(20,20,20);
+	--color: rgba(80, 80, 80, 0.2);
+}
+
+h2, p {
+	color: whitesmoke;
+}
+
+body {
+	background-color: var(--bg-color);
+	/* Estabelece como os elementos serão posicionados via flexbox */
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
+	
+	overflow-y: auto;
+
+	margin: 0px;
+	padding: 0px;
+}
+
+.menu {
+	position: relative;
+	background-color: rgba(80, 80, 80, 0.2);
+	height: 80px;
+	width: 630px;
+
+	border-radius: 15px;
+
+	margin-top: 20px;
+	margin-bottom: 20px;
+
+	justify-content: center;
+}
+
+.menu ul {
+	position: relative;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+}
+
+.menu ul li  {
+	position: relative;
+	list-style: none;
+	padding: 10px;
+}
+
+.menu ul li a {
+	position: relative;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
+	width: 100%;
+	text-align: center;
+	font-weight: 500;
+	text-decoration: none;
+}
+
+.menu ul li a .icone {
+	position: relative;
+	display: block;
+	font-size: 1.5rem;
+	transition: 0.5s;
+	color: whitesmoke;
+}
+
+.menu ul li:hover a .icone {
+	transform: translateY(-10px) ;
+}
+
+.menu ul li a .texto {
+	position: relative;
+	opacity: 0;
+	transition: 1s;
+	letter-spacing: 0.05rem;
+}
+
+.menu ul li:hover a .texto {
+	color: whitesmoke;
+	opacity: 1;
+	transform: translateY(-5px)
+}
+
+.rodape {
+  position: relative;
+  background-color: rgba(80, 80, 80, 0.2);
+  height: 80px;
+  width: 630px;
+  border-radius: 15px;
+  margin-top: 20px;
+  margin-bottom: 20px;
+  margin-left: auto;
+  margin-right: auto;
+  justify-content: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* Estilização do texto do rodapé */
+.rodape p {
+  text-align: center;
+  width: 100%;
+  margin: 5px 0; /* Ajusta a margem superior e inferior */
+  padding-bottom: 10px;
+}
+
+/* Estilização da lista no rodapé */
+.rodape ul {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  margin: 0; /* Remove margem padrão */
+  padding: 0; /* Remove preenchimento padrão */
+}
+
+/* Estilização dos itens da lista no rodapé */
+.rodape ul li {
+  position: relative;
+  list-style: none;
+  padding: 0 10px; /* Adiciona espaçamento lateral */
+  margin: 0; /* Remove margem padrão */
+}
+
+/* Estilização dos links no rodapé */
+.rodape ul li a {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  text-align: center;
+  font-weight: 500;
+  text-decoration: none; /* Remove sublinhado */
+}
+
+/* Estilização dos ícones nos links do rodapé */
+.rodape ul li a .icone {
+  position: relative;
+  display: flex;
+  font-size: 1.0rem;
+  transition: 0.5s;
+  color: whitesmoke;
+}
+
+/* Efeito de hover nos ícones do rodapé */
+.rodape ul li:hover a .icone {
+  transform: translateY(-10px);
+}
+
+.section {
+	background-color: var(--bg-color);
+  display: none; /* Oculta todas as seções por padrão */
+  opacity: 1;
+}
+
+.section.hidden {
+  display: none; /* Garante que seções ocultas permaneçam ocultas */
+}
+
+.section:not(.hidden) {
+	display: block;
+	background-color: var(--color);
+	border-radius: 15px;
+}
+
+#secao-sobre {
+	max-width: 630px;
+}
+
+#secao-sobre h1, h2, p {
+	padding-left: 20px;
+	padding-right: 20px;
+	text-align: justify;
+}
+
+#cards {
+	display: flex;
+	flex-wrap: wrap;
+
+	gap: 10px;
+	max-width: 630px;
+
+}
+
+.card {
+	position: relative;
+	
+	background-color: rgba(80, 80, 80, 0.2);
+	
+	border: 1px solid rgba(80, 80, 80, 0.8);
+	border-radius: 15px;
+	
+	height: 300px;
+	width: 200px;
+	
+	cursor: pointer;
+
+	display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.card:hover::before {
+	opacity: 1;
+	border: 1px solid rgba(255, 255, 255, 1.0);
+}
+
+.card::before { /* Card antes de ter o mouse sobreposto */
+	position: absolute; /* As coisas posicionadas aqui serão posicionada de maneira absoluta */
+	/* Juntas as duas linhas abaixo dizer que o canto superior esquerdo dos cards é sua origem */
+	top: 0px; /* Posição em cima */
+	left: 0px; /* Posição à esquerda */
+	
+	background: radial-gradient( /* Cria um circulo com gradiente a partir da posição do mouse */
+		800px circle at var(--mouse-X) var(--mouse-Y),
+		rgba(80, 80, 80, 0.5),
+		transparent 40%
+	);
+	opacity: 0; /* O circulo criado tem opacidade nula inicialmente */
+	transition: opacity 1000ms; /* O tempo de transição de criaçando do circulo é 1s */
+
+	border-radius: inherit; /* herda a largura da borda da classe card */
+	
+	height: 100%; /* Altura do card antes de ser hovered é 100% da altura do card */
+	width: 100%; /* Largura do card antes de ser hovered é 100% do largura do card */
+	
+	z-index: 2;
+	
+	content: "";
+}
+
+.card h1 {
+	color: whitesmoke;
+	opacity: 0.6;
+	font-size: 1.5rem; /* Estabelece que o tamanho da fonte dos títulos dos cards deve ser 1.5 rem */
+	margin-bottom: 10px; /* Adiciona um espaço abaixo do título  */
+	text-align: center; /* Centraliza o título */
+	z-index: 3;
+}
+
+.card p {
+	color: floralwhite;
+	opacity: 0.6;
+	font-size: 1rem; /* Estabelece que o tamanho da fonte dos parágrados dos cards deve ser 1 rem */
+	text-align: justify; /* Centrazila conteúdo dos parágrafos */
+	z-index: 3; /* Coloca o parágrafo no topo */
+}
+
+.card-link {
+    text-decoration: none; /* Remove sublinhado padrão do link */
+    color: inherit; /* Herda a cor do texto do pai (opcional) */
+}
