@@ -16,8 +16,8 @@ function setup() {
     background(20);
     orbitControl();
     //rotateX(frameCount * 0.01);
-    rotateY(frameCount * 0.05)
-    //rotateZ(frameCount * 0.01);
+    rotateY(3.14159/4)
+    rotateZ(frameCount * 0.05);
 
     let passo = 2;
     let L = 15  ;
