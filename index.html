@@ -1,34 +1,128 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Applet</title>
-  <link rel="stylesheet" href="indexstyles.css">
-</head>
-<body>
-  <header>
-    <h1>Simuladores</h1>
-    <nav>
-      <ul>
-        <li><a href="simulacoes/ondas.html">Ondas</a></li>
-        <li><a href="simulacoes/particulas.html">Particulas</a></li>
-        <li><a href="simulacoes/atrator.html">Atrator</a></li>
-      </ul>
-    </nav>
-  </header>
-    
-  <main>
-    <!-- Pagina inicial -->
-    <p>Olá, esta página tem como objetivo central disponibilizar um acervo pessoal de simulações. As simulações aqui contidas podem ser utilizadas como recursos didáticos em aulas de física e matemática.</p>
-    <p>Para acessas as simulações, por favor navegue utilizando os menus acima. Eventualmente adicionarei uma interface mais bem trabalhada.</p>
-  </main>
+<html>
+  <head>
+      <title>Simulações</title>
+  </head>
 
-  <!-- Inclui a biblioteca p5.js -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.js"></script>
-  <!-- Inclui a biblioteca Chart.js -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="menu.js"></script>
+  <style type="text/css" ></style>
+    <link rel="stylesheet" type="text/css" href="styles.css">
+
+  
+  <body>
+    
+    <div class="menu">
+      <ul>
+        <li class="list">
+          <a href="#secao-sobre">
+            <span class="icone">
+              <ion-icon name="people-outline"></ion-icon>
+            </span>
+            <span class="texto">Sobre nós</span>
+          </a>
+        </li>
+
+        <li class="list">
+          <a href="#secao-simulacoes">
+            <span class="icone">
+              <ion-icon name="apps-outline"></ion-icon>
+            </span>
+            <span class="texto">Simulações</span>
+          </a>
+        </li>
+
+        <li class="list">
+          <a href="#secao-outra">
+            <span class="icone">
+              <ion-icon name="balloon-outline"></ion-icon>
+            </span>
+            <span class="texto">Outra coisa</span>
+          </a>
+        </li>
+
+      </ul>
+    </div>
+
+    <div id="secao-sobre" class="section active">
+      <h2>Sobre nós</h2>
+      <p>
+        Bem-vindo à nossa plataforma de simulações educativas! Nossa missão é fornecer recursos didáticos de alta qualidade que auxiliem professores e alunos no aprendizado de conceitos complexos de física e matemática. Acreditamos que a visualização e a interação são ferramentas poderosas para a compreensão profunda e duradoura dessas disciplinas.
+      </p>
+      <p>
+        Esta página foi criada para servir como um suporte valioso para professores, oferecendo uma variedade de simulações interativas que podem ser utilizadas em sala de aula ou como material complementar para estudos individuais. Nosso objetivo é tornar o aprendizado mais envolvente e acessível, permitindo que os estudantes explorem fenômenos científicos e matemáticos de forma prática e visual.
+      </p>
+      <p>
+        Nossas simulações cobrem uma ampla gama de tópicos, desde as leis fundamentais da física, como a cinemática e a dinâmica, até conceitos avançados de matemática, incluindo álgebra, geometria e cálculo. Cada simulação é projetada para ser intuitiva e fácil de usar, proporcionando uma experiência de aprendizado imersiva e interativa.
+      </p>
+      <p>
+        Estamos comprometidos em continuamente expandir e melhorar nossa biblioteca de simulações, com base no feedback de professores e alunos. Nosso objetivo é criar um ambiente de aprendizado dinâmico que inspire curiosidade e paixão pela ciência e matemática.
+      </p>
+      <p>
+        Agradecemos por visitar nossa página e esperamos que os recursos aqui disponibilizados contribuam significativamente para o sucesso educacional de seus alunos. Se tiver alguma sugestão ou precisar de assistência, não hesite em nos contatar. Juntos, podemos transformar a maneira como ensinamos e aprendemos física e matemática.
+      </p>
+    </div>
+
+    <div id='secao-simulacoes' class="section">
+      
+      <div id="cards">
+          <a href="simulacoes/ondas.html" target="_blank" class="card-link">
+            <div class="card">
+              <h1> Simulação de ondas</h1>
+              <p> Nesta simulação é possível visualizar como a informação leva um tempo para se propagar a partir de um ponto.</p>
+            </div>
+          </a>
+          <a href='simulacoes/particulas.html' target="_blank" class="card-link">
+            <div class="card">
+              <h1> Simulação de partículas</h1>
+              <p> Nesta simulação é possivel visualizar um sistema de partículas com interação coulombiana e acompanhar a temperatura e energia potencial do sistema.</p>
+            </div>
+          </a>
+          <a href='simulacoes/atrator.html' target="_blank" class="card-link">
+            <div class="card">
+              <h1> Câmara de nuvens</h1>
+              <p> Esta simulação objetiva criar uma visualização intuitiva (sem muito rigor físico) de uma câmara de núvens/bolhas/Wilson.</p>
+            </div>
+          </a>
+      </div>
+    </div>
+
+    <div id="secao-outra" class="section">
+      
+      <p>Trem escrito</p>
+    
+    </div>
+
+    <div class="rodape">
+      <p>Desenvolvido por Nicolas Heringer</p>
+      <ul>
+        <li class="list">
+          <a href="https://www.instagram.com/nicolasheringer/">
+            <span class="icone">
+              <ion-icon name="logo-instagram"></ion-icon>
+            </span>
+          </a>
+        </li>
+
+        <li class="list">
+          <a href="https://www.linkedin.com/in/nicolasheringer/">
+            <span class="icone">
+              <ion-icon name="logo-linkedin"></ion-icon>
+            </span>
+          </a>
+        </li>
+
+        <li class="list">
+          <a href="https://github.com/Nicolas-Heringer">
+            <span class="icone">
+              <ion-icon name="logo-github"></ion-icon>
+            </span>
+          </a>
+        </li>
+
+      </ul>
+    </div>
+
+  </body>  
+
   <script src="script.js"></script>
-</body>
-</html>
+  <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+  <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
