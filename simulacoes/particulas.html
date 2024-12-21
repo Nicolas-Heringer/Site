@@ -6,43 +6,89 @@
 	<title>Simulação de partículas</title>
 	<link rel="stylesheet" href="styles.css">
 	<style>
-		.controls {
-			display: flex;
-			justify-content: center;
-			align-items: center;
+		/* canvas-style.css */
+		#canvasContainer {
+		    position: relative;
+		    width: 600;
+		    height: 600;
+		    overflow: hidden;
+		    margin: 0 auto;
+		    transition: width 1s ease, height 1s ease;
+		}
+		
+		#transformationCanvas {
+		    border: 1px solid #000;
+		    display: block;
+		    margin: 0 auto;
+		    opacity: 1;
+		    transition: opacity 0.5s ease;
+		}
+		
+		.controlsContainer {
+		    display: flex;
+		    flex-wrap: wrap;
+		    gap: 10px;
+		    justify-content: center;
+		    max-width: 600px;
+		}
+		
+		.controlGroup {
+		    display: flex;
+		    flex-direction: column;
+		    align-items: flex-start;
 		}
 	</style>
 </head>
 <main>
 <body>
-	<section id="simulacao-particulas" class="simulacao">
-      <!-- Controles -->
-      <div class="controls">
-        <!-- Input numero de partículas -->
-        <label for="num-particulas"># Partículas:</label>
-        <input type="number" id="num-particulas" value="10" min="1" max="100">
-        <!-- Input temperatura -->
-        <label for="temperatura">Temperatura:</label>
-        <input type="number" id="temperatura" value="100" min="0" max="1000">
-        <!-- Botões -->
-        <button onclick="iniciarSimulacao()">Iniciar Simulação</button>
-        <button onclick="pausarSimulacao()">Pausar</button>
-        <button onclick="reiniciarSimulacao()">Reiniciar</button>
-      </div>
-      <!-- Simulação em si -->
-      <div id="simulacao-container"></div>
-      <!-- Gráficos -->
-      <div class="graficos-container">
-        <canvas id="grafico-temperatura"></canvas>
-        <canvas id="grafico-energia"></canvas>    
-      </div>
-    </section>
-	<!-- Inclui a biblioteca p5.js -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.js"></script>
-    <!-- Inclui a biblioteca Chart.js -->
-  	<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- Inclui o script da simulação -->
-    <script src="scripts/particulas.js"></script>
-</body>
+	<div id="canvasContainer">
+	    <canvas id="myCanvas" width="598" height="598" style="border:1px solid #000;"></canvas>
+	</div>
+
+	<div class="controlsContainer">
+
+	    <div class="controlGroup">
+	        <label for="selector-de-interacao">Interação:</label>
+	        <select id="selector-de-interacao">
+	            <option value="desligada">Desligada</option>
+	            <option value="ligada">Ligada</option>
+	        </select>
+	    </div>
+
+	    <div class="controlGroup">
+	        <label for="selector-de-temperatura">Temperatura:</label>
+	        <select id="selector-de-temperatura">
+	            <option value="1">1</option>
+	            <option value="10">10</option>
+	            <option value="100">100</option>
+	            <option value="1000">1000</option>
+	        </select>
+	    </div>
+
+	    <div class="controlGroup">
+	        <label for="temperature-atenuation">Atenuação:</label>
+	        <input type="number" id="temperature-atenuation" min="0" max="1" step="0.01" value="0.5">
+	    </div>
+
+	    <div class="controlGroup">
+	        <label for="number-of-particles">Num. Partículas:</label>
+	        <input type="number" id="number-of-particles" min="1" max="1000" value="0">
+	    </div>
+
+	    <div class="controlGroup">
+	        <label for="selector-de-velocidade-onda">Vel. da Onda:</label>
+	        <select id="selector-de-velocidade-onda">
+	            <option value="1">1</option>
+	            <option value="2">2</option>
+	            <option value="5">5</option>
+	        </select>
+	    </div>
+
+	</div>
+
+	
+	<script src="script.js"></script>
+
+/body>
 </main>
 </html>
