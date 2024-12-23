@@ -6,23 +6,21 @@
 	<title>Simulação de partículas</title>
 	<link rel="stylesheet" href="styles.css">
 	<style>
-		/* canvas-style.css */
 		body {
 		    display: flex;
 		    flex-direction: column;
 		    align-items: center;
-		    justify-content: center;
 		}
+		
+		/* canvas-style.css */
 		#canvasContainer {
-			display: flex;
-			position: relative;
-			width: 600;
-			height: 600;
-			overflow: hidden;
-			margin: 0 auto;
-			align-content: center;
-			justify-content: center;
-			transition: width 1s ease, height 1s ease;
+		    align-items: center;
+		    position: relative;
+		    width: 1200;
+		    height: 800;
+		    overflow: hidden;
+		    margin: 0 auto;
+		    transition: width 1s ease, height 1s ease;
 		}
 		
 		#transformationCanvas {
@@ -38,7 +36,6 @@
 		    flex-wrap: wrap;
 		    gap: 10px;
 		    justify-content: center;
-		    align-content: center;
 		    max-width: 600px;
 		}
 		
@@ -56,7 +53,7 @@
 		<h1>Simulação de partículas</h1>
 		<p> O objetivo desta simulação é ilustrar como um sistema de muitas partículas interagentes pode se tornar crescentemente complexo.</p>
 	</div>
-	
+
 	<div id="canvasContainer">
 	    <canvas id="myCanvas" width="598" height="598" style="border:1px solid #000;"></canvas>
 	</div>
@@ -122,9 +119,6 @@
 		</ul>
 
 	</div>
-	
-	<script src="scripts/particulas.js"></script>
-
 </body>
 </main>
 </html>
