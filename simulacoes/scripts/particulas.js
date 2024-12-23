@@ -61,6 +61,7 @@ class Particle {
         this.velocityX = velocityX; // Velocidade no eixo X
         this.velocityY = velocityY; // Velocidade no eixo Y
         this.waveTimer = 0; // Temporizador para emissão de ondas
+        this.baseWaveInterval = 60;
         this.waveInterval = 60; // Intervalo entre emissões de ondas (em frames)
         this.ondasEmitidas = []; // Lista de ondas emitidas pela partícula
         this.gamma = null;
@@ -81,8 +82,8 @@ class Particle {
                     if (Math.abs(distance - wave.raio) < 10) {
                         // Calcula força de atração
                         const force = 0.05; // Intensidade da força
-                        const fx = (dx / distance) * force; // Força no eixo X
-                        const fy = (dy / distance) * force; // Força no eixo Y
+                        const fx = 0.1*(dx / distance) * force; // Força no eixo X
+                        const fy = 0.1*(dy / distance) * force; // Força no eixo Y
 
                         // Aplica força à velocidade da partícula
                         this.velocityX += fx;
@@ -134,7 +135,7 @@ class Particle {
         this.gamma = null;
         const v = Math.sqrt(this.velocityY**2 + this.velocityX**2);
         this.gamma = 1/(Math.sqrt(1-(v/(100*c))**2));
-        this.waveInterval *= 1/this.gamma;
+        this.waveInterval = this.baseWaveInterval/this.gamma;
     }
 }
 
@@ -145,7 +146,7 @@ function createParticles(canvas, particleCount) {
         const x = Math.random() * canvas.width;
         const y = Math.random() * canvas.height;
         const radius = 3; //Math.random() * 5 + 2;
-        const color = `rgba(0, 0, 0, 0.8)`;
+        const color = `rgba(255, 255, 255, 1)`;
         /*const color = `rgba(${Math.floor(Math.random() * 255)}, 
                             ${Math.floor(Math.random() * 255)}, 
                             ${Math.floor(Math.random() * 255)}, 0.8)`;*/
@@ -177,10 +178,16 @@ class Circulo {
     // Desenha o círculo no canvas
     mostra(ctx) {
         ctx.beginPath();
-        ctx.arc(this.x, this.y, this.raio, 0, Math.PI * 2); // Circunferência
-        ctx.strokeStyle = "rgba(150, 100, 220, 1)";
-        ctx.lineWidth = 2;
+        const grad = ctx.createRadialGradient(this.x, this.y, this.raio-(this.raio/5), this.x, this.y, this.raio+(this.raio/5));
+        grad.addColorStop(0.4, `rgba(255, 20, 20, 0.8)`);
+        //grad.addColorStop(0.5, `rgba(40, 40, 40, 1)`);
+        grad.addColorStop(0.6, `rgba(20, 20, 255, 0.8)`);
+
+        ctx.lineWidth = 5;
+        ctx.strokeStyle = grad;
+        ctx.arc(this.x, this.y, this.raio, 0, Math.PI * 2);
         ctx.stroke();
+        ctx.closePath();
     }
 }
 
@@ -209,7 +216,10 @@ function calcularTemperatura(particles) {
 
 // Animação principal
 function anima() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height); // Limpa o canvas
+    ctx.beginPath();
+    ctx.fillStyle = 'rgba(20,20,20,1)';
+    ctx.fillRect(0, 0, canvas.width, canvas.height); // Limpa o canvas
+    ctx.closePath();
 
     // Atualiza e desenha ondas
     for (let i = circulos.length - 1; i >= 0; i--) {
