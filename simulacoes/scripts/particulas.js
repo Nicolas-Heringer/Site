@@ -8,14 +8,19 @@ const temperatureSelector = document.getElementById('selector-de-temperatura');
 const particlesInput = document.getElementById('number-of-particles');
 const waveSpeedSelector = document.getElementById('selector-de-velocidade-onda');
 const temperatureAtenuation = document.getElementById('temperature-atenuation');
+const tiposDeInteracaoSelector = document.getElementById('selector-de-tipo-de-interacao')
 
 // Variáveis dinâmicas
+let tipoDeInteracao = 'ambas';
 let interactionEnabled = false;
-let TEMP_LIMIT = 1;
-let numParticles = 0;
+let TEMP_LIMIT = 0.001;
+let numParticles = 2;
 let c = 1; // Velocidade da onda
-let attenuation = 0.5; // Fator de resfriamento para reduzir a velocidade das partículas
+let attenuation = 0.1; // Fator de resfriamento para reduzir a velocidade das partículas
 
+const eventHandlers = {
+    
+}
 // Manipuladores de eventos
 interactionSelector.addEventListener('change', () => {
     interactionEnabled = interactionSelector.value === 'ligada';
@@ -24,7 +29,7 @@ interactionSelector.addEventListener('change', () => {
 });
 
 temperatureSelector.addEventListener('change', () => {
-    TEMP_LIMIT = parseInt(temperatureSelector.value, 10);
+    TEMP_LIMIT = temperatureSelector.value;
     console.log(`Temperatura: ${TEMP_LIMIT}`);
     // Atualize a simulação aqui
 });
@@ -42,13 +47,16 @@ waveSpeedSelector.addEventListener('change', () => {
     // Atualize a velocidade da onda na simulação aqui
 });
 
+tiposDeInteracaoSelector.addEventListener('change', () => {
+    tipoDeInteracao = `${tiposDeInteracaoSelector.value}`;
+    console.log(`Interação selecionada: ${tipoDeInteracao}`);
+});
+
 temperatureAtenuation.addEventListener('input', () => {
     attenuation = parseFloat(temperatureAtenuation.value);
     console.log(`Atenuação da temperatura: ${attenuation}`);
     // Atualize a atenuação da temperatura na simulação
 });
-
-
 
 // Classe para representar uma partícula
 class Particle {
@@ -61,33 +69,48 @@ class Particle {
         this.velocityX = velocityX; // Velocidade no eixo X
         this.velocityY = velocityY; // Velocidade no eixo Y
         this.waveTimer = 0; // Temporizador para emissão de ondas
-        this.baseWaveInterval = 60;
-        this.waveInterval = 60; // Intervalo entre emissões de ondas (em frames)
+        this.baseWaveInterval = 5;
+        this.waveInterval = 5; // Intervalo entre emissões de ondas (em frames)
         this.ondasEmitidas = []; // Lista de ondas emitidas pela partícula
         this.gamma = null;
     }
 
     // Método para atualizar a posição da partícula
-    update(canvas, waves, interaction) {
+    update(canvas, waves, interaction, interactionType) {
         if (interaction == true) {
             // Aplica forças das ondas (ignorando suas próprias ondas)
             waves.forEach(wave => {
                 // Verifica se a onda foi emitida pela própria partícula
                 if (!this.ondasEmitidas.includes(wave)) {
-                    const dx = wave.x - this.x; // Distância no eixo X
-                    const dy = wave.y - this.y; // Distância no eixo Y
+                    const dx = (wave.x - this.x)/100; // Distância no eixo X
+                    const dy = (wave.y - this.y)/100; // Distância no eixo Y
                     const distance = Math.sqrt(dx * dx + dy * dy); // Distância total
 
                     // Verifica se a partícula está dentro da influência da onda
                     if (Math.abs(distance - wave.raio) < 10) {
                         // Calcula força de atração
-                        const force = 0.05; // Intensidade da força
-                        const fx = 0.1*(dx / distance) * force; // Força no eixo X
-                        const fy = 0.1*(dy / distance) * force; // Força no eixo Y
+                        const force = 0.01; // Intensidade da força
 
-                        // Aplica força à velocidade da partícula
-                        this.velocityX += fx;
-                        this.velocityY += fy;
+                        if (tipoDeInteracao==='ambas'){
+                            const fx = (0.1 *(dx / distance)- 0.1 *(dx / distance**6)) * force; // Força no eixo X
+                            const fy = (0.1 *(dy / distance)- 0.1 *(dy / distance**6)) * force; // Força no eixo Y
+                            // Aplica força à velocidade da partícula
+                            this.velocityX += fx;
+                            this.velocityY += fy;
+                        } else if (tipoDeInteracao==='atracao') {
+                            const fx = 0.1 * (dx / distance) * force; // Força no eixo X
+                            const fy = 0.1 * (dy / distance) * force; // Força no eixo Y
+                            // Aplica força à velocidade da partícula
+                            this.velocityX += fx;
+                            this.velocityY += fy;
+                        }else if (tipoDeInteracao==='repulsao') {
+                            const fx = 0.1 * (dx / distance) * (-force); // Força no eixo X
+                            const fy = 0.1 * (dy / distance) * (-force); // Força no eixo Y
+                            // Aplica força à velocidade da partícula
+                            this.velocityX += fx;
+                            this.velocityY += fy;
+                        };
+
                     }
                 }
             });
@@ -134,7 +157,7 @@ class Particle {
     loretzFactor(c) {
         this.gamma = null;
         const v = Math.sqrt(this.velocityY**2 + this.velocityX**2);
-        this.gamma = 1/(Math.sqrt(1-(v/(100*c))**2));
+        this.gamma = 1/(Math.sqrt(1-(v/(10*c))**2));
         this.waveInterval = this.baseWaveInterval/this.gamma;
     }
 }
@@ -147,11 +170,8 @@ function createParticles(canvas, particleCount) {
         const y = Math.random() * canvas.height;
         const radius = 3; //Math.random() * 5 + 2;
         const color = `rgba(255, 255, 255, 1)`;
-        /*const color = `rgba(${Math.floor(Math.random() * 255)}, 
-                            ${Math.floor(Math.random() * 255)}, 
-                            ${Math.floor(Math.random() * 255)}, 0.8)`;*/
-        const velocityX = 0;//(Math.random() - 0.5) * 1;
-        const velocityY = 0;//(Math.random() - 0.5) * 1;
+        const velocityX = 0;
+        const velocityY = 0;
 
         particles.push(new Particle(x, y, radius, color, velocityX, velocityY));
     }
@@ -175,16 +195,32 @@ class Circulo {
         }
     }
 
+    // Função de controle (brilho/intensidade)
+    static intensidade(x) {
+        return Math.min(1, Math.exp(-(x**2)/1e4)); // Exemplo com decaimento exponencial
+    }
+
+    // Função para criar o gradiente com base na intensidade
+    criaGradiente(ctx) {
+        const grad = ctx.createRadialGradient(
+            this.x, this.y, this.raio - this.raio * 0.3, // Raio interno
+            this.x, this.y, this.raio + this.raio * 0.3  // Raio externo
+        );
+
+        const intensidade = Circulo.intensidade(this.raio); // Controle com decaimento
+        grad.addColorStop(0, `rgba(0, 200, 180, ${intensidade})`);
+
+        return grad;
+    }
+
     // Desenha o círculo no canvas
     mostra(ctx) {
         ctx.beginPath();
-        const grad = ctx.createRadialGradient(this.x, this.y, this.raio-(this.raio/5), this.x, this.y, this.raio+(this.raio/5));
-        grad.addColorStop(0.4, `rgba(255, 20, 20, 0.8)`);
-        //grad.addColorStop(0.5, `rgba(40, 40, 40, 1)`);
-        grad.addColorStop(0.6, `rgba(20, 20, 255, 0.8)`);
+        const grad = this.criaGradiente(ctx);
 
-        ctx.lineWidth = 5;
+        ctx.lineWidth = 4;
         ctx.strokeStyle = grad;
+
         ctx.arc(this.x, this.y, this.raio, 0, Math.PI * 2);
         ctx.stroke();
         ctx.closePath();
@@ -235,10 +271,10 @@ function anima() {
 
     // Atualiza e desenha partículas
     particles.forEach(particle => {
-        particle.update(canvas, circulos, interactionEnabled);
+        particle.update(canvas, circulos, interactionEnabled, tipoDeInteracao);
         particle.loretzFactor(c);
         particle.draw(ctx);
-        console.log(`Lorentz gamma = ${particle.gamma}`)
+        //console.log(`Lorentz gamma = ${particle.gamma}`)
     });
 
     // Calculando a energia cinética total e temperatura
@@ -251,7 +287,7 @@ function anima() {
     // Se a temperatura ultrapassar o limite, resfria as partículas
     if (temperatura > TEMP_LIMIT) {
         particles.forEach(particle => particle.reduceSpeed());
-        console.log("Temperatura excedeu o limite! Resfriando...");
+        //console.log("Temperatura excedeu o limite! Resfriando...");
     }
 
     requestAnimationFrame(anima); // Loop contínuo
