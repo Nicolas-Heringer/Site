@@ -3,10 +3,6 @@
 	--color: rgba(80, 80, 80, 0.2);
 }
 
-h2, p {
-	color: whitesmoke;
-}
-
 body {
 	background-color: var(--bg-color);
 	/* Estabelece como os elementos serão posicionados via flexbox */
@@ -19,6 +15,16 @@ body {
 
 	margin: 0px;
 	padding: 0px;
+}
+
+main {
+  width: 100%;
+  max-width: 800px;
+  margin: 20px auto;
+  padding: 20px;
+  background-color: #F2E9EA;
+  border-radius: 15px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
 }
 
 .menu {
