@@ -8,7 +8,8 @@ const temperatureSelector = document.getElementById('selector-de-temperatura');
 const particlesInput = document.getElementById('number-of-particles');
 const waveSpeedSelector = document.getElementById('selector-de-velocidade-onda');
 const temperatureAtenuation = document.getElementById('temperature-atenuation');
-const tiposDeInteracaoSelector = document.getElementById('selector-de-tipo-de-interacao')
+const tiposDeInteracaoSelector = document.getElementById('selector-de-tipo-de-interacao');
+const positionTemplates = document.getElementById('seletor-de-template')
 
 // Variáveis dinâmicas
 let tipoDeInteracao = 'ambas';
