@@ -89,20 +89,20 @@ class Particle {
                         const force = 0.01; // Intensidade da força
 
                         if (tipoDeInteracao==='ambas'){
-                            const fx = (0.1 *(dx / distance)- 0.1 *(dx / distance**6)) * force; // Força no eixo X
-                            const fy = (0.1 *(dy / distance)- 0.1 *(dy / distance**6)) * force; // Força no eixo Y
+                            const fx = (0.1 *(dx / distance)- 0.1 *(dx / distance**6)) * force;
+                            const fy = (0.1 *(dy / distance)- 0.1 *(dy / distance**6)) * force;
                             // Aplica força à velocidade da partícula
                             this.velocityX += fx;
                             this.velocityY += fy;
                         } else if (tipoDeInteracao==='atracao') {
-                            const fx = 0.1 * (dx / distance) * force; // Força no eixo X
-                            const fy = 0.1 * (dy / distance) * force; // Força no eixo Y
+                            const fx = 0.1 * (dx / distance) * force;
+                            const fy = 0.1 * (dy / distance) * force;
                             // Aplica força à velocidade da partícula
                             this.velocityX += fx;
                             this.velocityY += fy;
                         }else if (tipoDeInteracao==='repulsao') {
-                            const fx = 0.1 * (dx / distance) * (-force); // Força no eixo X
-                            const fy = 0.1 * (dy / distance) * (-force); // Força no eixo Y
+                            const fx = 0.1 * (dx / distance) * (-force);
+                            const fy = 0.1 * (dy / distance) * (-force);
                             // Aplica força à velocidade da partícula
                             this.velocityX += fx;
                             this.velocityY += fy;

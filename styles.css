@@ -2,7 +2,6 @@
 	--bg-color: rgb(20,20,20);
 	--color: rgba(80, 80, 80, 0.2);
 }
-
 body {
 	background-color: var(--bg-color);
 	/* Estabelece como os elementos serão posicionados via flexbox */
