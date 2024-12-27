@@ -5,23 +5,20 @@ const ctx = canvas.getContext('2d');
 // Seletores de elementos DOM
 const interactionSelector = document.getElementById('selector-de-interacao');
 const temperatureSelector = document.getElementById('selector-de-temperatura');
-const particlesInput = document.getElementById('number-of-particles');
 const waveSpeedSelector = document.getElementById('selector-de-velocidade-onda');
 const temperatureAtenuation = document.getElementById('temperature-atenuation');
 const tiposDeInteracaoSelector = document.getElementById('selector-de-tipo-de-interacao');
-const positionTemplates = document.getElementById('seletor-de-template')
+const positionTemplates = document.getElementById('seletor-de-template');
 
 // Variáveis dinâmicas
 let tipoDeInteracao = 'ambas';
 let interactionEnabled = false;
 let TEMP_LIMIT = 0.001;
-let numParticles = 2;
+let numParticles = 1;
 let c = 1; // Velocidade da onda
-let attenuation = 0.1; // Fator de resfriamento para reduzir a velocidade das partículas
+let attenuation = 0.09; // Fator de resfriamento para reduzir a velocidade das partículas
+let template = 'livre';
 
-const eventHandlers = {
-    
-}
 // Manipuladores de eventos
 interactionSelector.addEventListener('change', () => {
     interactionEnabled = interactionSelector.value === 'ligada';
@@ -33,13 +30,6 @@ temperatureSelector.addEventListener('change', () => {
     TEMP_LIMIT = temperatureSelector.value;
     console.log(`Temperatura: ${TEMP_LIMIT}`);
     // Atualize a simulação aqui
-});
-
-particlesInput.addEventListener('input', () => {
-    numParticles = parseInt(particlesInput.value, 10);
-    console.log(`Número de partículas: ${numParticles}`);
-    // Crie ou atualize partículas com base no número especificado
-    particles = createParticles(canvas, numParticles); // Exemplo de integração com a simulação
 });
 
 waveSpeedSelector.addEventListener('change', () => {
@@ -57,6 +47,12 @@ temperatureAtenuation.addEventListener('input', () => {
     attenuation = parseFloat(temperatureAtenuation.value);
     console.log(`Atenuação da temperatura: ${attenuation}`);
     // Atualize a atenuação da temperatura na simulação
+});
+
+positionTemplates.addEventListener('input', () => {
+    template =  positionTemplates.value;
+    console.log(`Template selecionado: ${template}`);
+    particles = createParticles(canvas, template);
 });
 
 // Classe para representar uma partícula
@@ -150,9 +146,14 @@ class Particle {
     }
 
     // Método para reduzir a velocidade das partículas (resfriamento)
-    reduceSpeed() {
-        this.velocityX *= attenuation;
-        this.velocityY *= attenuation;
+    reduceSpeed(attenuation) {
+        this.velocityX *= (1-attenuation);
+        this.velocityY *= (1-attenuation);
+    }
+
+    increaseSpeed() {
+        this.velocityX *= (1+attenuation);
+        this.velocityY *= (1+attenuation);
     }
     
     loretzFactor(c) {
@@ -163,21 +164,99 @@ class Particle {
     }
 }
 
-// Função para criar partículas
-function createParticles(canvas, particleCount) {
-    const particles = [];
-    for (let i = 0; i < particleCount; i++) {
-        const x = Math.random() * canvas.width;
-        const y = Math.random() * canvas.height;
-        const radius = 3; //Math.random() * 5 + 2;
-        const color = `rgba(255, 255, 255, 1)`;
-        const velocityX = 0;
-        const velocityY = 0;
+// Geradores de templates
+const positionGenerators = {
+    livre: {
+        num: () => 1, // Apenas uma partícula
+        generate(canvas, index) {
+            const x = canvas.width / 2;
+            const y = canvas.height / 2;
+            return { x, y };
+        },
+        velocity: () => ({ x: 1, y: 1.2 }),
+        radius: () => 5,
+        color: () => `rgba(255, 255, 255, 1)`,
+    },
+    double: {
+        num: () => 2, // Duas partículas
+        generate(canvas, index) {
+            const dist = canvas.width / 5;
+            const x = canvas.width / 2 + dist*index - dist/2;
+            const y = canvas.height / 2;
+            return { x, y };
+        },
+        velocity: (index) => ({ x: 0, y: 1 -( 2 * index) }),
+        radius: () => 5,
+        color: () => `rgba(255, 255, 255, 1)`,
+    },
+    many: {
+        num: () => 11,
+        generate(canvas, index) {
 
-        particles.push(new Particle(x, y, radius, color, velocityX, velocityY));
+            const dist = canvas.width/2;
+            const x = canvas.width / 2 - dist/2 + dist*index/10;
+            const y = canvas.height / 2;
+            return { x, y };
+        },
+        velocity: (index) => ({ x: 0, y: (1-2*index/10)}),
+        radius: () => 5,
+        color: () => `rgba(255, 255, 255, 1)`,
+    },
+    circular: {
+        num: () => 20, // Número fixo de partículas
+        generate(canvas, index, total) {
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            const radius = Math.min(canvas.width, canvas.height) / 4;
+            const angle = (index / total) * 2 * Math.PI; // Distribuição uniforme
+            return {
+                x: centerX + radius * Math.cos(angle),
+                y: centerY + radius * Math.sin(angle),
+            };
+        },
+        velocity: () => ({ x: 0, y: 0 }),
+        radius: () => 3,
+        color: () => `rgba(255, 255, 255, 1)`,
+    },
+    grid: {
+        num: () => 36, // Grid com 36 partículas
+        generate(canvas, index, total) {
+            const cols = Math.ceil(Math.sqrt(total));
+            const rows = Math.ceil(total / cols);
+            const gridX = index % cols;
+            const gridY = Math.floor(index / cols);
+            const spacingX = canvas.width / cols;
+            const spacingY = canvas.height / rows;
+            return {
+                x: gridX * spacingX + spacingX / 2,
+                y: gridY * spacingY + spacingY / 2,
+            };
+        },
+        velocity: () => ({ x: 0, y: 0 }),
+        radius: () => 3,
+        color: () => `rgba(255, 255, 255, 1)`,
+    },
+    // Adicione mais templates aqui
+};
+
+// Função para criar partículas
+function createParticles(canvas, template = "livre") {
+    const generator = positionGenerators[template];
+
+    if (!generator) {
+        throw new Error(`Template "${template}" não é suportado.`);
     }
+
+    const particleCount = generator.num();
+    const particles = Array.from({ length: particleCount }, (_, i) => {
+        const { x, y } = generator.generate(canvas, i, particleCount);
+        const { x: vx, y: vy } = generator.velocity(i);
+        return new Particle(x, y, generator.radius(), generator.color(), vx, vy);
+    });
+
     return particles;
 }
+
 
 // Classe para criar as ondas
 class Circulo {
@@ -219,7 +298,7 @@ class Circulo {
         ctx.beginPath();
         const grad = this.criaGradiente(ctx);
 
-        ctx.lineWidth = 4;
+        ctx.lineWidth = 1;
         ctx.strokeStyle = grad;
 
         ctx.arc(this.x, this.y, this.raio, 0, Math.PI * 2);
@@ -230,7 +309,7 @@ class Circulo {
 
 // Lista de partículas e ondas
 let circulos = [];
-let particles = createParticles(canvas, numParticles); // Cria 10 partículas
+let particles = createParticles(canvas, template); // Cria 10 partículas
 
 // Função para calcular a energia cinética total do sistema
 function calcularEnergiaCinetica(particles) {
@@ -287,8 +366,10 @@ function anima() {
 
     // Se a temperatura ultrapassar o limite, resfria as partículas
     if (temperatura > TEMP_LIMIT) {
-        particles.forEach(particle => particle.reduceSpeed());
+        particles.forEach(particle => particle.reduceSpeed(attenuation));
         //console.log("Temperatura excedeu o limite! Resfriando...");
+    } else if (temperatura < TEMP_LIMIT){
+        particles.forEach(particle => particle.increaseSpeed(attenuation));
     }
 
     requestAnimationFrame(anima); // Loop contínuo

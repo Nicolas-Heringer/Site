@@ -1,7 +1,7 @@
 <!DOCTYPE html>
-<html>
+<html lang="pt-br">
 <head>
-	<meta charset="utf-8">
+	<meta charset='utf-8'>
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<title>Simulação de partículas</title>
 	<link rel="stylesheet" href="../styles.css">
@@ -16,10 +16,30 @@
 		</div>
 
 		<div id="canvasContainer">
-		    <canvas id="myCanvas" width="598" height="598" style="border:1px solid #fff;"></canvas>
+		    <canvas id="myCanvas" width="598" height="598"></canvas>
 		</div>
 
 		<div class="controlsContainer">
+
+			<div class="controlGroup">
+		        <label for="seletor-de-template">Template:</label>
+		        <select id="seletor-de-template">
+		            <option value="livre">Uma partícula</option>
+		            <option value="double">Duas partículas</option>
+		            <option value="many">Varias partículas (10)</option>
+		            <option value="circular">Circulo (20)</option>
+		            <option value="grid">Grid (6x6)</option>
+		        </select>
+		    </div>
+
+		    <div class="controlGroup">
+		        <label for="selector-de-tipo-de-interacao">Tipo de interação:</label>
+		        <select id="selector-de-tipo-de-interacao">
+		            <option value="ambos">Atração e repulsão</option>
+		            <option value="atracao">Apenas atração</option>
+		            <option value="repulsao">Apenas repulsão</option>
+		        </select>
+		    </div>
 
 		    <div class="controlGroup">
 		        <label for="selector-de-interacao">Interação:</label>
@@ -42,42 +62,25 @@
 		    </div>
 
 		    <div class="controlGroup">
-		        <label for="temperature-atenuation">Atenuação:</label>
-		        <input type="number" id="temperature-atenuation" min="0" max="1" step="0.01" value="0.1">
-		    </div>
-
-		    <div class="controlGroup">
-		        <label for="number-of-particles">Num. Partículas:</label>
-		        <input type="number" id="number-of-particles" min="1" max="1000" value="2">
-		    </div>
-
-		    <div class="controlGroup">
 		        <label for="selector-de-velocidade-onda">Vel. da Onda:</label>
 		        <select id="selector-de-velocidade-onda">
 		            <option value="1">1</option>
 		            <option value="2">2</option>
+		            <option value="3">3</option>
+		            <option value="4">4</option>
 		            <option value="5">5</option>
+		            <option value="10">10</option>
 		        </select>
 		    </div>
 
+
+		</div>
+
+		<div class="controlsContainer">
 		    <div class="controlGroup">
-		        <label for="selector-de-tipo-de-interacao">Tipo de interação:</label>
-		        <select id="selector-de-tipo-de-interacao">
-		            <option value="ambos">Atração e repulsão</option>
-		            <option value="atracao">Apenas atração</option>
-		            <option value="repulsao">Apenas repulsão</option>
-		        </select>
+		        <label for="temperature-atenuation">Atenuação:</label>
+		        <input type="number" id="temperature-atenuation" min="0" max="1" step="0.01" value="0.09">
 		    </div>
-
-			<div class="controlGroup">
-		        <label for="'seletor-de-template'">Template:</label>
-		        <select id="'seletor-de-template'">
-		            <option value="one-free-particle">Uma partícula livre</option>
-		            <option value="circular-oscilation">Oscilação circular</option>
-		            <option value="vertical-oscilation">Oscilação vertical</option>
-		        </select>
-		    </div>
-
 		</div>
 
 		<div id="text" class="section">
