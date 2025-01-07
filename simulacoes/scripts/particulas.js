@@ -9,8 +9,11 @@ const waveSpeedSelector = document.getElementById('selector-de-velocidade-onda')
 const temperatureAtenuation = document.getElementById('temperature-atenuation');
 const tiposDeInteracaoSelector = document.getElementById('selector-de-tipo-de-interacao');
 const positionTemplates = document.getElementById('seletor-de-template');
+const resetButton = document.getElementById('reset-button');
+
 
 // Variáveis dinâmicas
+let resetState = false;
 let tipoDeInteracao = 'ambas';
 let interactionEnabled = false;
 let TEMP_LIMIT = 0.001;
@@ -55,14 +58,26 @@ positionTemplates.addEventListener('input', () => {
     particles = createParticles(canvas, template);
 });
 
+// Evento de clique no botão de reset
+resetButton.addEventListener('click', () => {
+    // Reseta listas e o template
+    circulos = [];
+    particles = [];
+    positionTemplates.value = 'none';
+
+    // Opcional: Atualiza a interface ou chama uma função de renderização
+    console.log("Partículas e ondas resetadas");
+});
+
 // Classe para representar uma partícula
 class Particle {
-    constructor(x, y, radius, color, velocityX, velocityY) {
+    constructor(x, y, radius, color, velocityX, velocityY, charge = 1 , mass = 1) {
         this.x = x;
         this.y = y;
         this.radius = radius;
         this.color = color;
-        this.mass = 1;
+        this.mass = mass;
+        this.charge = charge;
         this.velocityX = velocityX; // Velocidade no eixo X
         this.velocityY = velocityY; // Velocidade no eixo Y
         this.waveTimer = 0; // Temporizador para emissão de ondas
@@ -86,7 +101,7 @@ class Particle {
                     // Verifica se a partícula está dentro da influência da onda
                     if (Math.abs(distance - wave.raio) < 10) {
                         // Calcula força de atração
-                        const force = 0.01; // Intensidade da força
+                        const force = 0.05; // Intensidade da força
 
                         if (tipoDeInteracao==='ambas'){
                             const fx = (0.1 *(dx / distance)- 0.1 *(dx / distance**6)) * force;
@@ -190,15 +205,15 @@ const positionGenerators = {
         color: () => `rgba(255, 255, 255, 1)`,
     },
     many: {
-        num: () => 11,
+        num: () => 3,
         generate(canvas, index) {
 
             const dist = canvas.width/2;
-            const x = canvas.width / 2 - dist/2 + dist*index/10;
+            const x = canvas.width / 2 - dist/2 + dist*index/3;
             const y = canvas.height / 2;
             return { x, y };
         },
-        velocity: (index) => ({ x: 0, y: (1-2*index/10)}),
+        velocity: (index) => ({ x: 0, y: (1-2*index/3)}),
         radius: () => 5,
         color: () => `rgba(255, 255, 255, 1)`,
     },
@@ -236,7 +251,29 @@ const positionGenerators = {
         radius: () => 3,
         color: () => `rgba(255, 255, 255, 1)`,
     },
-    // Adicione mais templates aqui
+    NaCl: {
+        num: () => 36, // Total de partículas (ajuste conforme necessário)
+        generate(canvas, index, total) {
+            const cols = Math.ceil(Math.sqrt(total));
+            const rows = Math.ceil(total / cols);
+            const gridX = index % cols;
+            const gridY = Math.floor(index / cols);
+            const spacingX = canvas.width / cols;
+            const spacingY = canvas.height / rows;
+            
+            return {
+                x: gridX * spacingX + spacingX / 2,
+                y: gridY * spacingY + spacingY / 2,
+                type: (gridX + gridY) % 2 == 0 ? 'Na' : 'Cl', // Alterna entre 'Na' e 'Cl'
+            };
+        },
+        velocity: () => ({ x: 0, y: 0 }),
+        radius: (type) => (type === 'Na' ? 3 : 6), // Raio maior para Cl
+        color: (type) => (type === 'Na' ? 'blue' : 'green'), // Azul para Na, verde para Cl
+    },
+    none: {
+        num: () => 0,
+    },
 };
 
 // Função para criar partículas
@@ -249,9 +286,9 @@ function createParticles(canvas, template = "livre") {
 
     const particleCount = generator.num();
     const particles = Array.from({ length: particleCount }, (_, i) => {
-        const { x, y } = generator.generate(canvas, i, particleCount);
+        const { x, y , type} = generator.generate(canvas, i, particleCount);
         const { x: vx, y: vy } = generator.velocity(i);
-        return new Particle(x, y, generator.radius(), generator.color(), vx, vy);
+        return new Particle(x, y, generator.radius(type), generator.color(type), vx, vy);
     });
 
     return particles;
@@ -352,7 +389,7 @@ function anima() {
     // Atualiza e desenha partículas
     particles.forEach(particle => {
         particle.update(canvas, circulos, interactionEnabled, tipoDeInteracao);
-        particle.loretzFactor(c);
+        //particle.loretzFactor(c);
         particle.draw(ctx);
         //console.log(`Lorentz gamma = ${particle.gamma}`)
     });
