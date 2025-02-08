@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Análise de Áudio em Tempo Real</title>
+    <style>
+        body {
+            background-color: rgb(0,0,0);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        canvas {
+            border: 1px solid #ccc;
+            margin: 10px 0;
+        }
+        .canvas-container {
+            position: relative;
+            margin: 20px 0;
+        }
+        .axis-label {
+            position: absolute;
+            font-size: 12px;
+            color: #fff;
+        }
+        .controls {
+            margin: 20px 0;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 0 10px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <h1>Análise de Áudio em Tempo Real</h1>
+    
+    <div class="controls">
+        <button id="startButton">▶ Iniciar</button>
+        <button id="stopButton" disabled>⏹ Parar</button>
+    </div>
+
+    <div class="canvas-container" id="canvasContainer">
+        <canvas id="timeCanvas"></canvas>
+        <div class="axis-label" style="bottom: -25px; left: 50%; transform: translateX(-50%)">Tempo (ms)</div>
+        <div class="axis-label" style="top: 50%; left: -40px; transform: rotate(-90deg) translateY(-50%)">Amplitude</div>
+    </div>
+
+    <div class="canvas-container" id="canvasContainer">
+        <canvas id="freqCanvas"></canvas>
+        <div class="axis-label" style="bottom: -25px; left: 50%; transform: translateX(-50%)">Frequência (Hz)</div>
+        <div class="axis-label" style="top: 50%; left: -50px; transform: rotate(-90deg) translateY(-50%)">Intensidade (dB)</div>
+    </div>
+
+    <script src="scripts/audio.js"></script>
+</body>
+</html>
