@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+	<meta charset='utf-8'>
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Simulação de fonons</title>
+	<link rel="stylesheet" href="../styles.css">
+	<link rel="stylesheet" href="css/particulas.css">
+</head>
+<main>
+	<body>
+
+		<div id="text" class="section">
+			<h1>Simulação de fônons</h1>
+			<p> O objetivo desta simulação é ilustrar a temperatura se associa a ondas de matéria.</p>
+		</div>
+
+		<div id="canvasContainer">
+		    <canvas id="myCanvas" width="598" height="598"></canvas>
+		</div>
+
+		<div class="controlsContainer">
+
+			<div class="controlGroup">
+		        <label for="seletor-de-template">Template:</label>
+		        <select id="seletor-de-template">
+		            <option value=""> Vazio </option>
+		            <option value="grid5">Grid 5</option>
+		            <option value="grid10">Grid 10</option>
+		            <option value="grid20">Grid 20</option>
+		            <option value="grid">Grid 10x15</option>
+		        </select>
+		    </div>
+
+		    <div class="controlGroup">
+			    <label>Raio de Influência: <input type="range" id="raioInput" min="20" max="200" value="80"></label>
+			    <label>Intensidade: <input type="range" id="intensidadeInput" min="100" max="500" value="300"></label>
+			</div>
+
+		</div>
+
+		<div id="text" class="section">
+			<p> 
+				A apresentação deta simulação pode ser benéfica ao apresentar alguns tópicos distintos:			
+			</p>
+		</div>
+
+		<script src="scripts/fonons.js"></script>
+	</body>
+</main>
+</html>
