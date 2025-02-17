@@ -34,7 +34,7 @@ document.addEventListener('DOMContentLoaded', () => {
         constructor() {
             this.particulas = [];
             this.kElastica = 10; // Constante elástica
-            this.amortecimento = 0.0;
+            this.amortecimento = 0.005;
         }
 
         // Modificado para conectar vizinhos
@@ -133,7 +133,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // Parâmetros ajustáveis
             this.raioInfluencia = 50;
             this.intensidade = 20;
-            this.suavizacao = 0.8;
+            this.suavizacao = 0.5;
 
             this.configurarEventos();
         }
@@ -158,6 +158,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     this.aplicarForcaArrasto(delta);
                     this.posAnterior = {...this.posMouse};
                 }
+
+                console.log(`Mouse position (${this.posMouse.x},${this.posMouse.y})`);
             });
 
             this.canvas.addEventListener('mouseup', () => {
@@ -167,6 +169,9 @@ document.addEventListener('DOMContentLoaded', () => {
             this.canvas.addEventListener('mouseout', () => {
                 this.mousePressionado = false;
             });
+
+            console.log("Eventos configurados");
+
         }
 
         getPosMouse(e) {
@@ -178,7 +183,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         aplicarForcaArrasto(delta) {
-            const fatorDt = 1/60; // Normalização para taxa de atualização fixa
+            const fatorDt = 1/30; // Normalização para taxa de atualização fixa
             
             this.sistema.particulas.forEach(particula => {
                 if(particula.fixa) return;
@@ -196,6 +201,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     particula.vy += delta.y * this.intensidade * peso * fatorDt;
                 }
             });
+
+            console.log("Arrasto aplicado");
         }
     }
 
@@ -204,7 +211,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const velocidade = Math.sqrt(vx*vx + vy*vy);
         const intensidade = Math.min(1, velocidade * 5); // Ajuste o fator para sensibilidade
         const hue = 240 - (intensidade * 120); // Azul (baixa) → Vermelho (alta)
-        return `hsl(${hue}, 100%, 50%)`;
+        return `hsl(${hue}, 100%, 40%)`;
     }
 
     // Sistema de renderização
@@ -254,7 +261,6 @@ document.addEventListener('DOMContentLoaded', () => {
         requestAnimationFrame(animar);
     }
 
-    // Adicione no JavaScript
     document.getElementById('raioInput').addEventListener('input', (e) => {
         interacao.raioInfluencia = e.target.value;
     });
@@ -263,13 +269,12 @@ document.addEventListener('DOMContentLoaded', () => {
         interacao.intensidade = e.target.value;
     });
 
-    // Evento de template (atualizado)
     document.getElementById('seletor-de-template').addEventListener('change', (e) => {
         const templates = {
             'grid5': [5, 5],
             'grid10': [10,10],
             'grid20': [20,20],
-            'grid': [10,15],
+            'grid50': [50,50],
             // ... outros templates
         };
 
@@ -278,9 +283,9 @@ document.addEventListener('DOMContentLoaded', () => {
         renderizar();
     });
 
-    // Inicialização
-    //sistema.distribuirPorVetor(canvas.width, canvas.height, [10, 10]);
-    // Inicialize a interação após criar o sistema
+    sistema.distribuirPorVetor(canvas.width, canvas.height, [50, 50]);
     
     requestAnimationFrame(animar);
 });
+
+requestAnimationFrame(animar);
