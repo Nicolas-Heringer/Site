@@ -287,5 +287,3 @@ document.addEventListener('DOMContentLoaded', () => {
     
     requestAnimationFrame(animar);
 });
-
-requestAnimationFrame(animar);
