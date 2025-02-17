@@ -159,7 +159,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     this.posAnterior = {...this.posMouse};
                 }
 
-                console.log(`Mouse position (${this.posMouse.x},${this.posMouse.y})`);
+                //console.log(`Mouse position (${this.posMouse.x},${this.posMouse.y})`);
             });
 
             this.canvas.addEventListener('mouseup', () => {
@@ -170,7 +170,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 this.mousePressionado = false;
             });
 
-            console.log("Eventos configurados");
+            //console.log("Eventos configurados");
 
         }
 
@@ -202,14 +202,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             });
 
-            console.log("Arrasto aplicado");
+            //console.log("Arrasto aplicado");
         }
     }
 
     // Função auxiliar para cores
     function velocidadeParaCor(vx, vy) {
         const velocidade = Math.sqrt(vx*vx + vy*vy);
-        const intensidade = Math.min(1, velocidade * 5); // Ajuste o fator para sensibilidade
+        const intensidade = Math.min(2, velocidade * 5); // Ajuste o fator para sensibilidade
         const hue = 240 - (intensidade * 120); // Azul (baixa) → Vermelho (alta)
         return `hsl(${hue}, 100%, 40%)`;
     }
