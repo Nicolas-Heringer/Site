@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Simulação da Lei de Snell</title>
+    <link rel="stylesheet" type="text/css" href="css/snell.css">
+    <link rel="stylesheet" type="text/css" href="css/buttons.css">
+</head>
+<body>
+    <h1>Simulação da Lei de Snell</h1>
+    <!-- Canvas para o mapa de cores do campo escalar -->
+    <canvas id="simulationCanvas"></canvas>
+
+    <div class="slider-container">
+        <input type="range" id="aberturaSlider" min="0" max="360" value="45" step="2">
+        <span id="aberturaValue">45°</span>
+    </div>
+
+    <div class="slider-container">
+        <input type="range" id="numFeixesSlider" min="0" max="1000" value="100" step="1">
+        <span id="numFeixesValue">100 feixes</span>
+    </div>
+
+    <select id="refractiveIndexFunction">
+        <option value="constante">Constante (n = 1.5)</option>
+        <option value="sigmoide">Sigmoide</option>
+        <option value="gaussiana">Gaussiana</option>
+        <option value="senoidal">Senoidal</option>
+        <option value="lenteConvergente">Lente Convergente</option>
+        <option value="lenteDivergente">Lente Divergente</option>
+    </select>
+
+    <script src="scripts/snell.js"></script>
+    <script src="scripts/buttons.js"></script>
+</body>
+</html>
