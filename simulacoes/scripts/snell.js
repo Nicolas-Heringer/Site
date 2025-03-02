@@ -216,8 +216,8 @@ window.onload = function () {
                 const t = (n - minN) / range;
                 const idx = (y * canvasWidth + x) * 4;
 
-                data[idx] = 100 * (1 - t);           // Vermelho
-                data[idx + 1] = 100 * (1 - t);             // Verde
+                data[idx] = 100 * (1 - t);     // Vermelho
+                data[idx + 1] = 100 * (1 - t); // Verde
                 data[idx + 2] = 100 * (1 - t); // Azul
                 data[idx + 3] = 255;           // Alpha
             }
