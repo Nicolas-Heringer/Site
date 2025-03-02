@@ -25,83 +25,92 @@ window.onload = function () {
     });
 
     const refractiveIndexFunctions = {
-        constante: function(x, y) {
-            return 1.0;
-        },
-        sigmoide: function(x, y) {
-            return 1.5 - 0.5 * Math.exp(y-canvas.height/2-50)/(Math.exp(y-canvas.height/2-50) + 1) + 0.5 * Math.exp(y-canvas.height/2+50)/(Math.exp(y-canvas.height/2+50) + 1);
-        },
-        gaussiana: function(x, y) {
-            return 1 + Math.exp(-0.001 * ((x-canvasWidth/2)*(x-canvasWidth/2) + (y-canvasHeight/2)*(y-canvasHeight/2)));
-        },
-        senoidal: function(x, y) {
-            return 1.5 + 0.5 * Math.sin(x / 20) * Math.sin(y / 20);
-        },
-        lenteConvergente: function(x, y) {
-            const centroX = canvasWidth / 2; // Centro horizontal da lente
-            const centroY = canvasHeight / 2; // Centro vertical da lente
-            const nFora = 1.0; // Índice de refração fora da lente
-            const nDentro = 1.5; // Índice de refração dentro da lente
-            const suavizacao = 1; // Controla a "largura" da transição suave (quanto maior, mais suave)
-
-            // Equações das parábolas que definem as faces da lente
-            const xLeftParabola = 0.003 * ((y - centroY) ** 2) + (centroX - 50);
-            const xRightParabola = -0.003 * ((y - centroY) ** 2) + (centroX + 50);
-
-            // Distância normalizada para a transição suave
-            let distanciaNormalizada;
-
-            if (x < centroX) {
-                // Distância normalizada para a face esquerda da lente
-                distanciaNormalizada = (x - xLeftParabola) / suavizacao;
-            } else {
-                // Distância normalizada para a face direita da lente
-                distanciaNormalizada = (xRightParabola - x) / suavizacao;
+        constante: {
+            minN: 1.0,
+            maxN: 1.0,
+            n: function(x, y) {
+                return 1.0;
             }
-
-            // Função sigmoide para suavizar a transição
-            const transicao = 1 / (1 + Math.exp(-distanciaNormalizada));
-
-            // Índice de refração suavizado
-            const n = nFora + (nDentro - nFora) * transicao;
-
-            return n;
         },
-        lenteDivergente: function(x, y) {
-            const centroX = canvasWidth / 2; // Centro horizontal da lente
-            const centroY = canvasHeight / 2; // Centro vertical da lente
-            const nFora = 1.0; // Índice de refração fora da lente
-            const nDentro = 2.0; // Índice de refração dentro da lente
-            const suavizacao = 1; // Controla a "largura" da transição suave
-            const alturaMaxima = 100; // Altura máxima da lente (corte vertical)
-
-            // Equações das parábolas que definem as faces da lente
-            const xLeftParabola = -0.001 * ((y - centroY) ** 2) + (centroX - 20);
-            const xRightParabola = 0.001 * ((y - centroY) ** 2) + (centroX + 20);
-
-            // Verificar se o ponto (y) está dentro da altura máxima da lente
-            if (Math.abs(y - centroY) > alturaMaxima) {
-                return nFora; // Fora da altura da lente, retorna o índice externo
+        fibraOptica: {
+            minN: 0.0,
+            maxN: 2.0,
+            n: function(x, y) {
+                return 1.0 - 1.0 * Math.exp(y-canvas.height/2-50)/(Math.exp(y-canvas.height/2-50) + 1) + 1.0 * Math.exp(y-canvas.height/2+50)/(Math.exp(y-canvas.height/2+50) + 1);
             }
-
-            // Distância normalizada para a transição suave
-            let distanciaNormalizada;
-
-            if (x < centroX) {
-                // Distância normalizada para a face esquerda da lente
-                distanciaNormalizada = (x - xLeftParabola) / suavizacao;
-            } else {
-                // Distância normalizada para a face direita da lente
-                distanciaNormalizada = (xRightParabola - x) / suavizacao;
+        },
+        gaussiana: {
+            minN: 1.0,
+            maxN: 2.0,
+            n: function(x, y) {
+                return 2 - 1 * Math.exp(-0.0001 * ((x-canvasWidth/2)*(x-canvasWidth/2) + (y-canvasHeight/2)*(y-canvasHeight/2)));
             }
+        },
+        senoidal: {
+            minN: -1.0,
+            maxN: 4.0,
+            n: function(x, y) {
+                return 1.5 + 0.5 * Math.sin(x / 10) * Math.sin(y / 10);
+            }
+        },
+        lenteConvergente: {
+            minN: 1.0,
+            maxN: 1.4,
+            n: function(x, y) {
+                const centroX = canvasWidth / 2;
+                const centroY = canvasHeight / 2;
+                const nFora = 1.0;
+                const nDentro = 1.4;
+                const suavizacao = 1;
 
-            // Função sigmoide para suavizar a transição
-            const transicao = 1 / (1 + Math.exp(-distanciaNormalizada));
+                const xLeftParabola = 0.002 * ((y - centroY) ** 2) + (centroX - 50);
+                const xRightParabola = -0.002 * ((y - centroY) ** 2) + (centroX + 50);
 
-            // Índice de refração suavizado
-            const n = nFora + (nDentro - nFora) * transicao;
+                let distanciaNormalizada;
 
-            return n;
+                if (x < centroX) {
+                    distanciaNormalizada = (x - xLeftParabola) / suavizacao;
+                } else {
+                    distanciaNormalizada = (xRightParabola - x) / suavizacao;
+                }
+
+                const transicao = 1 / (1 + Math.exp(-distanciaNormalizada));
+                const n = nFora + (nDentro - nFora) * transicao;
+
+                return n;
+            }
+        },
+        lenteDivergente: {
+            minN: 1.0,
+            maxN: 1.4,
+            n: function(x, y) {
+                const centroX = canvasWidth / 2;
+                const centroY = canvasHeight / 2;
+                const nFora = 1.0;
+                const nDentro = 1.4;
+                const suavizacao = 1;
+                const alturaMaxima = 120;
+
+                const xLeftParabola = -0.002 * ((y - centroY) ** 2) + (centroX - 20);
+                const xRightParabola = 0.002 * ((y - centroY) ** 2) + (centroX + 20);
+
+                if (Math.abs(y - centroY) > alturaMaxima) {
+                    return nFora;
+                }
+
+                let distanciaNormalizada;
+
+                if (x < centroX) {
+                    distanciaNormalizada = (x - xLeftParabola) / suavizacao;
+                } else {
+                    distanciaNormalizada = (xRightParabola - x) / suavizacao;
+                }
+
+                const transicao = 1 / (1 + Math.exp(-distanciaNormalizada));
+                const n = nFora + (nDentro - nFora) * transicao;
+
+                return n;
+            }
         }
     };
 
@@ -117,8 +126,7 @@ window.onload = function () {
         criarFeixes(mouseX, mouseY, 2 * Math.PI * (sliderAbertura.value/360));
     });
 
-    // 1. Função do campo escalar (índice de refração)
-    let selectedRefractiveIndexFunction = refractiveIndexFunctions.constante;
+    let selectedRefractiveIndexFunction = refractiveIndexFunctions.constante.n;
 
     function getRefractiveIndex(x, y) {
         return selectedRefractiveIndexFunction(x, y);
@@ -126,7 +134,7 @@ window.onload = function () {
 
     // Atualizar a função selecionada quando o usuário mudar a seleção
     document.getElementById('refractiveIndexFunction').addEventListener('change', function(event) {
-        selectedRefractiveIndexFunction = refractiveIndexFunctions[event.target.value];
+        selectedRefractiveIndexFunction = refractiveIndexFunctions[event.target.value].n;
     });
 
     function updateRefractiveIndexMap() {
@@ -137,7 +145,7 @@ window.onload = function () {
                 refractiveIndexMap[y][x] = n;
 
                 // Calcular gradiente (diferenças centrais)
-                const delta = 1;
+                const delta = 0.01;
                 const nx_plus = getRefractiveIndex(x + delta, y);
                 const nx_minus = getRefractiveIndex(x - delta, y);
                 const ny_plus = getRefractiveIndex(x, y + delta);
@@ -149,14 +157,19 @@ window.onload = function () {
                 };
             }
         }
-    }
+    };
 
+    document.getElementById('refractiveIndexFunction').addEventListener('change', function(event) {
+        const selectedFunction = refractiveIndexFunctions[event.target.value];
+        selectedRefractiveIndexFunction = selectedFunction.n;
+        updateRefractiveIndexMap();
 
-// Atualizar o mapa quando a função for alterada
-document.getElementById('refractiveIndexFunction').addEventListener('change', function(event) {
-    selectedRefractiveIndexFunction = refractiveIndexFunctions[event.target.value];
-    updateRefractiveIndexMap();
-});
+        const minN = selectedFunction.minN;
+        const maxN = selectedFunction.maxN;
+        const range = maxN - minN;
+
+        drawBackgroundWithOpacity(1, minN, range);
+    });
 
     // 2. Pré-computação dos dados
     const refractiveIndexMap = []; // Mapa de índices de refração
@@ -203,10 +216,10 @@ document.getElementById('refractiveIndexFunction').addEventListener('change', fu
                 const t = (n - minN) / range;
                 const idx = (y * canvasWidth + x) * 4;
 
-                data[idx] = 255 * t;         // Vermelho
-                data[idx + 1] = 0;           // Verde
-                data[idx + 2] = 255 * (1 - t); // Azul
-                data[idx + 3] = 255;         // Alpha
+                data[idx] = 100 * (1 - t);           // Vermelho
+                data[idx + 1] = 100 * (1 - t);             // Verde
+                data[idx + 2] = 100 * (1 - t); // Azul
+                data[idx + 3] = 255;           // Alpha
             }
         }
         tempCtx.putImageData(imageData, 0, 0);
@@ -225,7 +238,7 @@ document.getElementById('refractiveIndexFunction').addEventListener('change', fu
             this.y = y;
             this.dirx = Math.cos(angle);
             this.diry = Math.sin(angle);
-            this.color = color || 'rgba(255, 255, 0, 0.8)'; // Cor amarela
+            this.color = color || 'rgba(0, 255, 0, 0.8)'; // Cor amarela
             this.foraDoCanvas = false;
         }
 
@@ -277,7 +290,7 @@ document.getElementById('refractiveIndexFunction').addEventListener('change', fu
 
     // Inicializar o mapa de índices de refração
     updateRefractiveIndexMap();
-
+    let counter = 0;
     // 6. Loop de animação
     function animate() {
         requestAnimationFrame(animate);
@@ -287,7 +300,13 @@ document.getElementById('refractiveIndexFunction').addEventListener('change', fu
         const range = maxN - minN;
 
         // Redesenhar o fundo com opacidade
-        drawBackgroundWithOpacity(0.05, minN, range); // Opacidade de 10%
+        counter += 1;
+        if (counter%600){
+
+            drawBackgroundWithOpacity(0.005, minN, range); // Opacidade de 10%  
+        }
+
+        //
         
         // Atualizar e desenhar feixes
         for (let i = feixes.length - 1; i >= 0; i--) {
