@@ -67,4 +67,34 @@ document.addEventListener("DOMContentLoaded", function() {
       }
     });
   });
+
+  // --- Lógica de filtragem de simulações ---
+  const filterBtns = document.querySelectorAll('.filter-btn');
+  const cardLinks  = document.querySelectorAll('.card-link');
+  const noResults  = document.getElementById('no-results');
+
+  if (filterBtns.length > 0) {
+    filterBtns.forEach(btn => {
+      btn.addEventListener('click', function() {
+        // Atualiza botão ativo
+        filterBtns.forEach(b => b.classList.remove('active'));
+        this.classList.add('active');
+
+        const filtro = this.getAttribute('data-filtro');
+        let visiveis = 0;
+
+        cardLinks.forEach(link => {
+          const categorias = (link.getAttribute('data-categorias') || '').split(' ');
+          const mostrar = filtro === 'todas' || categorias.includes(filtro);
+          link.classList.toggle('card-hidden', !mostrar);
+          if (mostrar) visiveis++;
+        });
+
+        // Exibe mensagem se nenhum card for encontrado
+        if (noResults) {
+          noResults.style.display = visiveis === 0 ? 'block' : 'none';
+        }
+      });
+    });
+  }
 });

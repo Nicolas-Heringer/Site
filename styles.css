@@ -262,7 +262,81 @@ p {
     z-index: 2;
 }
 
+/* --- FILTER BAR --- */
+.filter-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 25px;
+}
+
+.filter-btn {
+    background-color: transparent;
+    border: 1px solid var(--border-color);
+    color: var(--text-secondary);
+    padding: 8px 20px;
+    border-radius: 999px; /* pill */
+    font-family: var(--font-family);
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.25s ease;
+}
+
+.filter-btn:hover {
+    border-color: var(--accent-color);
+    color: var(--accent-color);
+}
+
+.filter-btn.active {
+    background-color: var(--accent-color);
+    border-color: var(--accent-color);
+    color: var(--bg-main);
+    font-weight: 600;
+}
+
+/* --- CARD TAGS --- */
+.card-tags {
+    position: absolute;
+    top: 15px;
+    left: 15px;
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    z-index: 3;
+}
+
+.card-tag {
+    font-size: 0.7rem;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 999px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Cores por categoria */
+.tag-fisica    { background-color: rgba(99, 179, 237, 0.2); color: #63b3ed; border: 1px solid rgba(99, 179, 237, 0.4); }
+.tag-matematica{ background-color: rgba(154, 117, 248, 0.2); color: #9a75f8; border: 1px solid rgba(154, 117, 248, 0.4); }
+.tag-quimica   { background-color: rgba(104, 211, 145, 0.2); color: #68d391; border: 1px solid rgba(104, 211, 145, 0.4); }
+.tag-biologia  { background-color: rgba(252, 129, 74, 0.2); color: #fc814a; border: 1px solid rgba(252, 129, 74, 0.4); }
+
+/* Card oculto pelo filtro */
+.card-link.card-hidden {
+    display: none;
+}
+
+/* Mensagem de resultado vazio */
+.no-results {
+    color: var(--text-secondary);
+    font-size: 1rem;
+    text-align: center;
+    padding: 40px 0;
+    width: 100%;
+}
+
 /* --- RODAPÉ --- */
+
 .rodape {
     margin-top: 50px;
     text-align: center;

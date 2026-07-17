@@ -77,44 +77,83 @@
 
         <div id="secao-simulacoes" class="section">
             <h2>Simulações</h2>
+
+            <!-- Barra de Filtros -->
+            <div class="filter-bar" id="filter-bar">
+                <button class="filter-btn active" data-filtro="todas">Todas</button>
+                <button class="filter-btn" data-filtro="fisica">Física</button>
+                <button class="filter-btn" data-filtro="matematica">Matemática</button>
+                <button class="filter-btn" data-filtro="quimica">Química</button>
+                <button class="filter-btn" data-filtro="biologia">Biologia</button>
+            </div>
+
             <div id="cards">
-                <a href='simulacoes/particulas.html' class="card-link">                    <div class="card">
+                <a href='simulacoes/particulas.html' class="card-link" data-categorias="fisica">
+                    <div class="card">
+                        <div class="card-tags">
+                            <span class="card-tag tag-fisica">Física</span>
+                        </div>
                         <h1>Simulação de partículas</h1>
-                        <p>Nesta simulação é possivel visualizar um sistema de partículas com interação coulombiana.</p>
+                        <p>Nesta simulação é possível visualizar um sistema de partículas com interação coulombiana.</p>
                     </div>
                 </a>
-                
-                <a href='simulacoes/audio.html' class="card-link">                    <div class="card">
+
+                <a href='simulacoes/audio.html' class="card-link" data-categorias="fisica matematica">
+                    <div class="card">
+                        <div class="card-tags">
+                            <span class="card-tag tag-fisica">Física</span>
+                            <span class="card-tag tag-matematica">Matemática</span>
+                        </div>
                         <h1>Audio Fourier</h1>
-                        <p>Nesta simulação é possivel visualizar um som e seu espectro de frequências.</p>
+                        <p>Nesta simulação é possível visualizar um som e seu espectro de frequências.</p>
                     </div>
                 </a>
 
-                <a href='simulacoes/fonons.html' class="card-link">                    <div class="card">
+                <a href='simulacoes/fonons.html' class="card-link" data-categorias="fisica">
+                    <div class="card">
+                        <div class="card-tags">
+                            <span class="card-tag tag-fisica">Física</span>
+                        </div>
                         <h1>Fônons</h1>
-                        <p>Nesta simulação é possivel visualizar uma onda de matéria numa rede cristalina.</p>
+                        <p>Nesta simulação é possível visualizar uma onda de matéria numa rede cristalina.</p>
                     </div>
                 </a>
 
-                <a href='simulacoes/snell.html' class="card-link">                    <div class="card">
+                <a href='simulacoes/snell.html' class="card-link" data-categorias="fisica">
+                    <div class="card">
+                        <div class="card-tags">
+                            <span class="card-tag tag-fisica">Física</span>
+                        </div>
                         <h1>Lei de Snell</h1>
-                        <p>Nesta simulação é possivel visualizar a lei de snell em meios com indice de refração variados.</p>
+                        <p>Nesta simulação é possível visualizar a lei de Snell em meios com índice de refração variados.</p>
                     </div>
                 </a>
 
-                <a href='simulacoes/estacionarias2d.html' class="card-link">                    <div class="card">
+                <a href='simulacoes/estacionarias2d.html' class="card-link" data-categorias="fisica matematica">
+                    <div class="card">
+                        <div class="card-tags">
+                            <span class="card-tag tag-fisica">Física</span>
+                            <span class="card-tag tag-matematica">Matemática</span>
+                        </div>
                         <h1>Ondas estacionárias 2D</h1>
-                        <p>Nesta simulação é possivel visualizar ondas estacinoárias em uma superfície 2d (padrões estacionários de Chladni).</p>
+                        <p>Nesta simulação é possível visualizar ondas estacionárias em uma superfície 2D (padrões de Chladni).</p>
                     </div>
                 </a>
 
-                <a href='simulacoes/quedalivre.html' class="card-link">                    <div class="card">
+                <a href='simulacoes/quedalivre.html' class="card-link" data-categorias="fisica">
+                    <div class="card">
+                        <div class="card-tags">
+                            <span class="card-tag tag-fisica">Física</span>
+                        </div>
                         <h1>Queda livre interativa</h1>
-                        <p>Nesta simulação é possivel visualizar e interagir com um objeto em queda livre.</p>
+                        <p>Nesta simulação é possível visualizar e interagir com um objeto em queda livre.</p>
                     </div>
                 </a>
             </div>
+
+            <p class="no-results" id="no-results" style="display:none;">Nenhuma simulação encontrada nesta categoria.</p>
         </div>
+
 
         <div id="secao-outra" class="section">
             <div class="card-content">
