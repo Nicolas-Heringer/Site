@@ -1,279 +1,328 @@
 :root {
-	--bg-color: rgb(20,20,20);
-	--color: rgba(80, 80, 80, 0.2);
+    /* Paleta de Cores: Tema escuro com destaque amarelo */
+    --bg-main: #0f172a; /* Azul noite bem escuro para o fundo principal */
+    --bg-sidebar: #1e293b; /* Tom levemente mais claro para a sidebar */
+    --bg-card: rgba(30, 41, 59, 0.4); /* Fundo translúcido para os cards (Glassmorphism) */
+    --bg-card-hover: rgba(30, 41, 59, 0.7);
+    
+    --accent-color: #facc15; /* Amarelo vibrante para destaques */
+    --accent-color-hover: #eab308; /* Amarelo mais escuro para hover */
+    
+    --text-primary: #f8fafc; /* Quase branco para textos principais */
+    --text-secondary: #94a3b8; /* Cinza azulado para textos secundários e descrições */
+    
+    --border-color: rgba(255, 255, 255, 0.1);
+    
+    /* Fontes Seguras */
+    --font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 }
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
 body {
-	background-color: var(--bg-color);
-	/* Estabelece como os elementos serão posicionados via flexbox */
-	display: flex;
-	flex-direction: column;
-	justify-content: center;
-	align-items: center;
-
-	overflow-y: auto;
-
-	margin: 0px;
-	padding: 0px;
+    background-color: var(--bg-main);
+    color: var(--text-primary);
+    font-family: var(--font-family);
+    display: flex;
+    min-height: 100vh;
+    overflow-x: hidden;
 }
 
-p, h1, ul, label {
-	color: #f5f5f5;
+h1, h2, h3 {
+    color: var(--text-primary);
+    font-weight: 600;
 }
 
-h1 {
-	padding-left: 20px;
+p {
+    color: var(--text-secondary);
+    line-height: 1.6;
 }
 
-/*
-main {
-  width: 100%;
-  max-width: 800px;
-  margin: 20px auto;
-  padding: 20px;
-  background-color: #F2E9EA;
-  border-radius: 15px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-}*/
+/* --- SIDEBAR --- */
+.sidebar {
+    width: 250px;
+    background-color: var(--bg-sidebar);
+    height: 100vh;
+    position: fixed;
+    left: 0;
+    top: 0;
+    display: flex;
+    flex-direction: column;
+    border-right: 1px solid var(--border-color);
+    z-index: 100;
+}
+
+.sidebar-header {
+    padding: 30px 20px;
+    text-align: center;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.sidebar-header h2 {
+    color: var(--accent-color);
+    font-size: 1.5rem;
+    letter-spacing: 1px;
+}
 
 .menu {
-	position: relative;
-	background-color: rgba(80, 80, 80, 0.2);
-	height: 80px;
-	width: 630px;
-
-	border-radius: 15px;
-
-	margin-top: 20px;
-	margin-bottom: 20px;
-
-	justify-content: center;
-}
-
-.menu ul {
-	position: relative;
-	display: flex;
-	justify-content: center;
-	align-items: center;
-}
-
-.menu ul li  {
-	position: relative;
-	list-style: none;
-	padding: 10px;
-}
-
-.menu ul li a {
-	position: relative;
-	display: flex;
-	flex-direction: column;
-	justify-content: center;
-	align-items: center;
-	width: 100%;
-	text-align: center;
-	font-weight: 500;
-	text-decoration: none;
-}
-
-.menu ul li a .icone {
-	position: relative;
-	display: block;
-	font-size: 1.5rem;
-	transition: 0.5s;
-	color: whitesmoke;
-}
-
-.menu ul li:hover a .icone {
-	transform: translateY(-10px) ;
-}
-
-.menu ul li a .texto {
-	position: relative;
-	opacity: 0;
-	transition: 1s;
-	letter-spacing: 0.05rem;
-}
-
-.menu ul li:hover a .texto {
-	color: whitesmoke;
-	opacity: 1;
-	transform: translateY(-5px)
-}
-
-.rodape {
-  position: relative;
-  background-color: rgba(80, 80, 80, 0.2);
-  height: 80px;
-  width: 630px;
-  border-radius: 15px;
-  margin-top: 20px;
-  margin-bottom: 20px;
-  margin-left: auto;
-  margin-right: auto;
-  justify-content: center;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-/* Estilização do texto do rodapé */
-.rodape p {
-  text-align: center;
-  width: 100%;
-  margin: 5px 0; /* Ajusta a margem superior e inferior */
-  padding-bottom: 10px;
-}
-
-/* Estilização da lista no rodapé */
-.rodape ul {
-  position: relative;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  width: 100%;
-  margin: 0; /* Remove margem padrão */
-  padding: 0; /* Remove preenchimento padrão */
-}
-
-/* Estilização dos itens da lista no rodapé */
-.rodape ul li {
-  position: relative;
-  list-style: none;
-  padding: 0 10px; /* Adiciona espaçamento lateral */
-  margin: 0; /* Remove margem padrão */
-}
-
-/* Estilização dos links no rodapé */
-.rodape ul li a {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  width: 100%;
-  text-align: center;
-  font-weight: 500;
-  text-decoration: none; /* Remove sublinhado */
-}
-
-/* Estilização dos ícones nos links do rodapé */
-.rodape ul li a .icone {
-  position: relative;
-  display: flex;
-  font-size: 1.0rem;
-  transition: 0.5s;
-  color: whitesmoke;
-}
-
-/* Efeito de hover nos ícones do rodapé */
-.rodape ul li:hover a .icone {
-  transform: translateY(-10px);
-}
-
-.section {
-	background-color: #F2E9EA;
-  display: none; /* Oculta todas as seções por padrão */
-  opacity: 1;
-  padding: 5px;
-  margin-bottom: 5px;
-  margin-top: 5px;
-  max-width: 630px;
-}
-
-.section.hidden {
-  display: none; /* Garante que seções ocultas permaneçam ocultas */
-}
-
-.section:not(.hidden) {
-	display: block;
-	background-color: var(--color);
-	border-radius: 15px;
-}
-
-#secao-sobre {
-	max-width: 630px;
-}
-
-#secao-sobre h1, h2, p {
-	padding-left: 20px;
-	padding-right: 20px;
-	text-align: justify;
-}
-
-#cards {
-	display: flex;
-	flex-wrap: wrap;
-
-	gap: 10px;
-	max-width: 630px;
-
-}
-
-.card {
-	position: relative;
-	
-	background-color: rgba(80, 80, 80, 0.2);
-	
-	border: 1px solid rgba(80, 80, 80, 0.8);
-	border-radius: 15px;
-	
-	height: 300px;
-	width: 200px;
-	
-	cursor: pointer;
-
-	display: flex;
+    flex: 1;
+    display: flex;
     flex-direction: column;
-    justify-content: center;
+    padding: 20px 0;
+    list-style: none;
+}
+
+.menu li {
+    width: 100%;
+}
+
+.menu li a {
+    display: flex;
+    align-items: center;
+    padding: 15px 25px;
+    text-decoration: none;
+    color: var(--text-secondary);
+    transition: all 0.3s ease;
+    border-left: 3px solid transparent;
+}
+
+.menu li a .icone {
+    font-size: 1.5rem;
+    margin-right: 15px;
+    display: flex;
     align-items: center;
 }
 
-.card:hover::before {
-	opacity: 1;
-	border: 1px solid rgba(255, 255, 255, 1.0);
+.menu li a .texto {
+    font-size: 1rem;
+    font-weight: 500;
 }
 
-.card::before { /* Card antes de ter o mouse sobreposto */
-	position: absolute; /* As coisas posicionadas aqui serão posicionada de maneira absoluta */
-	/* Juntas as duas linhas abaixo dizer que o canto superior esquerdo dos cards é sua origem */
-	top: 0px; /* Posição em cima */
-	left: 0px; /* Posição à esquerda */
-	
-	background: radial-gradient( /* Cria um circulo com gradiente a partir da posição do mouse */
-		800px circle at var(--mouse-X) var(--mouse-Y),
-		rgba(80, 80, 80, 0.5),
-		transparent 40%
-	);
-	opacity: 0; /* O circulo criado tem opacidade nula inicialmente */
-	transition: opacity 1000ms; /* O tempo de transição de criaçando do circulo é 1s */
-
-	border-radius: inherit; /* herda a largura da borda da classe card */
-	
-	height: 100%; /* Altura do card antes de ser hovered é 100% da altura do card */
-	width: 100%; /* Largura do card antes de ser hovered é 100% do largura do card */
-	
-	z-index: 2;
-	
-	content: "";
+.menu li a:hover, .menu li a.active {
+    background-color: rgba(250, 204, 21, 0.1); /* Amarelo com 10% opacidade */
+    color: var(--accent-color);
+    border-left-color: var(--accent-color);
 }
 
-.card h1 {
-	color: whitesmoke;
-	opacity: 0.6;
-	font-size: 1.5rem; /* Estabelece que o tamanho da fonte dos títulos dos cards deve ser 1.5 rem */
-	margin-bottom: 10px; /* Adiciona um espaço abaixo do título  */
-	text-align: center; /* Centraliza o título */
-	z-index: 3;
+.sidebar-footer {
+    padding: 20px;
+    border-top: 1px solid var(--border-color);
 }
 
-.card p {
-	color: floralwhite;
-	opacity: 0.6;
-	font-size: 1rem; /* Estabelece que o tamanho da fonte dos parágrados dos cards deve ser 1 rem */
-	text-align: justify; /* Centrazila conteúdo dos parágrafos */
-	z-index: 3; /* Coloca o parágrafo no topo */
+.social-links {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    list-style: none;
+}
+
+.social-links a {
+    color: var(--text-secondary);
+    font-size: 1.2rem;
+    transition: color 0.3s;
+}
+
+.social-links a:hover {
+    color: var(--accent-color);
+}
+
+/* --- CONTEÚDO PRINCIPAL --- */
+.main-content {
+    margin-left: 250px;
+    padding: 40px;
+    width: calc(100% - 250px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.section {
+    width: 100%;
+    max-width: 1000px;
+    display: none; /* Ocultado por padrão */
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.5s ease, transform 0.5s ease;
+}
+
+.section.active {
+    display: block;
+    animation: fadeUpIn 0.6s forwards;
+}
+
+@keyframes fadeUpIn {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.section > h2 {
+    margin-bottom: 25px;
+    font-size: 2rem;
+    color: var(--text-primary);
+    border-bottom: 2px solid var(--accent-color);
+    display: inline-block;
+    padding-bottom: 5px;
+}
+
+.card-content {
+    background-color: var(--bg-card);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid var(--border-color);
+    border-radius: 15px;
+    padding: 30px;
+}
+
+.card-content p {
+    margin-bottom: 15px;
+    text-align: justify;
+}
+
+/* --- CARDS (Simulações) --- */
+#cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 25px;
+    width: 100%;
 }
 
 .card-link {
-    text-decoration: none; /* Remove sublinhado padrão do link */
-    color: inherit; /* Herda a cor do texto do pai (opcional) */
+    text-decoration: none;
+    display: block;
+}
+
+.card {
+    position: relative;
+    background-color: var(--bg-card);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--border-color);
+    border-radius: 15px;
+    height: 250px;
+    padding: 25px;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    transition: transform 0.3s ease, background-color 0.3s ease, border-color 0.3s ease;
+    overflow: hidden;
+}
+
+.card:hover {
+    transform: translateY(-5px) scale(1.02);
+    border-color: var(--accent-color);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+}
+
+.card::before { 
+    /* Efeito de luz do mouse */
+    position: absolute;
+    top: 0px; 
+    left: 0px; 
+    background: radial-gradient(
+        600px circle at var(--mouse-X) var(--mouse-Y),
+        rgba(250, 204, 21, 0.15), /* Brilho amarelo */
+        transparent 40%
+    );
+    opacity: 0;
+    transition: opacity 500ms;
+    border-radius: inherit;
+    height: 100%;
+    width: 100%;
+    z-index: 1;
+    content: "";
+    pointer-events: none;
+}
+
+.card:hover::before {
+    opacity: 1;
+}
+
+.card h1 {
+    font-size: 1.4rem;
+    margin-bottom: 15px;
+    z-index: 2;
+    transition: color 0.3s;
+}
+
+.card:hover h1 {
+    color: var(--accent-color);
+}
+
+.card p {
+    font-size: 0.95rem;
+    z-index: 2;
+}
+
+/* --- RODAPÉ --- */
+.rodape {
+    margin-top: 50px;
+    text-align: center;
+    width: 100%;
+    padding-top: 20px;
+    border-top: 1px solid var(--border-color);
+}
+
+.rodape p {
+    font-size: 0.85rem;
+}
+
+/* Responsividade básica */
+@media (max-width: 768px) {
+    .sidebar {
+        width: 100%;
+        height: auto;
+        position: relative;
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 20px;
+    }
+    
+    .sidebar-header {
+        padding: 0;
+        border: none;
+    }
+    
+    .menu {
+        flex-direction: row;
+        padding: 0;
+    }
+    
+    .menu li a {
+        padding: 10px;
+        border-left: none;
+        border-bottom: 3px solid transparent;
+    }
+    
+    .menu li a .texto {
+        display: none; /* Esconde texto em telas pequenas */
+    }
+    
+    .menu li a .icone {
+        margin-right: 0;
+    }
+    
+    .menu li a:hover, .menu li a.active {
+        border-left: none;
+        border-bottom-color: var(--accent-color);
+    }
+    
+    .sidebar-footer {
+        display: none; /* Oculta redes sociais no header mobile por espaço */
+    }
+    
+    .main-content {
+        margin-left: 0;
+        width: 100%;
+        padding: 20px;
+    }
 }

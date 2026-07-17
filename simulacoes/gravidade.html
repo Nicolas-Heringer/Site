@@ -8,20 +8,21 @@
     <meta name="description" content="Plataforma de simulações educacionais de física e matemática.">
     <meta name="keywords" content="simulações, física, matemática, educação, partículas, átomo de hidrogênio, áudio, fônons">
     <meta name="author" content="Nicolas Heringer">
-    <style>
-        body, html {
-            margin: 0;
-            padding: 0;
-            overflow: hidden;
-            height: 100%;
-        }
-        canvas {
-            display: block;
-        }
-    </style>
+    
+    <link rel="stylesheet" href="css/base.css">
 </head>
 <body>
-    <canvas id="simulationCanvas"></canvas>
+    <header class="sim-header">
+        <a href="../index.html#secao-simulacoes" class="btn-back">← Voltar ao Hub</a>
+        <span class="sim-title">Movimento Planetário (Gravidade 3D)</span>
+    </header>
+
+    <main class="sim-layout" style="grid-template-columns: 1fr;"> <!-- Apenas canvas para este -->
+        <div class="canvas-area">
+            <canvas id="simulationCanvas"></canvas>
+        </div>
+    </main>
+
     <script src="scripts/gravidade.js"></script>
 </body>
 </html>

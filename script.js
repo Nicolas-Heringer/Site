@@ -5,7 +5,6 @@ const handleOnMouseMove = e => {
 	const rect = target.getBoundingClientRect();
 	const x = e.clientX - rect.left;
 	const y = e.clientY - rect.top;
-	console.log(`Mouse x:${x} Mouse y:${y}`);
 
 	target.style.setProperty("--mouse-X", `${x}px`);
 	target.style.setProperty("--mouse-Y", `${y}px`);
@@ -14,46 +13,58 @@ const handleOnMouseMove = e => {
 for (const card of document.querySelectorAll(".card")) {
 	card.onmousemove = e => handleOnMouseMove(e);
 }
-// -
 
 // Aqui eu lido com o menu e a mudança entre seções
 document.addEventListener("DOMContentLoaded", function() {
-  // Seleciona todas as seções da página
   const secoes = document.querySelectorAll(".section");
+  const links = document.querySelectorAll(".menu a");
 
-  // Oculta todas as seções ao carregar a página
-  secoes.forEach(secao => {
-    secao.classList.add("hidden");
-  });
-
-  // Exibe a seção padrão ao carregar a página
-  const secaoPadrao = document.getElementById("secao-sobre"); // Escolha da seção padrão
-  if (secaoPadrao) {
-    secaoPadrao.classList.remove("hidden");
+  // Oculta todas as seções e remove 'active' dos links
+  function resetSections() {
+    secoes.forEach(secao => {
+      secao.classList.remove("active");
+    });
+    links.forEach(link => {
+      link.classList.remove("active");
+    });
   }
 
-  // Seleciona os links do menu
-  const links = document.querySelectorAll(".menu a");
+  // Verifica se há um hash na URL (ex: #secao-simulacoes)
+  const hash = window.location.hash;
+  let secaoInicial = "secao-sobre"; // Padrão
+  
+  if (hash) {
+      const secaoTentativa = hash.substring(1); // Remove o #
+      if (document.getElementById(secaoTentativa)) {
+          secaoInicial = secaoTentativa;
+      }
+  }
+
+  // Define aba inicial ativa
+  const secaoPadrao = document.getElementById(secaoInicial);
+  const linkPadrao = document.querySelector(`.menu a[href="#${secaoInicial}"]`);
+  
+  if (secaoPadrao && linkPadrao) {
+    resetSections();
+    secaoPadrao.classList.add("active");
+    linkPadrao.classList.add("active");
+  }
 
   // Adiciona o evento de clique para cada link do menu
   links.forEach(link => {
     link.addEventListener("click", function(event) {
       event.preventDefault();
-
-      // Obtém o ID da seção a ser exibida a partir do href do link
+      
       const idSecao = this.getAttribute("href").substring(1);
+      const secaoAlvo = document.getElementById(idSecao);
 
-      // Oculta todas as seções novamente ao clicar em um link do menu
-      secoes.forEach(secao => {
-        secao.classList.add("hidden");
-      });
-
-      // Exibe apenas a seção correspondente ao link clicado
-      document.getElementById(idSecao).classList.remove("hidden");
+      if (secaoAlvo) {
+          resetSections();
+          secaoAlvo.classList.add("active");
+          this.classList.add("active");
+          // Atualiza a URL com o hash
+          history.pushState(null, null, '#' + idSecao);
+      }
     });
   });
 });
-
-
-
-// -

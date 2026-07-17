@@ -3,29 +3,32 @@
 <head>
 	<meta charset='utf-8'>
 	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<title>Simulação de partículas</title>
+	<title>Átomo de Hidrogênio</title>
 	
     <meta name="description" content="Plataforma de simulações educacionais de física e matemática.">
 	<meta name="keywords" content="simulações, física, matemática, educação, partículas, átomo de hidrogênio, áudio, fônons">
 	<meta name="author" content="Nicolas Heringer">
-	<link rel="stylesheet" href="../styles.css">
-	<style>
-
-	</style>
+    <link rel="stylesheet" href="css/base.css">
 </head>
-<main>
-	<body>
+<body>
 
-		<div id="text" class="section">
-			<h1>Átomo de hidrogênio</h1>
-			<p> Habemus átomo de hidrogênio.</p>
-		</div>
+    <header class="sim-header">
+        <a href="../index.html#secao-simulacoes" class="btn-back">← Voltar ao Hub</a>
+        <span class="sim-title">Átomo de hidrogênio</span>
+    </header>
 
-		<div id="canvasContainer">
+    <main class="sim-layout">
+        <div class="canvas-area">
 		    <canvas id="glCanvas"></canvas>
-		</div>	
+        </div>	
 
-		<script src="scripts/atomo_de_hidrogenio.js"></script>
-	</body>
-</main>
+        <aside class="controls-panel">
+            <div class="info-section">
+                <p> Habemus átomo de hidrogênio.</p>
+            </div>
+        </aside>
+    </main>
+
+    <script src="scripts/atomo_de_hidrogenio.js"></script>
+</body>
 </html>

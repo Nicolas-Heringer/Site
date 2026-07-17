@@ -8,32 +8,51 @@
     <meta name="description" content="Plataforma de simulações educacionais de física e matemática.">
     <meta name="keywords" content="simulações, física, matemática, educação, partículas, átomo de hidrogênio, áudio, fônons">
     <meta name="author" content="Nicolas Heringer">
+    
+    <link rel="stylesheet" href="css/base.css">
     <link rel="stylesheet" type="text/css" href="css/snell.css">
     <link rel="stylesheet" type="text/css" href="css/buttons.css">
 </head>
 <body>
-    <h1>Simulação da Lei de Snell</h1>
-    <!-- Canvas para o mapa de cores do campo escalar -->
-    <canvas id="simulationCanvas"></canvas>
+    <header class="sim-header">
+        <a href="../index.html#secao-simulacoes" class="btn-back">← Voltar ao Hub</a>
+        <span class="sim-title">Lei de Snell</span>
+    </header>
 
-    <div class="slider-container">
-        <input type="range" id="aberturaSlider" min="0" max="360" value="45" step="2">
-        <span id="aberturaValue">45°</span>
-    </div>
+    <main class="sim-layout">
+        <div class="canvas-area">
+            <!-- Canvas para o mapa de cores do campo escalar -->
+            <canvas id="simulationCanvas"></canvas>
+        </div>
 
-    <div class="slider-container">
-        <input type="range" id="numFeixesSlider" min="0" max="1000" value="100" step="1">
-        <span id="numFeixesValue">100 feixes</span>
-    </div>
+        <aside class="controls-panel">
+            <div class="control-group">
+                <label for="aberturaSlider">Ângulo de Abertura (<span id="aberturaValue">45°</span>):</label>
+                <input type="range" id="aberturaSlider" class="sim-slider" min="0" max="360" value="45" step="2">
+            </div>
 
-    <select id="refractiveIndexFunction">
-        <option value="constante">Constante (n = 1.5)</option>
-        <option value="fibraOptica">Fibra optica</option>
-        <option value="gaussiana">Gaussiana</option>
-        <option value="senoidal">Senoidal</option>
-        <option value="lenteConvergente">Lente Convergente</option>
-        <option value="lenteDivergente">Lente Divergente</option>
-    </select>
+            <div class="control-group">
+                <label for="numFeixesSlider">Número de Feixes (<span id="numFeixesValue">100</span>):</label>
+                <input type="range" id="numFeixesSlider" class="sim-slider" min="0" max="1000" value="100" step="1">
+            </div>
+
+            <div class="control-group">
+                <label for="refractiveIndexFunction">Perfil de Refração:</label>
+                <select id="refractiveIndexFunction" class="sim-control">
+                    <option value="constante">Constante (n = 1.5)</option>
+                    <option value="fibraOptica">Fibra optica</option>
+                    <option value="gaussiana">Gaussiana</option>
+                    <option value="senoidal">Senoidal</option>
+                    <option value="lenteConvergente">Lente Convergente</option>
+                    <option value="lenteDivergente">Lente Divergente</option>
+                </select>
+            </div>
+            
+            <div class="info-section">
+                <p>Simulação computacional da lei de refração de Snell, permitindo a visualização do traçado de raios luminosos (Ray Tracing) em diferentes perfis de índice de refração.</p>
+            </div>
+        </aside>
+    </main>
 
     <script src="scripts/snell.js"></script>
     <script src="scripts/buttons.js"></script>

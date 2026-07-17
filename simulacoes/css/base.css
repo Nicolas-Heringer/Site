@@ -1,0 +1,269 @@
+/* 
+  Estilo Base para Simulações
+  Importe este arquivo em todas as páginas de simulação.
+*/
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+:root {
+    /* Paleta de Cores (Alinhada com o Hub Principal) */
+    --bg-main: #0f172a; 
+    --bg-surface: #1e293b;
+    --bg-panel: rgba(30, 41, 59, 0.7); /* Para glassmorphism */
+    
+    --accent-color: #facc15;
+    --accent-color-hover: #eab308;
+    
+    --text-primary: #f8fafc;
+    --text-secondary: #94a3b8;
+    
+    --border-color: rgba(255, 255, 255, 0.1);
+    
+    --font-family: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    background-color: var(--bg-main);
+    color: var(--text-primary);
+    font-family: var(--font-family);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow-x: hidden;
+}
+
+/* --- HEADER --- */
+.sim-header {
+    display: flex;
+    align-items: center;
+    padding: 15px 30px;
+    background-color: var(--bg-surface);
+    border-bottom: 1px solid var(--border-color);
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.btn-back {
+    display: inline-flex;
+    align-items: center;
+    text-decoration: none;
+    color: var(--text-secondary);
+    font-weight: 500;
+    transition: color 0.3s;
+    margin-right: 20px;
+}
+
+.btn-back:hover {
+    color: var(--accent-color);
+}
+
+.sim-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+/* --- LAYOUT PRINCIPAL --- */
+.sim-layout {
+    display: grid;
+    grid-template-columns: 1fr 350px; /* Canvas flexível, Controles fixos em 350px */
+    flex: 1;
+    gap: 20px;
+    padding: 20px;
+    height: calc(100vh - 60px); /* Altura total menos o header */
+}
+
+/* Área do Canvas */
+.canvas-area {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background-color: rgba(0, 0, 0, 0.2);
+    border-radius: 12px;
+    border: 1px solid var(--border-color);
+    overflow: hidden; /* Evita scroll se o canvas for grande */
+    position: relative;
+}
+
+.canvas-area canvas {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    background-color: transparent;
+}
+
+/* Painel de Controles */
+.controls-panel {
+    background-color: var(--bg-panel);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 25px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    overflow-y: auto;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+}
+
+/* --- COMPONENTES INTERATIVOS (UI CONTROLS) --- */
+
+.control-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.control-group label {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+/* Select Box */
+select.sim-control {
+    appearance: none;
+    background-color: rgba(15, 23, 42, 0.8);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    padding: 10px 15px;
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 0.95rem;
+    cursor: pointer;
+    outline: none;
+    transition: border-color 0.3s;
+    background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%2394a3b8%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
+    background-repeat: no-repeat;
+    background-position: right 15px top 50%;
+    background-size: 12px auto;
+}
+
+select.sim-control:focus, select.sim-control:hover {
+    border-color: var(--accent-color);
+}
+
+select.sim-control option {
+    background-color: var(--bg-surface);
+    color: var(--text-primary);
+}
+
+/* Range Slider */
+input[type="range"].sim-slider {
+    -webkit-appearance: none;
+    width: 100%;
+    background: transparent;
+    padding: 5px 0;
+}
+
+input[type="range"].sim-slider:focus {
+    outline: none;
+}
+
+input[type="range"].sim-slider::-webkit-slider-runnable-track {
+    width: 100%;
+    height: 6px;
+    cursor: pointer;
+    background: rgba(255,255,255,0.1);
+    border-radius: 3px;
+    border: none;
+}
+
+input[type="range"].sim-slider::-webkit-slider-thumb {
+    border: none;
+    height: 18px;
+    width: 18px;
+    border-radius: 50%;
+    background: var(--accent-color);
+    cursor: pointer;
+    -webkit-appearance: none;
+    margin-top: -6px; /* Ajuste para centralizar o thumb na track de 6px */
+    box-shadow: 0 0 10px rgba(250, 204, 21, 0.4);
+    transition: transform 0.2s, background 0.2s;
+}
+
+input[type="range"].sim-slider:hover::-webkit-slider-thumb {
+    transform: scale(1.2);
+    background: var(--accent-color-hover);
+}
+
+/* Number Input */
+input[type="number"].sim-input {
+    background-color: rgba(15, 23, 42, 0.8);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    padding: 10px 15px;
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 0.95rem;
+    outline: none;
+    transition: border-color 0.3s;
+}
+
+input[type="number"].sim-input:focus {
+    border-color: var(--accent-color);
+}
+
+/* Button */
+button.sim-btn {
+    background-color: transparent;
+    border: 1px solid var(--accent-color);
+    color: var(--accent-color);
+    padding: 12px 20px;
+    border-radius: 8px;
+    font-family: inherit;
+    font-weight: 600;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+button.sim-btn:hover {
+    background-color: var(--accent-color);
+    color: var(--bg-main);
+    box-shadow: 0 4px 15px rgba(250, 204, 21, 0.3);
+}
+
+/* Seção de Texto explicativo dentro dos controles */
+.info-section {
+    margin-top: 10px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border-color);
+}
+
+.info-section p, .info-section li {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    margin-bottom: 8px;
+    line-height: 1.5;
+}
+
+.info-section ul {
+    padding-left: 20px;
+}
+
+/* Responsividade (Mobile) */
+@media (max-width: 900px) {
+    .sim-layout {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto 1fr; /* Canvas ajusta a altura, painel ocupa resto */
+        height: auto;
+    }
+    
+    .canvas-area {
+        min-height: 50vh;
+    }
+    
+    .controls-panel {
+        max-height: none;
+    }
+}

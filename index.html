@@ -1,161 +1,136 @@
 <!DOCTYPE html>
 <html lang="pt-br">
-  <head>
-      <title>Simulações</title>
-      <meta name="description" content="Plataforma de simulações educacionais de física e matemática.">
-      <meta name="keywords" content="simulações, física, matemática, educação, partículas, átomo de hidrogênio, áudio, fônons">
-      <meta name="author" content="Nicolas Heringer">
-  </head>
-
-    <style type="text/css" ></style>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulações Educacionais</title>
+    <meta name="description" content="Plataforma de simulações educacionais de física e matemática.">
+    <meta name="keywords" content="simulações, física, matemática, educação, partículas, átomo de hidrogênio, áudio, fônons">
+    <meta name="author" content="Nicolas Heringer">
+    
+    <!-- Fonte Inter (Google Fonts) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
     <link rel="stylesheet" type="text/css" href="styles.css">
-    <style>
-        h2, p {
-            color: whitesmoke;
-        }
-    </style>
-
-  
-  <body>
+</head>
+<body>
     
-    <div class="menu">
-      <ul>
-        <li class="list">
-          <a href="#secao-sobre">
-            <span class="icone">
-              <ion-icon name="people-outline"></ion-icon>
-            </span>
-            <span class="texto">Sobre nós</span>
-          </a>
-        </li>
+    <!-- Barra lateral (Sidebar) -->
+    <nav class="sidebar">
+        <div class="sidebar-header">
+            <h2>Simulações</h2>
+        </div>
+        <ul class="menu">
+            <li class="list">
+                <a href="#secao-sobre">
+                    <span class="icone"><ion-icon name="people-outline"></ion-icon></span>
+                    <span class="texto">Sobre nós</span>
+                </a>
+            </li>
+            <li class="list">
+                <a href="#secao-simulacoes">
+                    <span class="icone"><ion-icon name="apps-outline"></ion-icon></span>
+                    <span class="texto">Simulações</span>
+                </a>
+            </li>
+            <li class="list">
+                <a href="#secao-outra">
+                    <span class="icone"><ion-icon name="balloon-outline"></ion-icon></span>
+                    <span class="texto">Em construção</span>
+                </a>
+            </li>
+        </ul>
+        <div class="sidebar-footer">
+            <ul class="social-links">
+                <li><a href="https://www.instagram.com/nicolasheringer/" target="_blank"><ion-icon name="logo-instagram"></ion-icon></a></li>
+                <li><a href="https://www.linkedin.com/in/nicolasheringer/" target="_blank"><ion-icon name="logo-linkedin"></ion-icon></a></li>
+                <li><a href="https://github.com/Nicolas-Heringer" target="_blank"><ion-icon name="logo-github"></ion-icon></a></li>
+            </ul>
+        </div>
+    </nav>
 
-        <li class="list">
-          <a href="#secao-simulacoes">
-            <span class="icone">
-              <ion-icon name="apps-outline"></ion-icon>
-            </span>
-            <span class="texto">Simulações</span>
-          </a>
-        </li>
-
-        <li class="list">
-          <a href="#secao-outra">
-            <span class="icone">
-              <ion-icon name="balloon-outline"></ion-icon>
-            </span>
-            <span class="texto">Em construção</span>
-          </a>
-        </li>
-
-      </ul>
-    </div>
-
-    <div id="secao-sobre" class="section active">
-      <h2>Sobre nós</h2>
-      <p>
-        Bem-vindo(a) à nossa plataforma de simulações educacionais! Nossa missão é fornecer recursos didáticos de alta qualidade que auxiliem professores e alunos no aprendizado de conceitos complexos de física e matemática. Acreditamos que a visualização e a interação são ferramentas poderosas para a compreensão profunda e duradoura dessas disciplinas.
-      </p>
-      <p>
-        Esta página foi criada para servir como um suporte para professores, oferecendo uma variedade de simulações interativas que podem ser utilizadas em sala de aula ou como material complementar para estudos individuais. Nosso objetivo é tornar o aprendizado mais envolvente e acessível, permitindo que os estudantes explorem fenômenos científicos e matemáticos de forma prática e visual.
-      </p>
-      <p>
-        Nossas simulações cobrem uma ampla gama de tópicos, desde as leis fundamentais da física, como a cinemática e a dinâmica, até conceitos avançados de matemática, incluindo álgebra, geometria e cálculo. Cada simulação é projetada para ser intuitiva e fácil de usar, proporcionando uma experiência de aprendizado imersiva e interativa.
-      </p>
-      <p>
-        Estamos comprometidos em continuamente expandir e melhorar nossa biblioteca de simulações, com base no feedback de professores e alunos. Nosso objetivo é criar um ambiente de aprendizado dinâmico que inspire curiosidade e paixão pela ciência e matemática.
-      </p>
-      <p>
-        Agradecemos por visitar nossa página e esperamos que os recursos aqui disponibilizados contribuam significativamente para o sucesso educacional de seus alunos. Se tiver alguma sugestão ou precisar de assistência, não hesite em nos contatar. Juntos, podemos transformar a maneira como ensinamos e aprendemos física e matemática.
-      </p>
-    </div>
-
-    <div id='secao-simulacoes' class="section">
-      
-      <div id="cards">
-          
-          <a href='simulacoes/particulas.html' target="_blank" class="card-link">
-            <div class="card">
-              <h1> Simulação de partículas</h1>
-              <p> Nesta simulação é possivel visualizar um sistema de partículas com interação coulombiana.</p>
+    <!-- Conteúdo Principal -->
+    <main class="main-content">
+        
+        <div id="secao-sobre" class="section active">
+            <h2>Sobre nós</h2>
+            <div class="card-content">
+                <p>
+                    Bem-vindo(a) à nossa plataforma de simulações educacionais! Nossa missão é fornecer recursos didáticos de alta qualidade que auxiliem professores e alunos no aprendizado de conceitos complexos de física e matemática. Acreditamos que a visualização e a interação são ferramentas poderosas para a compreensão profunda e duradoura dessas disciplinas.
+                </p>
+                <p>
+                    Esta página foi criada para servir como um suporte para professores, oferecendo uma variedade de simulações interativas que podem ser utilizadas em sala de aula ou como material complementar para estudos individuais. Nosso objetivo é tornar o aprendizado mais envolvente e acessível, permitindo que os estudantes explorem fenômenos científicos e matemáticos de forma prática e visual.
+                </p>
+                <p>
+                    Nossas simulações cobrem uma ampla gama de tópicos, desde as leis fundamentais da física, como a cinemática e a dinâmica, até conceitos avançados de matemática, incluindo álgebra, geometria e cálculo. Cada simulação é projetada para ser intuitiva e fácil de usar, proporcionando uma experiência de aprendizado imersiva e interativa.
+                </p>
+                <p>
+                    Estamos comprometidos em continuamente expandir e melhorar nossa biblioteca de simulações, com base no feedback de professores e alunos. Nosso objetivo é criar um ambiente de aprendizado dinâmico que inspire curiosidade e paixão pela ciência e matemática.
+                </p>
+                <p>
+                    Agradecemos por visitar nossa página e esperamos que os recursos aqui disponibilizados contribuam significativamente para o sucesso educacional de seus alunos. Se tiver alguma sugestão ou precisar de assistência, não hesite em nos contatar. Juntos, podemos transformar a maneira como ensinamos e aprendemos física e matemática.
+                </p>
             </div>
-          </a>
-          
-          <a href='simulacoes/audio.html' target="_blank" class="card-link">
-            <div class="card">
-              <h1>Audio Fourrier </h1>
-              <p> Nesta simulação é possivel visualizar um som e seu espectro de frequências.</p>
+        </div>
+
+        <div id="secao-simulacoes" class="section">
+            <h2>Simulações</h2>
+            <div id="cards">
+                <a href='simulacoes/particulas.html' class="card-link">                    <div class="card">
+                        <h1>Simulação de partículas</h1>
+                        <p>Nesta simulação é possivel visualizar um sistema de partículas com interação coulombiana.</p>
+                    </div>
+                </a>
+                
+                <a href='simulacoes/audio.html' class="card-link">                    <div class="card">
+                        <h1>Audio Fourier</h1>
+                        <p>Nesta simulação é possivel visualizar um som e seu espectro de frequências.</p>
+                    </div>
+                </a>
+
+                <a href='simulacoes/fonons.html' class="card-link">                    <div class="card">
+                        <h1>Fônons</h1>
+                        <p>Nesta simulação é possivel visualizar uma onda de matéria numa rede cristalina.</p>
+                    </div>
+                </a>
+
+                <a href='simulacoes/snell.html' class="card-link">                    <div class="card">
+                        <h1>Lei de Snell</h1>
+                        <p>Nesta simulação é possivel visualizar a lei de snell em meios com indice de refração variados.</p>
+                    </div>
+                </a>
+
+                <a href='simulacoes/estacionarias2d.html' class="card-link">                    <div class="card">
+                        <h1>Ondas estacionárias 2D</h1>
+                        <p>Nesta simulação é possivel visualizar ondas estacinoárias em uma superfície 2d (padrões estacionários de Chladni).</p>
+                    </div>
+                </a>
+
+                <a href='simulacoes/quedalivre.html' class="card-link">                    <div class="card">
+                        <h1>Queda livre interativa</h1>
+                        <p>Nesta simulação é possivel visualizar e interagir com um objeto em queda livre.</p>
+                    </div>
+                </a>
             </div>
-          </a>
+        </div>
 
-          <a href='simulacoes/fonons.html' target="_blank" class="card-link">
-            <div class="card">
-              <h1>Fônons </h1>
-              <p> Nesta simulação é possivel visualizar um onda de matéria numa rede cristalina.</p>
+        <div id="secao-outra" class="section">
+            <div class="card-content">
+                <h2>Em construção</h2>
+                <p>Esta seção será preenchida em breve.</p>
             </div>
-          </a>
+        </div>
 
-          <a href='simulacoes/snell.html' target="_blank" class="card-link">
-            <div class="card">
-              <h1>Lei de Snell </h1>
-              <p> Nesta simulação é possivel visualizar a lei de snell em meios com indice de refração variados.</p>
-            </div>
-          </a>
+        <footer class="rodape">
+            <p>Desenvolvido por Nicolas Heringer. Hospedado no Github Pages.</p>
+        </footer>
 
-          <a href='simulacoes/estacionarias2d.html' target="_blank" class="card-link">
-            <div class="card">
-              <h1> Ondas estacionários 2D </h1>
-              <p> Nesta simulação é possivel visualizar ondas estacinoárias em uma superfície 2d (padrões estacionários de Chladni).</p>
-            </div>
-          </a>
+    </main>
 
-          <a href='simulacoes/quedalivre.html' target="_blank" class="card-link">
-            <div class="card">
-              <h1> Queda livre interativa </h1>
-              <p> Nesta simulação é possivel visualizar e interagir com um objeto em queda livre.</p>
-            </div>
-          </a>
-
-      </div>
-    </div>
-
-    <div id="secao-outra" class="section">
-      
-      <p>Em construção.</p>
-    
-    </div>
-
-    <div class="rodape">
-      <p>Desenvolvido por Nicolas Heringer. Hospedado no Github pages.</p>
-      <ul>
-        <li class="list">
-          <a href="https://www.instagram.com/nicolasheringer/">
-            <span class="icone">
-              <ion-icon name="logo-instagram"></ion-icon>
-            </span>
-          </a>
-        </li>
-
-        <li class="list">
-          <a href="https://www.linkedin.com/in/nicolasheringer/">
-            <span class="icone">
-              <ion-icon name="logo-linkedin"></ion-icon>
-            </span>
-          </a>
-        </li>
-
-        <li class="list">
-          <a href="https://github.com/Nicolas-Heringer">
-            <span class="icone">
-              <ion-icon name="logo-github"></ion-icon>
-            </span>
-          </a>
-        </li>
-
-      </ul>
-    </div>
-
-  </body>  
-
-  <script src="script.js"></script>
-  <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
-  <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+    <script src="script.js"></script>
+    <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+    <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+</body>
+</html>

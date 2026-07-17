@@ -3,27 +3,32 @@
 <head>
 	<meta charset='utf-8'>
 	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<title>Simulação de fonons</title>
-	<link rel="stylesheet" href="../styles.css">
+	<title>Simulação de fônons</title>
+    
+    <meta name="description" content="Plataforma de simulações educacionais de física e matemática.">
+	<meta name="keywords" content="simulações, física, matemática, educação, partículas, átomo de hidrogênio, áudio, fônons">
+	<meta name="author" content="Nicolas Heringer">
+    
+	<link rel="stylesheet" href="css/base.css">
 	<link rel="stylesheet" href="css/fonons.css">
 </head>
-<main>
-	<body>
+<body>
+    
+    <header class="sim-header">
+        <a href="../index.html#secao-simulacoes" class="btn-back">← Voltar ao Hub</a>
+        <span class="sim-title">Simulação de fônons</span>
+    </header>
 
-		<div id="text" class="section">
-			<h1>Simulação de fônons</h1>
-			<p> O objetivo desta simulação é ilustrar a temperatura se associa a ondas de matéria.</p>
-		</div>
-
-		<div id="canvasContainer">
+    <main class="sim-layout">
+        <div class="canvas-area">
 		    <canvas id="myCanvas" width="998" height="998"></canvas>
-		</div>
+        </div>
 
-		<div class="controlsContainer">
-
-			<div class="controlGroup">
-		        <label for="seletor-de-template">Template:</label>
-		        <select id="seletor-de-template">
+        <aside class="controls-panel">
+            
+            <div class="control-group">
+		        <label for="seletor-de-template">Template (Tamanho da rede):</label>
+		        <select id="seletor-de-template" class="sim-control">
 		            <option value="grid5">Grid 5</option>
 		            <option value="grid10">Grid 10</option>
 		            <option value="grid20">Grid 20</option>
@@ -31,20 +36,23 @@
 		        </select>
 		    </div>
 
-		    <div class="controlGroup">
-			    <label>Raio de Influência: <input type="range" id="raioInput" min="20" max="200" value="80"></label>
-			    <label>Intensidade: <input type="range" id="intensidadeInput" min="100" max="500" value="300"></label>
+            <div class="control-group">
+			    <label>Raio de Influência:</label>
+                <input type="range" id="raioInput" class="sim-slider" min="20" max="200" value="80">
+            </div>
+
+            <div class="control-group">
+			    <label>Intensidade da vibração:</label>
+                <input type="range" id="intensidadeInput" class="sim-slider" min="100" max="500" value="300">
 			</div>
 
-		</div>
+            <div class="info-section">
+                <p>O objetivo desta simulação é ilustrar como a temperatura (energia térmica) se associa à propagação de ondas de matéria (fônons) em uma rede cristalina.</p>
+            </div>
+            
+        </aside>
+    </main>
 
-		<div id="text" class="section">
-			<p> 
-				A apresentação desta simulação pode ser benéfica ao apresentar alguns tópicos distintos:			
-			</p>
-		</div>
-
-		<script src="scripts/fonons.js"></script>
-	</body>
-</main>
+    <script src="scripts/fonons.js"></script>
+</body>
 </html>

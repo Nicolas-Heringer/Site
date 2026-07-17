@@ -3,33 +3,55 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ondas estacionárias</title>
+    <title>Ondas estacionárias 2D</title>
     <meta name="description" content="Plataforma de simulações educacionais de física e matemática.">
 	<meta name="keywords" content="simulações, física, matemática, educação, partículas, átomo de hidrogênio, áudio, fônons">
 	<meta name="author" content="Nicolas Heringer">
+    
+    <link rel="stylesheet" href="css/base.css">
     <link rel="stylesheet" type="text/css" href="css/janelas.css">
 </head>
 <body>
-    <div>
-        <label for="n">n:</label>
-        <input type="number" id="n" value="1" min="1" max="10">
-        
-        <label for="m">m:</label>
-        <input type="number" id="m" value="5" min="1" max="10">
-        
-        <label for="drawType">Tipo de desenho:</label>
-        <select id="drawType">
-            <option value="mapped">Escala de cinza</option>
-            <option value="abs">Nós das ondas</option>
-            <option value="positiveAndNegative">Positivo e negativo</option>
-        </select>
-        
-        <button id="atualizar">Atualizar</button>
-    </div>
-    
-    <canvas id="simulacao" width="600" height="600"></canvas>
+    <header class="sim-header">
+        <a href="../index.html#secao-simulacoes" class="btn-back">← Voltar ao Hub</a>
+        <span class="sim-title">Ondas Estacionárias 2D</span>
+    </header>
 
-    <p>Referência: <a href="https://doi.org/10.1590/1806-9126-RBEF-2023-0354">Aqui</a></p>
+    <main class="sim-layout">
+        <div class="canvas-area">
+            <canvas id="simulacao" width="600" height="600"></canvas>
+        </div>
+        
+        <aside class="controls-panel">
+            <div class="control-group">
+                <label for="n">Modo n:</label>
+                <input type="number" id="n" class="sim-input" value="1" min="1" max="10">
+            </div>
+
+            <div class="control-group">
+                <label for="m">Modo m:</label>
+                <input type="number" id="m" class="sim-input" value="5" min="1" max="10">
+            </div>
+
+            <div class="control-group">
+                <label for="drawType">Tipo de desenho:</label>
+                <select id="drawType" class="sim-control">
+                    <option value="mapped">Escala de cinza</option>
+                    <option value="abs">Nós das ondas</option>
+                    <option value="positiveAndNegative">Positivo e negativo</option>
+                </select>
+            </div>
+
+            <div class="control-group" style="margin-top: 10px;">
+                <button id="atualizar" class="sim-btn">Atualizar</button>
+            </div>
+
+            <div class="info-section">
+                <p>Visualização de padrões de Chladni (ondas estacionárias bidimensionais em uma superfície quadrada).</p>
+                <p>Referência: <a href="https://doi.org/10.1590/1806-9126-RBEF-2023-0354" style="color: var(--accent-color);">Aqui</a></p>
+            </div>
+        </aside>
+    </main>
 
     <script type="text/javascript" src="scripts/estacionarias2d.js"></script>
 </body>

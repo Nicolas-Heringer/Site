@@ -2,16 +2,32 @@
 <html lang="pt-br">
 <head>
     <title>Modelo de Drude</title>
-
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="Plataforma de simulações educacionais de física e matemática.">
     <meta name="keywords" content="simulações, física, matemática, educação, partículas, átomo de hidrogênio, áudio, fônons">
     <meta name="author" content="Nicolas Heringer">
     
+    <link rel="stylesheet" href="css/base.css">
     <link rel="stylesheet" type="text/css" href="css/drude.css">
 </head>
 <body>
-    <h1>Simulação do Modelo de Drude</h1>
-    <canvas id="drudeCanvas"></canvas>
+    <header class="sim-header">
+        <a href="../index.html#secao-simulacoes" class="btn-back">← Voltar ao Hub</a>
+        <span class="sim-title">Modelo de Drude</span>
+    </header>
+
+    <main class="sim-layout">
+        <div class="canvas-area">
+            <canvas id="drudeCanvas"></canvas>
+        </div>
+        
+        <aside class="controls-panel">
+            <div class="info-section">
+                <p>Simulação do modelo clássico de condução elétrica (Modelo de Drude).</p>
+            </div>
+        </aside>
+    </main>
     <script src="scripts/drude.js"></script>
 </body>
 </html>

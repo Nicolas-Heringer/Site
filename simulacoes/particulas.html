@@ -8,114 +8,103 @@
     <meta name="description" content="Plataforma de simulações educacionais de física e matemática.">
 	<meta name="keywords" content="simulações, física, matemática, educação, partículas, átomo de hidrogênio, áudio, fônons">
 	<meta name="author" content="Nicolas Heringer">
-	<link rel="stylesheet" href="../styles.css">
-	<link rel="stylesheet" href="css/particulas.css">
+    
+    <!-- Novo Boilerplate Global -->
+    <link rel="stylesheet" href="css/base.css">
+	
+    <!-- Estilos específicos do Canvas para esta simulação -->
+    <link rel="stylesheet" href="css/particulas.css">
 </head>
-<main>
-	<body>
+<body>
+    
+    <header class="sim-header">
+        <a href="../index.html#secao-simulacoes" class="btn-back">← Voltar ao Hub</a>
+        <span class="sim-title">Simulação de partículas</span>
+    </header>
 
-		<div id="text" class="section">
-			<h1>Simulação de partículas</h1>
-			<p> O objetivo desta simulação é ilustrar como um sistema de muitas partículas interagentes pode se tornar crescentemente complexo.</p>
-		</div>
-
-		<div id="canvasContainer">
+    <main class="sim-layout">
+        
+        <div class="canvas-area">
 		    <canvas id="myCanvas" width="598" height="598"></canvas>
-		</div>
+        </div>
 
-		<div class="controlsContainer">
+        <aside class="controls-panel">
+            
+            <div class="control-group">
+                <label for="seletor-de-template">Template:</label>
+                <select id="seletor-de-template" class="sim-control">
+                    <option value="livre">Uma partícula</option>
+                    <option value="double">Duas partículas</option>
+                    <option value="many">Varias partículas (10)</option>
+                    <option value="circular">Circulo (20)</option>
+                    <option value="grid">Grid (6x6)</option>
+                    <option value="NaCl">Cloreto de sódio NaCl</option>
+                    <option value="none"> </option>
+                </select>
+            </div>
 
-			<div class="controlGroup">
-		        <label for="seletor-de-template">Template:</label>
-		        <select id="seletor-de-template">
-		            <option value="livre">Uma partícula</option>
-		            <option value="double">Duas partículas</option>
-		            <option value="many">Varias partículas (10)</option>
-		            <option value="circular">Circulo (20)</option>
-		            <option value="grid">Grid (6x6)</option>
-		            <option value="NaCl">Cloreto de sódio NaCl</option>
-		            <option value="none"> </option>
+            <div class="control-group">
+                <label for="selector-de-tipo-de-interacao">Tipo de interação:</label>
+                <select id="selector-de-tipo-de-interacao" class="sim-control">
+                    <option value="ambos">Atração e repulsão</option>
+                    <option value="atracao">Apenas atração</option>
+                    <option value="repulsao">Apenas repulsão</option>
+                </select>
+            </div>
 
-		        </select>
-		    </div>
+            <div class="control-group">
+                <label for="selector-de-interacao">Interação:</label>
+                <select id="selector-de-interacao" class="sim-control">
+                    <option value="desligada">Desligada</option>
+                    <option value="ligada">Ligada</option>
+                </select>
+            </div>
 
-		    <div class="controlGroup">
-		        <label for="selector-de-tipo-de-interacao">Tipo de interação:</label>
-		        <select id="selector-de-tipo-de-interacao">
-		            <option value="ambos">Atração e repulsão</option>
-		            <option value="atracao">Apenas atração</option>
-		            <option value="repulsao">Apenas repulsão</option>
-		        </select>
-		    </div>
+            <div class="control-group">
+                <label for="selector-de-temperatura">Temperatura:</label>
+                <select id="selector-de-temperatura" class="sim-control">
+                    <option value="0.001">0.001</option>
+                    <option value="0.01">0.01</option>
+                    <option value="0.1">0.1</option>
+                    <option value="1">1</option>
+                    <option value="10">10</option>
+                    <option value="100">100</option>
+                </select>
+            </div>
 
-		    <div class="controlGroup">
-		        <label for="selector-de-interacao">Interação:</label>
-		        <select id="selector-de-interacao">
-		            <option value="desligada">Desligada</option>
-		            <option value="ligada">Ligada</option>
-		        </select>
-		    </div>
+            <div class="control-group">
+                <label for="selector-de-velocidade-onda">Vel. da Onda:</label>
+                <select id="selector-de-velocidade-onda" class="sim-control">
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="4">4</option>
+                    <option value="5">5</option>
+                    <option value="10">10</option>
+                </select>
+            </div>
 
-		    <div class="controlGroup">
-		        <label for="selector-de-temperatura">Temperatura:</label>
-		        <select id="selector-de-temperatura">
-		            <option value="0.001">0.001</option>
-		            <option value="0.01">0.01</option>
-		            <option value="0.1">0.1</option>
-		            <option value="1">1</option>
-		            <option value="10">10</option>
-		            <option value="100">100</option>
-		        </select>
-		    </div>
+            <div class="control-group">
+                <label for="temperature-atenuation">Atenuação:</label>
+                <input type="number" id="temperature-atenuation" class="sim-input" min="0" max="1" step="0.01" value="0.09">
+            </div>
 
-		    <div class="controlGroup">
-		        <label for="selector-de-velocidade-onda">Vel. da Onda:</label>
-		        <select id="selector-de-velocidade-onda">
-		            <option value="1">1</option>
-		            <option value="2">2</option>
-		            <option value="3">3</option>
-		            <option value="4">4</option>
-		            <option value="5">5</option>
-		            <option value="10">10</option>
-		        </select>
-		    </div>
+            <button id='reset-button' class="sim-btn">Resetar</button>
 
-		    <div class="controlGroup">
-		    	<label for='reset-button'>Reset</label>
-		    	<button id='reset-button'>Resetar</button>
-		    </div>
+            <div class="info-section">
+                <p>O objetivo desta simulação é ilustrar como um sistema de muitas partículas interagentes pode se tornar crescentemente complexo. Pode ser benéfica ao apresentar alguns tópicos distintos:</p>
+                <ul>
+                    <li> Efeito doppler.</li>
+                    <li> Ondas.</li>
+                    <li> Campos eletromasgnéticos.</li>
+                    <li> Transporte de informação.</li>
+                </ul>
+            </div>
+            
+        </aside>
 
+    </main>
 
-		</div>
-
-		<div class="controlsContainer">
-		    <div class="controlGroup">
-		        <label for="temperature-atenuation">Atenuação:</label>
-		        <input type="number" id="temperature-atenuation" min="0" max="1" step="0.01" value="0.09">
-		    </div>
-		</div>
-
-		<div id="text" class="section">
-			<p> 
-				A apresentação deta simulação pode ser benéfica ao apresentar alguns tópicos distintos:			
-			</p>
-			<ul>
-				<li> Efeito doppler.</li>
-				<li> Ondas.</li>
-				<li> Campos eletromasgnéticos.</li>
-				<li> Transporte de informação.</li>
-			</ul>
-			<p>
-				Muitas funcionalidades ainda devem ser adicionadas futuramente, como:
-			</p>
-			<ul>
-				<li> Alguns templates de movimentos: orbitas, movimento unidimensional (zigzag); </li>
-				<li> Controle de frequencia emitida (com feedback sonoro);</li>
-				<li> Interações diversas (Coulomb, Gravitacional, Lennard-Jones, etc);</li>
-			</ul>
-
-		</div>
-		<script src="scripts/particulas.js"></script>
-	</body>
-</main>
+	<script src="scripts/particulas.js"></script>
+</body>
 </html>
