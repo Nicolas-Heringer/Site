@@ -313,10 +313,13 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     const templates = {
-        'uniforme_20': { px: 20, py: 20, padrao: 'uniforme', massas: [1], ks: { horizontal: 10, vertical: 10 } },
-        'uniforme_50': { px: 50, py: 50, padrao: 'uniforme', massas: [1], ks: { horizontal: 10, vertical: 10 } },
-        'linhas_50': { px: 50, py: 50, padrao: 'linhas', massas: [1, 5], ks: { horizontal: 10, vertical: 10 } },
-        'checkerboard_50': { px: 50, py: 50, padrao: 'checkerboard', massas: [1, 5], ks: { horizontal: 10, vertical: 10 } }
+        'uniforme_10': { px: 10, py: 10, padrao: 'uniforme', massas: [1], ks: { horizontal: 20, vertical: 20 } },
+        'uniforme_20': { px: 20, py: 20, padrao: 'uniforme', massas: [1], ks: { horizontal: 20, vertical: 20 } },
+        'uniforme_50': { px: 50, py: 50, padrao: 'uniforme', massas: [1], ks: { horizontal: 20, vertical: 20 } },
+        'linhas_20': { px: 20, py: 20, padrao: 'linhas', massas: [1, 5], ks: { horizontal: 20, vertical: 20 } },
+        'linhas_50': { px: 50, py: 50, padrao: 'linhas', massas: [1, 5], ks: { horizontal: 20, vertical: 20 } },
+        'checkerboard_20': { px: 20, py: 20, padrao: 'checkerboard', massas: [1, 5], ks: { horizontal: 20, vertical: 20 } },
+        'checkerboard_50': { px: 50, py: 50, padrao: 'checkerboard', massas: [1, 5], ks: { horizontal: 20, vertical: 20 } }
     };
 
     document.getElementById('seletor-de-template').addEventListener('change', (e) => {

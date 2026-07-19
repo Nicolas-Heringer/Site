@@ -1,19 +1,22 @@
 <!DOCTYPE html>
 <html lang="pt-br">
+
 <head>
-	<meta charset='utf-8'>
-	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<title>Simulação de fônons</title>
-    
+    <meta charset='utf-8'>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Simulação de fônons</title>
+
     <meta name="description" content="Plataforma de simulações educacionais de física e matemática.">
-	<meta name="keywords" content="simulações, física, matemática, educação, partículas, átomo de hidrogênio, áudio, fônons">
-	<meta name="author" content="Nicolas Heringer">
-    
-	<link rel="stylesheet" href="css/base.css">
-	<link rel="stylesheet" href="css/fonons.css">
+    <meta name="keywords"
+        content="simulações, física, matemática, educação, partículas, átomo de hidrogênio, áudio, fônons">
+    <meta name="author" content="Nicolas Heringer">
+
+    <link rel="stylesheet" href="css/base.css">
+    <link rel="stylesheet" href="css/fonons.css">
 </head>
+
 <body>
-    
+
     <header class="sim-header">
         <a href="../index.html#secao-simulacoes" class="btn-back">← Voltar ao Hub</a>
         <span class="sim-title">Simulação de fônons</span>
@@ -21,30 +24,33 @@
 
     <main class="sim-layout">
         <div class="canvas-area">
-		    <canvas id="myCanvas" width="998" height="998"></canvas>
+            <canvas id="myCanvas" width="998" height="998"></canvas>
         </div>
 
         <aside class="controls-panel">
-            
-            <div class="control-group">
-		        <label for="seletor-de-template">Template (Tamanho da rede):</label>
-		        <select id="seletor-de-template" class="sim-control">
-		            <option value="uniforme_20">Monoatômica (Grid 20)</option>
-		            <option value="uniforme_50" selected>Monoatômica (Grid 50)</option>
-		            <option value="linhas_50">Diatômica Linhas (Grid 50)</option>
-		            <option value="checkerboard_50">Diatômica Checkerboard (Grid 50)</option>
-		        </select>
-		    </div>
 
             <div class="control-group">
-			    <label>Raio de Influência:</label>
+                <label for="seletor-de-template">Template (Tamanho da rede):</label>
+                <select id="seletor-de-template" class="sim-control">
+                    <option value="uniforme_10">Monoatômica (Grid 10)</option>
+                    <option value="uniforme_20">Monoatômica (Grid 20)</option>
+                    <option value="uniforme_50" selected>Monoatômica (Grid 50)</option>
+                    <option value="linhas_20">Diatômica Linhas (Grid 20)</option>
+                    <option value="linhas_50">Diatômica Linhas (Grid 50)</option>
+                    <option value="checkerboard_20">Diatômica Checkerboard (Grid 20)</option>
+                    <option value="checkerboard_50">Diatômica Checkerboard (Grid 50)</option>
+                </select>
+            </div>
+
+            <div class="control-group">
+                <label>Raio de Influência:</label>
                 <input type="range" id="raioInput" class="sim-slider" min="20" max="200" value="80">
             </div>
 
             <div class="control-group">
-			    <label>Intensidade da vibração:</label>
+                <label>Intensidade da vibração:</label>
                 <input type="range" id="intensidadeInput" class="sim-slider" min="100" max="500" value="300">
-			</div>
+            </div>
 
             <div class="control-group">
                 <button id="btn-reset" class="sim-btn">Resetar Grid</button>
@@ -52,12 +58,14 @@
             </div>
 
             <div class="info-section">
-                <p>O objetivo desta simulação é ilustrar como a temperatura (energia térmica) se associa à propagação de ondas de matéria (fônons) em uma rede cristalina.</p>
+                <p>O objetivo desta simulação é ilustrar como a temperatura (energia térmica) se associa à propagação de
+                    ondas de matéria (fônons) em uma rede cristalina.</p>
             </div>
-            
+
         </aside>
     </main>
 
     <script src="scripts/fonons.js"></script>
 </body>
+
 </html>
