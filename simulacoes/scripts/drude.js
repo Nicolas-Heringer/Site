@@ -9,7 +9,6 @@ const valCampo = document.getElementById('valCampo');
 const inputTemp = document.getElementById('temperatura');
 const valTemp = document.getElementById('valTemp');
 const selectRede = document.getElementById('tipoRede');
-
 let campoEletrico = parseFloat(inputCampo.value);
 let temperatura = parseFloat(inputTemp.value);
 let tipoRede = selectRede.value;
