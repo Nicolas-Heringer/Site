@@ -29,10 +29,10 @@
             <div class="control-group">
 		        <label for="seletor-de-template">Template (Tamanho da rede):</label>
 		        <select id="seletor-de-template" class="sim-control">
-		            <option value="grid5">Grid 5</option>
-		            <option value="grid10">Grid 10</option>
-		            <option value="grid20">Grid 20</option>
-		            <option value="grid50" selected>Grid 50</option>
+		            <option value="uniforme_20">Monoatômica (Grid 20)</option>
+		            <option value="uniforme_50" selected>Monoatômica (Grid 50)</option>
+		            <option value="linhas_50">Diatômica Linhas (Grid 50)</option>
+		            <option value="checkerboard_50">Diatômica Checkerboard (Grid 50)</option>
 		        </select>
 		    </div>
 
@@ -45,6 +45,11 @@
 			    <label>Intensidade da vibração:</label>
                 <input type="range" id="intensidadeInput" class="sim-slider" min="100" max="500" value="300">
 			</div>
+
+            <div class="control-group">
+                <button id="btn-reset" class="sim-btn">Resetar Grid</button>
+                <button id="btn-pause" class="sim-btn">Pausar</button>
+            </div>
 
             <div class="info-section">
                 <p>O objetivo desta simulação é ilustrar como a temperatura (energia térmica) se associa à propagação de ondas de matéria (fônons) em uma rede cristalina.</p>
