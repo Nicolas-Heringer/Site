@@ -1,16 +1,19 @@
 <!DOCTYPE html>
 <html lang="pt-br">
+
 <head>
-    <title>Modelo de Drude</title>
-    <meta charset="utf-8">
+    <meta charset='utf-8'>
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Modelo de Drude</title>
+
     <meta name="description" content="Plataforma de simulações educacionais de física e matemática.">
-    <meta name="keywords" content="simulações, física, matemática, educação, partículas, átomo de hidrogênio, áudio, fônons">
+    <meta name="keywords"
+        content="simulações, física, matemática, educação, partículas, átomo de hidrogênio, áudio, fônons">
     <meta name="author" content="Nicolas Heringer">
-    
+
     <link rel="stylesheet" href="css/base.css">
-    <link rel="stylesheet" type="text/css" href="css/drude.css">
 </head>
+
 <body>
     <header class="sim-header">
         <a href="../index.html#secao-simulacoes" class="btn-back">← Voltar ao Hub</a>
@@ -21,13 +24,33 @@
         <div class="canvas-area">
             <canvas id="drudeCanvas"></canvas>
         </div>
-        
+
         <aside class="controls-panel">
             <div class="info-section">
                 <p>Simulação do modelo clássico de condução elétrica (Modelo de Drude).</p>
+            </div>
+
+            <div class="control-group">
+                <label for="campoEletrico">Campo Elétrico (E): <span id="valCampo">0.1</span></label>
+                <input type="range" id="campoEletrico" class="sim-input" min="0" max="0.5" step="0.01" value="0.1">
+            </div>
+
+            <div class="control-group">
+                <label for="temperatura">Temperatura (Agitação): <span id="valTemp">50</span></label>
+                <input type="range" id="temperatura" class="sim-input" min="0" max="100" step="1" value="50">
+            </div>
+
+            <div class="control-group">
+                <label for="tipoRede">Tipo de Rede:</label>
+                <select id="tipoRede" class="sim-control">
+                    <option value="triangular">Triangular</option>
+                    <option value="hexagonal">Hexagonal (Grafeno)</option>
+                    <option value="armchair">Armchair</option>
+                </select>
             </div>
         </aside>
     </main>
     <script src="scripts/drude.js"></script>
 </body>
+
 </html>
