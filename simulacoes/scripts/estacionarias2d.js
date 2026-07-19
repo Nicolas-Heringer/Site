@@ -9,8 +9,8 @@ const freq = 1;
 
 const tamanhodDaCelula = 5;
 
-const numDeColunas = canvas.width/tamanhodDaCelula;
-const numDeLinhas = canvas.height/tamanhodDaCelula;
+const numDeColunas = canvas.width / tamanhodDaCelula;
+const numDeLinhas = canvas.height / tamanhodDaCelula;
 
 // Captura os elementos do DOM
 const inputN = document.getElementById("n");
@@ -28,24 +28,24 @@ btnAtualizar.addEventListener("click", () => {
     // Atualiza os valores de n e m
     n = parseInt(inputN.value);
     m = parseInt(inputM.value);
-    
+
     // Atualiza o tipo de desenho
     drawTypeSelected = selectDrawType.value;
-    
+
     // Redesenha o canvas
     draw(drawTypeSelected);
 });
 
-function linearmap(value,minFrom,maxFrom,minTo,maxTo){
-    return minTo + (maxTo-minTo)*(value-minFrom)/(maxFrom-minFrom);
+function linearmap(value, minFrom, maxFrom, minTo, maxTo) {
+    return minTo + (maxTo - minTo) * (value - minFrom) / (maxFrom - minFrom);
 }
 
 function Chladni(x, y, n, m) {
     const L = 1;
     const normalizedX = x / canvas.width;
     const normalizedY = y / canvas.height;
-    return Math.cos(n * Math.PI * normalizedX / L) * Math.cos(m * Math.PI * normalizedY / L) - 
-           Math.cos(m * Math.PI * normalizedX / L) * Math.cos(n * Math.PI * normalizedY / L);
+    return Math.cos(n * Math.PI * normalizedX / L) * Math.cos(m * Math.PI * normalizedY / L) -
+        Math.cos(m * Math.PI * normalizedX / L) * Math.cos(n * Math.PI * normalizedY / L);
 }
 
 
@@ -111,7 +111,7 @@ function draw(type = "mapped") {
 
 function animacao() {
     const frametime = performance.now() - tempoAnterior
-	
+
     // Limpa o canvas antes de redesenhar
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 

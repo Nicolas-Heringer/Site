@@ -1,7 +1,7 @@
 const canvas = document.getElementById("simulacao");
 const ctx = canvas.getContext("2d");
 
-const g = 9.8*100; // Gravidade em m/s^2
+const g = 9.8 * 100; // Gravidade em m/s^2
 const fps = 60; // Frames por segundo
 const dt = 1 / fps; // Intervalo de tempo entre frames
 const coeficienteDeRestituicao = 0.7;
@@ -26,36 +26,36 @@ class Objeto {
     }
 
     move() {
-    	this.x += this.vx * dt;
-    	this.y += this.vy * dt;
+        this.x += this.vx * dt;
+        this.y += this.vy * dt;
     }
 
     gravidade() {
         this.vy += g * dt; // Atualiza a velocidade vertical com a gravidade
     }
 
-    verificaColisao(){
-    	if (this.y+this.raio>=canvas.height){
-    		
-    		this.y -= (this.y + this.raio - canvas.height);
-    		this.vy *= -coeficienteDeRestituicao;
+    verificaColisao() {
+        if (this.y + this.raio >= canvas.height) {
 
-    	} else if (this.y-this.raio<=0){
-    		
-    		this.y += (this.raio - this.y);
-    		this.vy *= -coeficienteDeRestituicao;
-    	}
+            this.y -= (this.y + this.raio - canvas.height);
+            this.vy *= -coeficienteDeRestituicao;
 
-    	if (this.x+this.raio>=canvas.width){
-    		
-    		this.x -= (this.x+this.raio - canvas.width);
-    		this.vx *= -coeficienteDeRestituicao;
-    	
-    	} else if (this.x-this.raio<=0){
-    		
-    		this.x += (this.raio - this.x);
-    		this.vx *= -coeficienteDeRestituicao;
-    	}
+        } else if (this.y - this.raio <= 0) {
+
+            this.y += (this.raio - this.y);
+            this.vy *= -coeficienteDeRestituicao;
+        }
+
+        if (this.x + this.raio >= canvas.width) {
+
+            this.x -= (this.x + this.raio - canvas.width);
+            this.vx *= -coeficienteDeRestituicao;
+
+        } else if (this.x - this.raio <= 0) {
+
+            this.x += (this.raio - this.x);
+            this.vx *= -coeficienteDeRestituicao;
+        }
     }
 
     desenha() {
@@ -95,7 +95,7 @@ class Objeto {
 
             // Define a velocidade do objeto com base no movimento do mouse
             this.vx = deltaX / deltaTempo; // Velocidade em pixels por segundo
-			this.vy = deltaY / deltaTempo; // Velocidade em pixels por segundo
+            this.vy = deltaY / deltaTempo; // Velocidade em pixels por segundo
 
             // Atualiza a posição do objeto
             this.x = mouseX;
@@ -112,11 +112,11 @@ class Objeto {
 const bola = new Objeto(200, 200, 50);
 
 function animacao() {
-	tempoAnterior = performance.now()
+    tempoAnterior = performance.now()
     ctx.clearRect(0, 0, canvas.width, canvas.height); // Limpa o canvas
-    if(!bola.isClicked){
-	    bola.move();
-	    bola.gravidade(); // Aplica a gravidade
+    if (!bola.isClicked) {
+        bola.move();
+        bola.gravidade(); // Aplica a gravidade
     }
     bola.verificaColisao();
     bola.desenha(); // Desenha a bola

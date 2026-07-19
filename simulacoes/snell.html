@@ -1,14 +1,17 @@
 <!DOCTYPE html>
 <html lang="pt-br">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Simulação da Lei de Snell — Ray Tracing Contínuo</title>
-    
-    <meta name="description" content="Simulação educacional de propagação de luz em meios com índice de refração variável n(x,y). Visualize refração, miragens, fibras ópticas e dispersão cromática.">
-    <meta name="keywords" content="Lei de Snell, ray tracing, índice de refração, dispersão, física óptica, simulação educacional">
+
+    <meta name="description"
+        content="Simulação educacional de propagação de luz em meios com índice de refração variável n(x,y). Visualize refração, miragens, fibras ópticas e dispersão cromática.">
+    <meta name="keywords"
+        content="Lei de Snell, ray tracing, índice de refração, dispersão, física óptica, simulação educacional">
     <meta name="author" content="Nicolas Heringer">
-    
+
     <link rel="stylesheet" href="css/base.css">
 
     <style>
@@ -38,7 +41,11 @@
             animation: spin 0.8s linear infinite;
         }
 
-        @keyframes spin { to { transform: rotate(360deg); } }
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
 
         /* Toggle de dispersão */
         .toggle-row {
@@ -57,7 +64,7 @@
             width: 36px;
             height: 20px;
             border-radius: 10px;
-            background: rgba(255,255,255,0.1);
+            background: rgba(255, 255, 255, 0.1);
             border: 1px solid var(--border-color);
             cursor: pointer;
             position: relative;
@@ -102,6 +109,7 @@
         }
     </style>
 </head>
+
 <body>
     <header class="sim-header">
         <a href="../index.html#secao-simulacoes" class="btn-back">← Voltar ao Hub</a>
@@ -142,12 +150,14 @@
 
             <!-- ABERTURA E FEIXES -->
             <div class="control-group">
-                <label for="aberturaSlider">Abertura angular: <strong><span id="aberturaValue">45</span>°</strong></label>
+                <label for="aberturaSlider">Abertura angular: <strong><span
+                            id="aberturaValue">45</span>°</strong></label>
                 <input type="range" id="aberturaSlider" class="sim-slider" min="0" max="360" value="45" step="2">
             </div>
 
             <div class="control-group">
-                <label for="numFeixesSlider">Número de feixes: <strong><span id="numFeixesValue">100</span></strong></label>
+                <label for="numFeixesSlider">Número de feixes: <strong><span
+                            id="numFeixesValue">100</span></strong></label>
                 <input type="range" id="numFeixesSlider" class="sim-slider" min="1" max="500" value="100" step="1">
             </div>
 
@@ -155,7 +165,8 @@
 
             <!-- RASTRO / PERSISTÊNCIA -->
             <div class="control-group">
-                <label for="persistenciaSlider">Persistência do rastro: <strong><span id="persistenciaValue">Permanente</span></strong></label>
+                <label for="persistenciaSlider">Persistência do rastro: <strong><span
+                            id="persistenciaValue">Permanente</span></strong></label>
                 <input type="range" id="persistenciaSlider" class="sim-slider" min="0" max="100" value="100" step="1">
             </div>
 
@@ -170,7 +181,8 @@
             </div>
 
             <div id="wavelengthControl" class="control-group" style="display:none;">
-                <label for="numWavelengthsSlider">Comprimentos de onda: <strong><span id="numWavelengthsValue">5</span></strong></label>
+                <label for="numWavelengthsSlider">Comprimentos de onda: <strong><span
+                            id="numWavelengthsValue">5</span></strong></label>
                 <input type="range" id="numWavelengthsSlider" class="sim-slider" min="1" max="7" step="1" value="5">
             </div>
 
@@ -183,9 +195,11 @@
 
             <!-- INFORMAÇÕES EDUCACIONAIS -->
             <div class="info-section">
-                <p>Esta simulação resolve a <strong>equação diferencial do raio</strong> em um meio com índice de refração contínuo n(x,y):</p>
+                <p>Esta simulação resolve a <strong>equação diferencial do raio</strong> em um meio com índice de
+                    refração contínuo n(x,y):</p>
                 <p class="equation">d/ds ( n · dr/ds ) = ∇n</p>
-                <p>Clique no canvas para emitir feixes a partir daquele ponto. Ative a <strong>dispersão cromática</strong> para visualizar a separação das cores como em um prisma.</p>
+                <p>Clique no canvas para emitir feixes a partir daquele ponto. Ative a <strong>dispersão
+                        cromática</strong> para visualizar a separação das cores como em um prisma.</p>
             </div>
 
         </aside>
@@ -193,4 +207,5 @@
 
     <script src="scripts/snell.js"></script>
 </body>
+
 </html>

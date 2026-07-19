@@ -1,14 +1,16 @@
 <!DOCTYPE html>
 <html lang="pt-br">
+
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Análise de Áudio em Tempo Real</title>
-    
+
     <meta name="description" content="Plataforma de simulações educacionais de física e matemática.">
-    <meta name="keywords" content="simulações, física, matemática, educação, partículas, átomo de hidrogênio, áudio, fônons">
+    <meta name="keywords"
+        content="simulações, física, matemática, educação, partículas, átomo de hidrogênio, áudio, fônons">
     <meta name="author" content="Nicolas Heringer">
-    
+
     <link rel="stylesheet" href="css/base.css">
     <style>
         .audio-canvas-container {
@@ -17,12 +19,14 @@
             width: 90%;
             height: 40%;
         }
+
         .audio-canvas-container canvas {
             width: 100%;
             height: 100%;
             border-radius: 8px;
             background-color: #000;
         }
+
         .axis-label {
             position: absolute;
             font-size: 12px;
@@ -30,24 +34,28 @@
         }
     </style>
 </head>
+
 <body>
     <header class="sim-header">
         <a href="../index.html#secao-simulacoes" class="btn-back">← Voltar ao Hub</a>
         <span class="sim-title">Análise de Áudio em Tempo Real</span>
     </header>
-    
+
     <main class="sim-layout">
         <div class="canvas-area" style="justify-content: space-evenly;">
             <div class="audio-canvas-container" id="canvasContainer1">
                 <canvas id="timeCanvas"></canvas>
                 <div class="axis-label" style="bottom: -20px; left: 50%; transform: translateX(-50%)">Tempo (ms)</div>
-                <div class="axis-label" style="top: 50%; left: -40px; transform: rotate(-90deg) translateY(-50%)">Amplitude</div>
+                <div class="axis-label" style="top: 50%; left: -40px; transform: rotate(-90deg) translateY(-50%)">
+                    Amplitude</div>
             </div>
 
             <div class="audio-canvas-container" id="canvasContainer2">
                 <canvas id="freqCanvas"></canvas>
-                <div class="axis-label" style="bottom: -20px; left: 50%; transform: translateX(-50%)">Frequência (Hz)</div>
-                <div class="axis-label" style="top: 50%; left: -50px; transform: rotate(-90deg) translateY(-50%)">Intensidade (dB)</div>
+                <div class="axis-label" style="bottom: -20px; left: 50%; transform: translateX(-50%)">Frequência (Hz)
+                </div>
+                <div class="axis-label" style="top: 50%; left: -50px; transform: rotate(-90deg) translateY(-50%)">
+                    Intensidade (dB)</div>
             </div>
         </div>
 
@@ -59,11 +67,13 @@
                 <button id="stopButton" class="sim-btn" disabled>⏹ Parar</button>
             </div>
             <div class="info-section">
-                <p>Nesta simulação é possível visualizar um som capturado pelo microfone e seu respectivo espectro de frequências usando a Transformada de Fourier.</p>
+                <p>Nesta simulação é possível visualizar um som capturado pelo microfone e seu respectivo espectro de
+                    frequências usando a Transformada de Fourier.</p>
             </div>
         </aside>
     </main>
 
     <script src="scripts/audio.js"></script>
 </body>
+
 </html>

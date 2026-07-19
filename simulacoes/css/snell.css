@@ -5,6 +5,7 @@ body {
     margin: 0;
     padding: 20px;
 }
+
 canvas {
     display: block;
     margin: 20px auto;

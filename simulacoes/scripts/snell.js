@@ -13,11 +13,11 @@ window.onload = function () {
     // 1. CANVAS
     // =========================================================================
     const canvas = document.getElementById('simulationCanvas');
-    const ctx    = canvas.getContext('2d');
+    const ctx = canvas.getContext('2d');
 
     function resizeCanvas() {
         const area = canvas.parentElement;
-        canvas.width  = area.clientWidth;
+        canvas.width = area.clientWidth;
         canvas.height = area.clientHeight;
     }
     resizeCanvas();
@@ -25,30 +25,30 @@ window.onload = function () {
     // =========================================================================
     // 2. ESTADO GLOBAL
     // =========================================================================
-    let maps            = null;   // { n, gx, gy, minN, maxN, dispersion } — Float32Arrays
-    let feixes          = [];     // Raios ativos na simulação
-    let isComputing     = false;  // Worker em execução
+    let maps = null;   // { n, gx, gy, minN, maxN, dispersion } — Float32Arrays
+    let feixes = [];     // Raios ativos na simulação
+    let isComputing = false;  // Worker em execução
     let backgroundCache = null;   // ImageData do fundo (desenhado uma vez ao trocar perfil)
     // trailCanvas: onde os rastros dos raios são acumulados de forma persistente
-    const trailCanvas  = document.createElement('canvas');
-    const trailCtx     = trailCanvas.getContext('2d');
+    const trailCanvas = document.createElement('canvas');
+    const trailCtx = trailCanvas.getContext('2d');
 
     // =========================================================================
     // 3. CONTROLES (DOM)
     // =========================================================================
-    const sliderAbertura    = document.getElementById('aberturaSlider');
-    const spanAbertura      = document.getElementById('aberturaValue');
-    const sliderNumFeixes   = document.getElementById('numFeixesSlider');
-    const spanNumFeixes     = document.getElementById('numFeixesValue');
-    const selectPerfil      = document.getElementById('refractiveIndexFunction');
-    const toggleDispersao   = document.getElementById('toggleDispersao');
+    const sliderAbertura = document.getElementById('aberturaSlider');
+    const spanAbertura = document.getElementById('aberturaValue');
+    const sliderNumFeixes = document.getElementById('numFeixesSlider');
+    const spanNumFeixes = document.getElementById('numFeixesValue');
+    const selectPerfil = document.getElementById('refractiveIndexFunction');
+    const toggleDispersao = document.getElementById('toggleDispersao');
     const wavelengthControl = document.getElementById('wavelengthControl');
-    const sliderNumWav      = document.getElementById('numWavelengthsSlider');
-    const spanNumWav        = document.getElementById('numWavelengthsValue');
-    const sliderPersistencia= document.getElementById('persistenciaSlider');
-    const spanPersistencia  = document.getElementById('persistenciaValue');
-    const btnLimparFeixes   = document.getElementById('btnLimparFeixes');
-    const loadingIndicator  = document.getElementById('loadingIndicator');
+    const sliderNumWav = document.getElementById('numWavelengthsSlider');
+    const spanNumWav = document.getElementById('numWavelengthsValue');
+    const sliderPersistencia = document.getElementById('persistenciaSlider');
+    const spanPersistencia = document.getElementById('persistenciaValue');
+    const btnLimparFeixes = document.getElementById('btnLimparFeixes');
+    const loadingIndicator = document.getElementById('loadingIndicator');
 
     // Atualização dos displays dos sliders
     sliderAbertura.addEventListener('input', () => {
@@ -119,7 +119,7 @@ window.onload = function () {
             // Fundo neutro em tons de cinza escuro para destacar as cores dos feixes
             // n baixo = escuro (15), n alto = cinza (55)
             const luma = Math.round(15 + 40 * t);
-            d[p]     = luma;
+            d[p] = luma;
             d[p + 1] = luma;
             d[p + 2] = luma;
             d[p + 3] = 255;
@@ -142,7 +142,7 @@ window.onload = function () {
     // O fade é aplicado sobrepondo um retângulo semitransparente sobre o trailCanvas.
 
     function syncTrailCanvas() {
-        trailCanvas.width  = canvas.width;
+        trailCanvas.width = canvas.width;
         trailCanvas.height = canvas.height;
     }
     syncTrailCanvas();
@@ -164,29 +164,29 @@ window.onload = function () {
     // 7. DISPERSÃO CROMÁTICA — Comprimentos de onda visíveis
     // =========================================================================
     const WAVELENGTHS_NM = [700, 650, 600, 550, 500, 450, 410];
-    const LAMBDA_REF     = 550;
+    const LAMBDA_REF = 550;
 
     function wavelengthToColor(λ) {
         let r = 0, g = 0, b = 0;
-        if      (λ >= 380 && λ < 440) { r = -(λ - 440) / 60; b = 1; }
-        else if (λ >= 440 && λ < 490) { g = (λ - 440) / 50;  b = 1; }
+        if (λ >= 380 && λ < 440) { r = -(λ - 440) / 60; b = 1; }
+        else if (λ >= 440 && λ < 490) { g = (λ - 440) / 50; b = 1; }
         else if (λ >= 490 && λ < 510) { g = 1; b = -(λ - 510) / 20; }
-        else if (λ >= 510 && λ < 580) { r = (λ - 510) / 70;  g = 1; }
+        else if (λ >= 510 && λ < 580) { r = (λ - 510) / 70; g = 1; }
         else if (λ >= 580 && λ < 645) { r = 1; g = -(λ - 645) / 65; }
-        else if (λ >= 645 && λ <= 780){ r = 1; }
+        else if (λ >= 645 && λ <= 780) { r = 1; }
 
         let factor = 1.0;
-        if      (λ >= 380 && λ < 420) factor = 0.3 + 0.7 * (λ - 380) / 40;
-        else if (λ >  680 && λ <= 700) factor = 0.3 + 0.7 * (700 - λ) / 20;
+        if (λ >= 380 && λ < 420) factor = 0.3 + 0.7 * (λ - 380) / 40;
+        else if (λ > 680 && λ <= 700) factor = 0.3 + 0.7 * (700 - λ) / 20;
 
         return {
-            css: `rgba(${Math.round(255*r*factor)}, ${Math.round(255*g*factor)}, ${Math.round(255*b*factor)}, 0.9)`,
-            r: Math.round(255*r*factor), g: Math.round(255*g*factor), b: Math.round(255*b*factor)
+            css: `rgba(${Math.round(255 * r * factor)}, ${Math.round(255 * g * factor)}, ${Math.round(255 * b * factor)}, 0.9)`,
+            r: Math.round(255 * r * factor), g: Math.round(255 * g * factor), b: Math.round(255 * b * factor)
         };
     }
 
     function dispersionFactor(λ, B) {
-        return 1.0 + B * (1e6 / λ**2 - 1e6 / LAMBDA_REF**2);
+        return 1.0 + B * (1e6 / λ ** 2 - 1e6 / LAMBDA_REF ** 2);
     }
 
     // =========================================================================
@@ -194,11 +194,11 @@ window.onload = function () {
     // =========================================================================
     class Feixe {
         constructor(x, y, angle, colorCSS, dispFactor) {
-            this.x    = x;
-            this.y    = y;
+            this.x = x;
+            this.y = y;
             this.dirx = Math.cos(angle);
             this.diry = Math.sin(angle);
-            this.colorCSS   = colorCSS   || 'rgba(255, 230, 50, 0.9)';
+            this.colorCSS = colorCSS || 'rgba(255, 230, 50, 0.9)';
             this.dispFactor = dispFactor || 1.0;
             this.foraDoCanvas = false;
         }
@@ -209,7 +209,7 @@ window.onload = function () {
 
             if (xi >= 0 && xi < canvas.width && yi >= 0 && yi < canvas.height) {
                 const idx = yi * canvas.width + xi;
-                const nVal  = maps.n[idx];
+                const nVal = maps.n[idx];
                 const gxVal = maps.gx[idx] * this.dispFactor;
                 const gyVal = maps.gy[idx] * this.dispFactor;
 
@@ -218,7 +218,7 @@ window.onload = function () {
                 this.diry += ds * gyVal / nVal;
 
                 // Normalizar vetor direção
-                const norm = Math.sqrt(this.dirx**2 + this.diry**2);
+                const norm = Math.sqrt(this.dirx ** 2 + this.diry ** 2);
                 if (norm > 0) { this.dirx /= norm; this.diry /= norm; }
 
                 // Desenha o ponto diretamente no trailCanvas (acúmulo persistente)
@@ -242,18 +242,18 @@ window.onload = function () {
         if (!maps || isComputing) return;
 
         const useDispersion = toggleDispersao.checked;
-        const numFeixes     = parseInt(sliderNumFeixes.value);
+        const numFeixes = parseInt(sliderNumFeixes.value);
 
         if (useDispersion) {
             const numWav = parseInt(sliderNumWav.value);
-            const B      = maps.dispersion;
-            const step   = Math.max(1, Math.floor(WAVELENGTHS_NM.length / numWav));
-            const wavs   = WAVELENGTHS_NM.filter((_, i) => i % step === 0).slice(0, numWav);
+            const B = maps.dispersion;
+            const step = Math.max(1, Math.floor(WAVELENGTHS_NM.length / numWav));
+            const wavs = WAVELENGTHS_NM.filter((_, i) => i % step === 0).slice(0, numWav);
             const fxPerWav = Math.max(1, Math.round(numFeixes / wavs.length));
 
             wavs.forEach(λ => {
                 const { css } = wavelengthToColor(λ);
-                const dfac    = dispersionFactor(λ, B);
+                const dfac = dispersionFactor(λ, B);
                 for (let i = 0; i < fxPerWav; i++) {
                     const angle = aberturaRad * (i / fxPerWav - 0.5);
                     feixes.push(new Feixe(startX, startY, angle, css, dfac));
@@ -272,8 +272,8 @@ window.onload = function () {
     // =========================================================================
     canvas.addEventListener('click', function (e) {
         const rect = canvas.getBoundingClientRect();
-        const mx   = e.clientX - rect.left;
-        const my   = e.clientY - rect.top;
+        const mx = e.clientX - rect.left;
+        const my = e.clientY - rect.top;
         const aberturaRad = 2 * Math.PI * (parseInt(sliderAbertura.value) / 360);
         emitFeixes(mx, my, aberturaRad);
     });

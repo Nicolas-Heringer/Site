@@ -26,7 +26,7 @@ const refractiveIndexFunctions = {
     gaussiana: {
         minN: 1.0, maxN: 2.0, dispersion: 0.1,
         n: (x, y, W, H) =>
-            2 - Math.exp(-0.0001 * ((x - W/2)**2 + (y - H/2)**2))
+            2 - Math.exp(-0.0001 * ((x - W / 2) ** 2 + (y - H / 2) ** 2))
     },
 
     senoidal: {
@@ -39,8 +39,8 @@ const refractiveIndexFunctions = {
         n: (x, y, W, H) => {
             const cx = W / 2, cy = H / 2;
             const nOut = 1.0, nIn = 1.4;
-            const xL = 0.002 * (y - cy)**2 + (cx - 50);
-            const xR = -0.002 * (y - cy)**2 + (cx + 50);
+            const xL = 0.002 * (y - cy) ** 2 + (cx - 50);
+            const xR = -0.002 * (y - cy) ** 2 + (cx + 50);
             const dist = x < cx ? (x - xL) : (xR - x);
             return nOut + (nIn - nOut) / (1 + Math.exp(-dist));
         }
@@ -52,8 +52,8 @@ const refractiveIndexFunctions = {
             const cx = W / 2, cy = H / 2;
             const nOut = 1.0, nIn = 1.4;
             if (Math.abs(y - cy) > 120) return nOut;
-            const xL = -0.002 * (y - cy)**2 + (cx - 20);
-            const xR =  0.002 * (y - cy)**2 + (cx + 20);
+            const xL = -0.002 * (y - cy) ** 2 + (cx - 20);
+            const xR = 0.002 * (y - cy) ** 2 + (cx + 20);
             const dist = x < cx ? (x - xL) : (xR - x);
             return nOut + (nIn - nOut) / (1 + Math.exp(-dist));
         }
@@ -95,7 +95,7 @@ const refractiveIndexFunctions = {
     }
 };
 
-self.onmessage = function(e) {
+self.onmessage = function (e) {
     const { funcName, canvasWidth: W, canvasHeight: H } = e.data;
     const profile = refractiveIndexFunctions[funcName];
 
@@ -107,7 +107,7 @@ self.onmessage = function(e) {
     const nFn = (x, y) => profile.n(x, y, W, H);
 
     // Alocar buffers tipados (muito mais eficientes que arrays JS normais)
-    const n  = new Float32Array(W * H);
+    const n = new Float32Array(W * H);
     const gx = new Float32Array(W * H);
     const gy = new Float32Array(W * H);
 
@@ -116,7 +116,7 @@ self.onmessage = function(e) {
     for (let y = 0; y < H; y++) {
         for (let x = 0; x < W; x++) {
             const idx = y * W + x;
-            n[idx]  = nFn(x, y);
+            n[idx] = nFn(x, y);
             gx[idx] = (nFn(x + delta, y) - nFn(x - delta, y)) / (2 * delta);
             gy[idx] = (nFn(x, y + delta) - nFn(x, y - delta)) / (2 * delta);
         }

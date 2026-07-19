@@ -53,7 +53,7 @@ temperatureAtenuation.addEventListener('input', () => {
 });
 
 positionTemplates.addEventListener('input', () => {
-    template =  positionTemplates.value;
+    template = positionTemplates.value;
     console.log(`Template selecionado: ${template}`);
     particles = createParticles(canvas, template);
 });
@@ -71,7 +71,7 @@ resetButton.addEventListener('click', () => {
 
 // Classe para representar uma partícula
 class Particle {
-    constructor(x, y, radius, color, velocityX, velocityY, charge = 1 , mass = 1) {
+    constructor(x, y, radius, color, velocityX, velocityY, charge = 1, mass = 1) {
         this.x = x;
         this.y = y;
         this.radius = radius;
@@ -94,8 +94,8 @@ class Particle {
             waves.forEach(wave => {
                 // Verifica se a onda foi emitida pela própria partícula
                 if (!this.ondasEmitidas.includes(wave)) {
-                    const dx = (wave.x - this.x)/100; // Distância no eixo X
-                    const dy = (wave.y - this.y)/100; // Distância no eixo Y
+                    const dx = (wave.x - this.x) / 100; // Distância no eixo X
+                    const dy = (wave.y - this.y) / 100; // Distância no eixo Y
                     const distance = Math.sqrt(dx * dx + dy * dy); // Distância total
 
                     // Verifica se a partícula está dentro da influência da onda
@@ -103,19 +103,19 @@ class Particle {
                         // Calcula força de atração
                         const force = 0.05; // Intensidade da força
 
-                        if (tipoDeInteracao==='ambas'){
-                            const fx = (0.1 *(dx / distance)- 0.1 *(dx / distance**6)) * force;
-                            const fy = (0.1 *(dy / distance)- 0.1 *(dy / distance**6)) * force;
+                        if (tipoDeInteracao === 'ambas') {
+                            const fx = (0.1 * (dx / distance) - 0.1 * (dx / distance ** 6)) * force;
+                            const fy = (0.1 * (dy / distance) - 0.1 * (dy / distance ** 6)) * force;
                             // Aplica força à velocidade da partícula
                             this.velocityX += fx;
                             this.velocityY += fy;
-                        } else if (tipoDeInteracao==='atracao') {
+                        } else if (tipoDeInteracao === 'atracao') {
                             const fx = 0.1 * (dx / distance) * force;
                             const fy = 0.1 * (dy / distance) * force;
                             // Aplica força à velocidade da partícula
                             this.velocityX += fx;
                             this.velocityY += fy;
-                        }else if (tipoDeInteracao==='repulsao') {
+                        } else if (tipoDeInteracao === 'repulsao') {
                             const fx = 0.1 * (dx / distance) * (-force);
                             const fy = 0.1 * (dy / distance) * (-force);
                             // Aplica força à velocidade da partícula
@@ -162,20 +162,20 @@ class Particle {
 
     // Método para reduzir a velocidade das partículas (resfriamento)
     reduceSpeed(attenuation) {
-        this.velocityX *= (1-attenuation);
-        this.velocityY *= (1-attenuation);
+        this.velocityX *= (1 - attenuation);
+        this.velocityY *= (1 - attenuation);
     }
 
     increaseSpeed() {
-        this.velocityX *= (1+attenuation);
-        this.velocityY *= (1+attenuation);
+        this.velocityX *= (1 + attenuation);
+        this.velocityY *= (1 + attenuation);
     }
-    
+
     loretzFactor(c) {
         this.gamma = null;
-        const v = Math.sqrt(this.velocityY**2 + this.velocityX**2);
-        this.gamma = 1/(Math.sqrt(1-(v/(10*c))**2));
-        this.waveInterval = this.baseWaveInterval/this.gamma;
+        const v = Math.sqrt(this.velocityY ** 2 + this.velocityX ** 2);
+        this.gamma = 1 / (Math.sqrt(1 - (v / (10 * c)) ** 2));
+        this.waveInterval = this.baseWaveInterval / this.gamma;
     }
 }
 
@@ -196,11 +196,11 @@ const positionGenerators = {
         num: () => 2, // Duas partículas
         generate(canvas, index) {
             const dist = canvas.width / 5;
-            const x = canvas.width / 2 + dist*index - dist/2;
+            const x = canvas.width / 2 + dist * index - dist / 2;
             const y = canvas.height / 2;
             return { x, y };
         },
-        velocity: (index) => ({ x: 0, y: 1 -( 2 * index) }),
+        velocity: (index) => ({ x: 0, y: 1 - (2 * index) }),
         radius: () => 5,
         color: () => `rgba(255, 255, 255, 1)`,
     },
@@ -208,12 +208,12 @@ const positionGenerators = {
         num: () => 3,
         generate(canvas, index) {
 
-            const dist = canvas.width/2;
-            const x = canvas.width / 2 - dist/2 + dist*index/3;
+            const dist = canvas.width / 2;
+            const x = canvas.width / 2 - dist / 2 + dist * index / 3;
             const y = canvas.height / 2;
             return { x, y };
         },
-        velocity: (index) => ({ x: 0, y: (1-2*index/3)}),
+        velocity: (index) => ({ x: 0, y: (1 - 2 * index / 3) }),
         radius: () => 5,
         color: () => `rgba(255, 255, 255, 1)`,
     },
@@ -260,7 +260,7 @@ const positionGenerators = {
             const gridY = Math.floor(index / cols);
             const spacingX = canvas.width / cols;
             const spacingY = canvas.height / rows;
-            
+
             return {
                 x: gridX * spacingX + spacingX / 2,
                 y: gridY * spacingY + spacingY / 2,
@@ -286,7 +286,7 @@ function createParticles(canvas, template = "livre") {
 
     const particleCount = generator.num();
     const particles = Array.from({ length: particleCount }, (_, i) => {
-        const { x, y , type} = generator.generate(canvas, i, particleCount);
+        const { x, y, type } = generator.generate(canvas, i, particleCount);
         const { x: vx, y: vy } = generator.velocity(i);
         return new Particle(x, y, generator.radius(type), generator.color(type), vx, vy);
     });
@@ -314,7 +314,7 @@ class Circulo {
 
     // Função de controle (brilho/intensidade)
     static intensidade(x) {
-        return Math.min(1, Math.exp(-(x**2)/1e4)); // Exemplo com decaimento exponencial
+        return Math.min(1, Math.exp(-(x ** 2) / 1e4)); // Exemplo com decaimento exponencial
     }
 
     // Função para criar o gradiente com base na intensidade
@@ -405,7 +405,7 @@ function anima() {
     if (temperatura > TEMP_LIMIT) {
         particles.forEach(particle => particle.reduceSpeed(attenuation));
         //console.log("Temperatura excedeu o limite! Resfriando...");
-    } else if (temperatura < TEMP_LIMIT){
+    } else if (temperatura < TEMP_LIMIT) {
         particles.forEach(particle => particle.increaseSpeed(attenuation));
     }
 

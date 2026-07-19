@@ -7,18 +7,19 @@
 
 :root {
     /* Paleta de Cores (Alinhada com o Hub Principal) */
-    --bg-main: #0f172a; 
+    --bg-main: #0f172a;
     --bg-surface: #1e293b;
-    --bg-panel: rgba(30, 41, 59, 0.7); /* Para glassmorphism */
-    
+    --bg-panel: rgba(30, 41, 59, 0.7);
+    /* Para glassmorphism */
+
     --accent-color: #facc15;
     --accent-color-hover: #eab308;
-    
+
     --text-primary: #f8fafc;
     --text-secondary: #94a3b8;
-    
+
     --border-color: rgba(255, 255, 255, 0.1);
-    
+
     --font-family: 'Inter', system-ui, -apple-system, sans-serif;
 }
 
@@ -45,7 +46,7 @@ body {
     padding: 15px 30px;
     background-color: var(--bg-surface);
     border-bottom: 1px solid var(--border-color);
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 .btn-back {
@@ -71,11 +72,13 @@ body {
 /* --- LAYOUT PRINCIPAL --- */
 .sim-layout {
     display: grid;
-    grid-template-columns: 1fr 350px; /* Canvas flexível, Controles fixos em 350px */
+    grid-template-columns: 1fr 350px;
+    /* Canvas flexível, Controles fixos em 350px */
     flex: 1;
     gap: 20px;
     padding: 20px;
-    height: calc(100vh - 60px); /* Altura total menos o header */
+    height: calc(100vh - 60px);
+    /* Altura total menos o header */
 }
 
 /* Área do Canvas */
@@ -87,7 +90,8 @@ body {
     background-color: rgba(0, 0, 0, 0.2);
     border-radius: 12px;
     border: 1px solid var(--border-color);
-    overflow: hidden; /* Evita scroll se o canvas for grande */
+    overflow: hidden;
+    /* Evita scroll se o canvas for grande */
     position: relative;
 }
 
@@ -110,7 +114,7 @@ body {
     flex-direction: column;
     gap: 20px;
     overflow-y: auto;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
 }
 
 /* --- COMPONENTES INTERATIVOS (UI CONTROLS) --- */
@@ -146,7 +150,8 @@ select.sim-control {
     background-size: 12px auto;
 }
 
-select.sim-control:focus, select.sim-control:hover {
+select.sim-control:focus,
+select.sim-control:hover {
     border-color: var(--accent-color);
 }
 
@@ -158,6 +163,7 @@ select.sim-control option {
 /* Range Slider */
 input[type="range"].sim-slider {
     -webkit-appearance: none;
+    appearance: none;
     width: 100%;
     background: transparent;
     padding: 5px 0;
@@ -171,7 +177,7 @@ input[type="range"].sim-slider::-webkit-slider-runnable-track {
     width: 100%;
     height: 6px;
     cursor: pointer;
-    background: rgba(255,255,255,0.1);
+    background: rgba(255, 255, 255, 0.1);
     border-radius: 3px;
     border: none;
 }
@@ -184,7 +190,8 @@ input[type="range"].sim-slider::-webkit-slider-thumb {
     background: var(--accent-color);
     cursor: pointer;
     -webkit-appearance: none;
-    margin-top: -6px; /* Ajuste para centralizar o thumb na track de 6px */
+    margin-top: -6px;
+    /* Ajuste para centralizar o thumb na track de 6px */
     box-shadow: 0 0 10px rgba(250, 204, 21, 0.4);
     transition: transform 0.2s, background 0.2s;
 }
@@ -240,7 +247,8 @@ button.sim-btn:hover {
     border-top: 1px solid var(--border-color);
 }
 
-.info-section p, .info-section li {
+.info-section p,
+.info-section li {
     font-size: 0.85rem;
     color: var(--text-secondary);
     margin-bottom: 8px;
@@ -255,14 +263,15 @@ button.sim-btn:hover {
 @media (max-width: 900px) {
     .sim-layout {
         grid-template-columns: 1fr;
-        grid-template-rows: auto 1fr; /* Canvas ajusta a altura, painel ocupa resto */
+        grid-template-rows: auto 1fr;
+        /* Canvas ajusta a altura, painel ocupa resto */
         height: auto;
     }
-    
+
     .canvas-area {
         min-height: 50vh;
     }
-    
+
     .controls-panel {
         max-height: none;
     }
