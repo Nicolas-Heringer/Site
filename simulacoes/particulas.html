@@ -1,35 +1,36 @@
 <!DOCTYPE html>
 <html lang="pt-br">
+
 <head>
-	<meta charset='utf-8'>
-	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<title>Simulação de partículas</title>
-	
+    <meta charset='utf-8'>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Simulação de partículas</title>
+
     <meta name="description" content="Plataforma de simulações educacionais de física e matemática.">
-	<meta name="keywords" content="simulações, física, matemática, educação, partículas, átomo de hidrogênio, áudio, fônons">
-	<meta name="author" content="Nicolas Heringer">
-    
-    <!-- Novo Boilerplate Global -->
+    <meta name="keywords"
+        content="simulações, física, matemática, educação, partículas, átomo de hidrogênio, áudio, fônons">
+    <meta name="author" content="Nicolas Heringer">
+
     <link rel="stylesheet" href="css/base.css">
-	
-    <!-- Estilos específicos do Canvas para esta simulação -->
+
     <link rel="stylesheet" href="css/particulas.css">
 </head>
+
 <body>
-    
+
     <header class="sim-header">
         <a href="../index.html#secao-simulacoes" class="btn-back">← Voltar ao Hub</a>
         <span class="sim-title">Simulação de partículas</span>
     </header>
 
     <main class="sim-layout">
-        
+
         <div class="canvas-area">
-		    <canvas id="myCanvas" width="598" height="598"></canvas>
+            <canvas id="myCanvas" width="598" height="598"></canvas>
         </div>
 
         <aside class="controls-panel">
-            
+
             <div class="control-group">
                 <label for="seletor-de-template">Template:</label>
                 <select id="seletor-de-template" class="sim-control">
@@ -86,13 +87,15 @@
 
             <div class="control-group">
                 <label for="temperature-atenuation">Atenuação:</label>
-                <input type="number" id="temperature-atenuation" class="sim-input" min="0" max="1" step="0.01" value="0.09">
+                <input type="number" id="temperature-atenuation" class="sim-input" min="0" max="1" step="0.01"
+                    value="0.09">
             </div>
 
             <button id='reset-button' class="sim-btn">Resetar</button>
 
             <div class="info-section">
-                <p>O objetivo desta simulação é ilustrar como um sistema de muitas partículas interagentes pode se tornar crescentemente complexo. Pode ser benéfica ao apresentar alguns tópicos distintos:</p>
+                <p>O objetivo desta simulação é ilustrar como um sistema de muitas partículas interagentes pode se
+                    tornar crescentemente complexo. Pode ser benéfica ao apresentar alguns tópicos distintos:</p>
                 <ul>
                     <li> Efeito doppler.</li>
                     <li> Ondas.</li>
@@ -100,11 +103,12 @@
                     <li> Transporte de informação.</li>
                 </ul>
             </div>
-            
+
         </aside>
 
     </main>
 
-	<script src="scripts/particulas.js"></script>
+    <script src="scripts/particulas.js"></script>
 </body>
+
 </html>

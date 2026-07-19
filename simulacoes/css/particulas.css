@@ -3,14 +3,14 @@
   O layout da página (Grid) está em base.css 
 */
 #transformationCanvas {
-    border: 1px solid #000;
-    display: block;
-    margin: 0 auto;
-    opacity: 1;
-    transition: opacity 0.2s ease;
+  border: 1px solid #000;
+  display: block;
+  margin: 0 auto;
+  opacity: 1;
+  transition: opacity 0.2s ease;
 }
 
 canvas {
-	/* border:1px solid #fff; */
-    border: none;
+  /* border:1px solid #fff; */
+  border: none;
 }
