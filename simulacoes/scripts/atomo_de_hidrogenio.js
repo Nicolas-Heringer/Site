@@ -73,3 +73,5 @@ function inicializarWebGL() {
 
 
     Console.log(`${inicializarWebGL()}`);
+
+}

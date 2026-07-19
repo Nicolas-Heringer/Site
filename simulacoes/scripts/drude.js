@@ -28,6 +28,14 @@ selectRede.addEventListener('change', (e) => {
     iniciarSimulacao();
 });
 
+const btnZerar = document.getElementById('btnZerar');
+btnZerar.addEventListener('click', () => {
+    for (let e of eletrons) {
+        e.vx = 0;
+        e.vy = 0;
+    }
+});
+
 // Limites do "Fio"
 const wireTop = 150;
 const wireBottom = 450;
@@ -70,7 +78,7 @@ class Eletron {
         this.radius = 3;
         // Velocidade inicial térmica (aleatória em direção)
         let angle = Math.random() * Math.PI * 2;
-        let speed = 2 + (temperatura * 0.05); // Velocidade térmica inicial
+        let speed = 1 + (temperatura * 0.05); // Velocidade térmica inicial
         this.vx = speed * Math.cos(angle);
         this.vy = speed * Math.sin(angle);
     }
@@ -79,7 +87,7 @@ class Eletron {
         // Modelo de Drude: Entre as colisões, o elétron sofre a ação do campo elétrico
         // O campo elétrico é definido positivo para a direita. 
         // Aceleração = Força / massa. Aqui simplificamos incrementando a velocidade X.
-        this.vx += campoEletrico * 0.15;
+        this.vx += campoEletrico * 0.05;
 
         this.x += this.vx;
         this.y += this.vy;
@@ -96,8 +104,10 @@ class Eletron {
         // Condições de contorno periódicas em X para simular um fio contínuo
         if (this.x > canvas.width) {
             this.x = 0; // Sai pela direita, entra pela esquerda
+            this.vx *= 0.8;
         } else if (this.x < 0) {
             this.x = canvas.width; // Volta pela direita
+            this.vx *= 0.5;
         }
 
         // Colisões apenas com os Núcleos
@@ -110,7 +120,7 @@ class Eletron {
                 // Ao colidir, modelo assume que elétron é re-termalizado (sai em direção aleatória)
                 // e "esquece" sua velocidade de deriva anterior.
                 let angle = Math.random() * Math.PI * 2;
-                let vTermal = 2 + (temperatura * 0.05);
+                let vTermal = 0.5 + (temperatura * 0.05);
                 this.vx = vTermal * Math.cos(angle);
                 this.vy = vTermal * Math.sin(angle);
 
@@ -139,9 +149,9 @@ const numEletrons = 200;
 
 function gerarRede() {
     nucleos = [];
-    const rNucleo = 12;
-    const paddingX = 45;
-    const paddingY = 45;
+    const rNucleo = 8;
+    const paddingX = 40;
+    const paddingY = 40;
 
     // Pequeno offset para centralizar a grade
     const offsetX = 10;
@@ -252,17 +262,28 @@ function desenharFundo() {
     ctx.stroke();
 
     // Opcional: Desenhar setas de Campo Elétrico no fundo
-    if (campoEletrico > 0) {
+    if (Math.abs(campoEletrico) > 0.001) {
         ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
         ctx.lineWidth = 2;
+
+        const eAbs = Math.abs(campoEletrico);
+        const dir = Math.sign(campoEletrico);
+
+        // Tamanho proporcional ao campo, max 40 para E=0.5
+        const arrowLen = Math.max(5, eAbs * 80);
+        const headSize = Math.max(3, arrowLen * 0.25);
+
+        let startX = (Date.now() / 20 * campoEletrico) % 60;
+        if (startX < 0) startX += 60;
+
         for (let y = wireTop + 20; y < wireBottom; y += 40) {
-            for (let x = (Date.now() / 20 * campoEletrico) % 60; x < canvas.width; x += 60) {
+            for (let x = startX - 60; x < canvas.width + 60; x += 60) {
                 ctx.beginPath();
                 ctx.moveTo(x, y);
-                ctx.lineTo(x + 20, y);
-                ctx.lineTo(x + 15, y - 5);
-                ctx.moveTo(x + 20, y);
-                ctx.lineTo(x + 15, y + 5);
+                ctx.lineTo(x + dir * arrowLen, y);
+                ctx.lineTo(x + dir * (arrowLen - headSize), y - headSize);
+                ctx.moveTo(x + dir * arrowLen, y);
+                ctx.lineTo(x + dir * (arrowLen - headSize), y + headSize);
                 ctx.stroke();
             }
         }
