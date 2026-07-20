@@ -45,17 +45,10 @@
         <div class="canvas-area" style="justify-content: space-evenly;">
             <div class="audio-canvas-container" id="canvasContainer1">
                 <canvas id="timeCanvas"></canvas>
-                <div class="axis-label" style="bottom: -20px; left: 50%; transform: translateX(-50%)">Tempo (ms)</div>
-                <div class="axis-label" style="top: 50%; left: -40px; transform: rotate(-90deg) translateY(-50%)">
-                    Amplitude</div>
             </div>
 
             <div class="audio-canvas-container" id="canvasContainer2">
                 <canvas id="freqCanvas"></canvas>
-                <div class="axis-label" style="bottom: -20px; left: 50%; transform: translateX(-50%)">Frequência (Hz)
-                </div>
-                <div class="axis-label" style="top: 50%; left: -50px; transform: rotate(-90deg) translateY(-50%)">
-                    Intensidade (dB)</div>
             </div>
         </div>
 
@@ -65,6 +58,9 @@
             </div>
             <div class="control-group">
                 <button id="stopButton" class="sim-btn" disabled>⏹ Parar</button>
+            </div>
+            <div class="control-group">
+                <button id="scaleButton" class="sim-btn">Escala: Linear</button>
             </div>
             <div class="info-section">
                 <p>Nesta simulação é possível visualizar um som capturado pelo microfone e seu respectivo espectro de
