@@ -107,7 +107,7 @@ class Eletron {
             this.vx *= 0.8;
         } else if (this.x < 0) {
             this.x = canvas.width; // Volta pela direita
-            this.vx *= 0.5;
+            this.vx *= 0.8;
         }
 
         // Colisões apenas com os Núcleos
