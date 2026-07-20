@@ -32,6 +32,27 @@
             font-size: 12px;
             color: #fff;
         }
+
+        .sim-btn--accent {
+            background: linear-gradient(135deg, #1a3a5c, #0d6efd);
+            border: 1px solid #4da3ff;
+            color: #fff;
+            font-weight: bold;
+            transition: background 0.2s, box-shadow 0.2s;
+        }
+
+        .sim-btn--accent:hover {
+            background: linear-gradient(135deg, #0d6efd, #00c8ff);
+            box-shadow: 0 0 12px rgba(0, 200, 255, 0.5);
+        }
+
+        #freqCanvas {
+            transition: box-shadow 0.3s;
+        }
+
+        #freqCanvas.generator-active {
+            box-shadow: 0 0 0 2px #4da3ff, 0 0 20px rgba(77, 163, 255, 0.2);
+        }
     </style>
 </head>
 
@@ -54,16 +75,22 @@
 
         <aside class="controls-panel">
             <div class="control-group">
+                <button id="modeButton" class="sim-btn sim-btn--accent">⚡ Modo: Análise</button>
+            </div>
+            <div class="control-group">
                 <button id="startButton" class="sim-btn">▶ Iniciar</button>
             </div>
             <div class="control-group">
                 <button id="stopButton" class="sim-btn" disabled>⏹ Parar</button>
             </div>
+            <div class="control-group" id="clearGroup" style="display:none;">
+                <button id="clearButton" class="sim-btn">🗑 Limpar Sinal</button>
+            </div>
             <div class="control-group">
                 <button id="scaleButton" class="sim-btn">Escala: Linear</button>
             </div>
             <div class="info-section">
-                <p>Nesta simulação é possível visualizar um som capturado pelo microfone e seu respectivo espectro de
+                <p id="infoText">Nesta simulação é possível visualizar um som capturado pelo microfone e seu respectivo espectro de
                     frequências usando a Transformada de Fourier.</p>
             </div>
         </aside>
