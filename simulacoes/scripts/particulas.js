@@ -22,6 +22,11 @@ let c = 1; // Velocidade da onda
 let attenuation = 0.09; // Fator de resfriamento para reduzir a velocidade das partículas
 let template = 'livre';
 
+// Constantes físicas da simulação
+const SCALE = 50;        // pixels por unidade de simulação (barra de escala)
+const LJ_SIGMA = 60;     // σ: distância de equilíbrio LJ em pixels (≈ 1.6 u), zero do potencial
+const LJ_EPSILON = 0.1; // ε: profundidade do poço de potencial (escala de força)
+
 // Manipuladores de eventos
 interactionSelector.addEventListener('change', () => {
     interactionEnabled = interactionSelector.value === 'ligada';
@@ -90,39 +95,49 @@ class Particle {
     // Método para atualizar a posição da partícula
     update(canvas, waves, interaction, interactionType) {
         if (interaction == true) {
-            // Aplica forças das ondas (ignorando suas próprias ondas)
+            // Interação via frente de onda — função de Green retardada: δ(r − c·t_ret)
             waves.forEach(wave => {
-                // Verifica se a onda foi emitida pela própria partícula
+                // Ignora as próprias ondas da partícula
                 if (!this.ondasEmitidas.includes(wave)) {
-                    const dx = (wave.x - this.x) / 100; // Distância no eixo X
-                    const dy = (wave.y - this.y) / 100; // Distância no eixo Y
-                    const distance = Math.sqrt(dx * dx + dy * dy); // Distância total
+                    // Distância em pixels (mesma unidade que wave.raio)
+                    const dx = wave.x - this.x;
+                    const dy = wave.y - this.y;
+                    const r = Math.sqrt(dx * dx + dy * dy);
 
-                    // Verifica se a partícula está dentro da influência da onda
-                    if (Math.abs(distance - wave.raio) < 10) {
-                        // Calcula força de atração
-                        const force = 0.05; // Intensidade da força
+                    if (r < 0.01) return; // Evita divisão por zero
+
+                    // Espessura da frente de onda: a onda cruza um ponto em ~1 frame
+                    const thickness = c + 2;
+
+                    // Verifica se a partícula está sobre a frente de onda
+                    if (Math.abs(r - wave.raio) < thickness) {
+                        const r_ret = Math.max(1, wave.raio); // raio retardado (distância percorrida)
+
+                        // Vetor unitário: posição retardada da fonte → receptor
+                        const nx = (this.x - wave.x) / r;
+                        const ny = (this.y - wave.y) / r;
+
+                        // Magnitude: K / r_ret  (Green's function 2D — decaimento 1/r)
+                        // ratio = σ/r_ret: normaliza a distância retardada pela escala LJ
+                        const ratio = LJ_SIGMA / r_ret;
 
                         if (tipoDeInteracao === 'ambas') {
-                            const fx = (0.1 * (dx / distance) - 0.1 * (dx / distance ** 6)) * force;
-                            const fy = (0.1 * (dy / distance) - 0.1 * (dy / distance ** 6)) * force;
-                            // Aplica força à velocidade da partícula
-                            this.velocityX += fx;
-                            this.velocityY += fy;
+                            // Lennard-Jones completo retardado
+                            // F(r) = (24ε/r)[2(σ/r)^12 − (σ/r)^6]
+                            // r < σ·2^(1/6) ≈ 89.8 px: repulsivo | r > 89.8 px: atrativo
+                            // Aqui seriam 80 px a distância de equilíbrio, mas eu ajustei lá em cima para 60
+                            const F_LJ = (24 * LJ_EPSILON / r_ret) * (2 * ratio ** 12 - ratio ** 6);
+                            this.velocityX += (F_LJ * nx) / this.mass;
+                            this.velocityY += (F_LJ * ny) / this.mass;
                         } else if (tipoDeInteracao === 'atracao') {
-                            const fx = 0.1 * (dx / distance) * force;
-                            const fy = 0.1 * (dy / distance) * force;
-                            // Aplica força à velocidade da partícula
-                            this.velocityX += fx;
-                            this.velocityY += fy;
+                            const F_attr = -1;
+                            this.velocityX += (F_attr * nx) / this.mass;
+                            this.velocityY += (F_attr * ny) / this.mass;
                         } else if (tipoDeInteracao === 'repulsao') {
-                            const fx = 0.1 * (dx / distance) * (-force);
-                            const fy = 0.1 * (dy / distance) * (-force);
-                            // Aplica força à velocidade da partícula
-                            this.velocityX += fx;
-                            this.velocityY += fy;
-                        };
-
+                            const F_rep = 1;
+                            this.velocityX += (F_rep * nx) / this.mass;
+                            this.velocityY += (F_rep * ny) / this.mass;
+                        }
                     }
                 }
             });
@@ -145,7 +160,8 @@ class Particle {
         if (this.waveTimer >= this.waveInterval) {
             this.waveTimer = 0;
             // Adiciona uma nova onda na posição atual da partícula
-            const novaOnda = new Circulo(this.x, this.y);
+            // A onda carrega a carga da fonte (informação retardada)
+            const novaOnda = new Circulo(this.x, this.y, this.charge);
             this.ondasEmitidas.push(novaOnda);
             waves.push(novaOnda);
         }
@@ -269,7 +285,8 @@ const positionGenerators = {
         },
         velocity: () => ({ x: 0, y: 0 }),
         radius: (type) => (type === 'Na' ? 3 : 6), // Raio maior para Cl
-        color: (type) => (type === 'Na' ? 'blue' : 'green'), // Azul para Na, verde para Cl
+        color: (type) => (type === 'Na' ? '#4a9eff' : '#ff6b6b'), // Azul para Na, vermelho para Cl
+        charge: (type) => (type === 'Na' ? 1 : -1), // Na⁺ = +1, Cl⁻ = −1
     },
     none: {
         num: () => 0,
@@ -288,7 +305,8 @@ function createParticles(canvas, template = "livre") {
     const particles = Array.from({ length: particleCount }, (_, i) => {
         const { x, y, type } = generator.generate(canvas, i, particleCount);
         const { x: vx, y: vy } = generator.velocity(i);
-        return new Particle(x, y, generator.radius(type), generator.color(type), vx, vy);
+        const charge = generator.charge ? generator.charge(type) : 1;
+        return new Particle(x, y, generator.radius(type), generator.color(type), vx, vy, charge);
     });
 
     return particles;
@@ -297,11 +315,12 @@ function createParticles(canvas, template = "livre") {
 
 // Classe para criar as ondas
 class Circulo {
-    constructor(x, y) {
+    constructor(x, y, sourceCharge = 1) {
         this.x = x; // Posição x do centro da onda
         this.y = y; // Posição y do centro da onda
         this.raio = 0; // Raio inicial da onda
         this.aSerRemovido = false; // Condição de remoção
+        this.sourceCharge = sourceCharge; // Carga da partícula emissora (informação retardada)
     }
 
     // Atualiza o estado do círculo
@@ -313,8 +332,9 @@ class Circulo {
     }
 
     // Função de controle (brilho/intensidade)
-    static intensidade(x) {
-        return Math.min(1, Math.exp(-(x ** 2) / 1e4)); // Exemplo com decaimento exponencial
+    static intensidade(raio) {
+        // Decaimento 1/√r: conservação de energia em ondas cilíndricas 2D (Green's function)
+        return Math.min(1, 5 / Math.sqrt(Math.max(1, raio)));
     }
 
     // Função para criar o gradiente com base na intensidade
@@ -380,8 +400,12 @@ function anima() {
         circulo.propagaCampo(c);
         circulo.mostra(ctx);
 
-        // Remove ondas fora do canvas
+        // Remove ondas fora do canvas e limpa referências nas partículas
         if (circulo.aSerRemovido) {
+            particles.forEach(p => {
+                const idx = p.ondasEmitidas.indexOf(circulo);
+                if (idx !== -1) p.ondasEmitidas.splice(idx, 1);
+            });
             circulos.splice(i, 1);
         }
     }
@@ -409,7 +433,50 @@ function anima() {
         particles.forEach(particle => particle.increaseSpeed(attenuation));
     }
 
+    // Desenha a barra de escala de referência
+    drawScale(ctx, canvas);
+
     requestAnimationFrame(anima); // Loop contínuo
+}
+
+// Barra de escala visual no canvas
+function drawScale(ctx, canvas) {
+    ctx.save();
+
+    const barPx = SCALE; // 1 unidade em pixels
+    const margin = 15;
+    const y = canvas.height - margin;
+    const x0 = margin;
+    const x1 = x0 + barPx;
+
+    // Fundo semi-transparente para legibilidade
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+    ctx.fillRect(x0 - 6, y - 20, barPx + 18, 27);
+
+    // Linha principal da barra
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.75)';
+    ctx.lineWidth = 1.5;
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.moveTo(x0, y);
+    ctx.lineTo(x1, y);
+    ctx.stroke();
+
+    // Ticks nas extremidades
+    [x0, x1].forEach(xTick => {
+        ctx.beginPath();
+        ctx.moveTo(xTick, y - 5);
+        ctx.lineTo(xTick, y + 5);
+        ctx.stroke();
+    });
+
+    // Rótulo
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.75)';
+    ctx.font = '10px monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText('1 u', (x0 + x1) / 2, y - 8);
+
+    ctx.restore();
 }
 
 // Inicia a animação
