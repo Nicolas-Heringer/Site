@@ -4,35 +4,152 @@
 <head>
     <meta charset='utf-8'>
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Átomo de Hidrogênio</title>
+    <title>Átomo de Hidrogênio — Orbitais Quânticos</title>
 
-    <meta name="description" content="Plataforma de simulações educacionais de física e matemática.">
+    <meta name="description"
+        content="Visualização interativa 3D dos orbitais do átomo de hidrogênio. Selecione os números quânticos n, l, mₗ e mₛ para ver a distribuição da função de onda Ψ(r,θ,φ).">
     <meta name="keywords"
-        content="simulações, física, matemática, educação, partículas, átomo de hidrogênio, áudio, fônons">
+        content="átomo de hidrogênio, orbitais quânticos, números quânticos, física quântica, simulação, harmonicos esféricos, funções de onda">
     <meta name="author" content="Nicolas Heringer">
+
     <link rel="stylesheet" href="css/base.css">
+    <link rel="stylesheet" href="css/atomo_de_hidrogenio.css">
+
+    <!-- Three.js via importmap (ES Modules) -->
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://cdn.jsdelivr.net/npm/three@0.165.0/build/three.module.js",
+            "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.165.0/examples/jsm/"
+        }
+    }
+    </script>
 </head>
 
 <body>
 
     <header class="sim-header">
         <a href="../index.html#secao-simulacoes" class="btn-back">← Voltar ao Hub</a>
-        <span class="sim-title">Átomo de hidrogênio</span>
+        <span class="sim-title">Átomo de Hidrogênio — Orbitais Quânticos</span>
     </header>
 
     <main class="sim-layout">
+
+        <!-- Área 3D -->
         <div class="canvas-area">
-            <canvas id="glCanvas"></canvas>
+            <div id="three-container"></div>
         </div>
 
+        <!-- Painel de Controles -->
         <aside class="controls-panel">
-            <div class="info-section">
-                <p> Habemus átomo de hidrogênio.</p>
+
+            <!-- Badge do orbital atual -->
+            <div class="orbital-badge">
+                <span class="orbital-name" id="span-orbital">1s &nbsp;(m&#8467;=0)</span>
+                <span class="orbital-energy" id="span-energia">E = −13.600 eV</span>
             </div>
+
+            <!-- Números Quânticos -->
+            <div class="control-group">
+                <label>Números Quânticos</label>
+                <div class="quantum-grid">
+
+                    <div class="qn-cell">
+                        <span class="qn-symbol">n</span>
+                        <select id="select-n" class="sim-control qn-select">
+                            <option value="1">1</option>
+                            <option value="2">2</option>
+                            <option value="3">3</option>
+                            <option value="4">4</option>
+                            <option value="5">5</option>
+                        </select>
+                        <span class="qn-desc">principal</span>
+                    </div>
+
+                    <div class="qn-cell">
+                        <span class="qn-symbol">l</span>
+                        <select id="select-l" class="sim-control qn-select"></select>
+                        <span class="qn-desc">azimutal</span>
+                    </div>
+
+                    <div class="qn-cell">
+                        <span class="qn-symbol">m&#8467;</span>
+                        <select id="select-ml" class="sim-control qn-select"></select>
+                        <span class="qn-desc">magnético</span>
+                    </div>
+
+                    <div class="qn-cell">
+                        <span class="qn-symbol">m&#8163;</span>
+                        <select id="select-ms" class="sim-control qn-select">
+                            <option value="+0.5">+½</option>
+                            <option value="-0.5">−½</option>
+                        </select>
+                        <span class="qn-desc">spin</span>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- Número de pontos -->
+            <div class="control-group">
+                <label for="slider-pontos">
+                    Pontos amostrados
+                    <strong class="slider-val" id="span-pontos">5.000</strong>
+                </label>
+                <input type="range" id="slider-pontos" class="sim-slider"
+                    min="500" max="20000" step="500" value="5000">
+            </div>
+
+            <!-- Modo de colorização -->
+            <div class="control-group">
+                <label for="select-modo">Colorização</label>
+                <select id="select-modo" class="sim-control">
+                    <option value="fase">Fase de Ψ — arg(ψ)</option>
+                    <option value="densidade">Densidade — |Ψ|²</option>
+                </select>
+            </div>
+
+            <!-- Legenda de cores -->
+            <div class="color-legend">
+                <div id="legend-fase">
+                    <p class="legend-title">Fase: arg(Ψ) = m&#8467;·φ + arg(R·P)</p>
+                    <div class="phase-gradient"></div>
+                    <div class="legend-labels">
+                        <span>0</span><span>π</span><span>2π</span>
+                    </div>
+                </div>
+                <div id="legend-density" class="hidden">
+                    <p class="legend-title">Densidade de probabilidade |Ψ|²</p>
+                    <div class="density-gradient"></div>
+                    <div class="legend-labels">
+                        <span>mínima</span><span>máxima</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Botão -->
+            <button id="btn-gerar" class="sim-btn">⚛ Gerar Orbital</button>
+
+            <!-- Status -->
+            <p id="status-msg" class="status"></p>
+
+            <!-- Info -->
+            <div class="info-section">
+                <p>
+                    <strong>m&#8163; (spin)</strong> não altera a distribuição
+                    espacial Ψ(r,θ,φ) — afeta apenas o estado interno do elétron.
+                </p>
+                <ul>
+                    <li>🖱 Arrastar — orbitar câmera</li>
+                    <li>🖱 Scroll — zoom</li>
+                    <li>🖱 Botão dir. — panning</li>
+                </ul>
+            </div>
+
         </aside>
     </main>
 
-    <script src="scripts/atomo_de_hidrogenio.js"></script>
+    <script type="module" src="scripts/atomo_de_hidrogenio.js"></script>
 </body>
 
 </html>
