@@ -7,41 +7,53 @@ Grande parte deste projeto (dada a minha pouca intimidade com html, css e javasc
 
 Cada simulação é encapsulada dentro de um arquivo html próprio. E também recebe um css e um js proprio. Essa estrutura modularizada faz com que a página de um simulador tenha um formato muito simples de adaptar sem que os outros simuladores sejam afetados. A estrutura geral do projeto pode ser vista abaixo:
 
+```text
 Site/
 │
+├── favicon.svg
 ├── index.html
-│
+├── livros.json
+├── README.md
 ├── script.js
-│
 ├── styles.css
 │
-├── README.md
-│
-├── simulacoes/
-│	│
-│   ├── atomo_de_hidrogenio.html
-│	│
-│	├── audio.html
-│	│
-│	├── fonons.html
-│	│
-│	├── particulas.hmtl
-│   │
-│	├── css/
-│   │   │ 
-│	│	├── atomo_de_hidrogenio.css
-│	│	│
-│	│	├── fonons.css
-│	│	│
-│	│	└── particulas.css
-│   │
-│	├── scripts/
-│   │   │ 
-│	│	├── atomo_de_hidrogenio.js
-│	│	│
-│	│	├── audio.js
-│	│	│
-│	│	├── fonons.js
-│	│	│
-│	│	└── particulas.js
+└── simulacoes/
+    ├── atomo_de_hidrogenio.html
+    ├── audio.html
+    ├── drude.html
+    ├── estacionarias2d.html
+    ├── fonons.html
+    ├── gravidade.html
+    ├── movimento.html
+    ├── particulas.html
+    ├── quedalivre.html
+    ├── snell.html
+    │
+    ├── css/
+    │   ├── atomo_de_hidrogenio.css
+    │   ├── base.css
+    │   ├── buttons.css
+    │   ├── drude.css
+    │   ├── fonons.css
+    │   ├── gravidade.css
+    │   ├── movimento.css
+    │   ├── particulas.css
+    │   ├── quedalivre.css
+    │   └── snell.css
+    │
+    └── scripts/
+        ├── atomo_de_hidrogenio.js
+        ├── audio.js
+        ├── buttons.js
+        ├── drude.js
+        ├── estacionarias2d.js
+        ├── fonons.js
+        ├── gravidade.js
+        ├── movimento.js
+        ├── particulas.js
+        ├── quedalivre.js
+        ├── snell.js
+        └── snell.worker.js
+```
+
 
