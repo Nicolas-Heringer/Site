@@ -50,8 +50,9 @@ document.addEventListener("DOMContentLoaded", function () {
     linkPadrao.classList.add("active");
   }
 
-  // Adiciona o evento de clique para cada link do menu
-  links.forEach(link => {
+  // Adiciona o evento de clique para todos os links de seção (menu e botões CTA)
+  const allSectionLinks = document.querySelectorAll('a[href^="#secao-"]');
+  allSectionLinks.forEach(link => {
     link.addEventListener("click", function (event) {
       event.preventDefault();
 
@@ -61,9 +62,16 @@ document.addEventListener("DOMContentLoaded", function () {
       if (secaoAlvo) {
         resetSections();
         secaoAlvo.classList.add("active");
-        this.classList.add("active");
-        // Atualiza a URL com o hash
+
+        // Destaca o link correspondente no menu da sidebar
+        const linkCorrespondente = document.querySelector(`.menu a[href="#${idSecao}"]`);
+        if (linkCorrespondente) {
+          linkCorrespondente.classList.add("active");
+        }
+
+        // Atualiza a URL com o hash e rola até o topo
         history.pushState(null, null, '#' + idSecao);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
       }
     });
   });

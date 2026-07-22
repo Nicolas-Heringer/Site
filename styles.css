@@ -366,6 +366,379 @@ p {
     width: 100%;
 }
 
+/* Highlights para tópicos e disciplinas */
+.text-fisica {
+    color: #63b3ed;
+    font-weight: 600;
+}
+
+.text-matematica {
+    color: #9a75f8;
+    font-weight: 600;
+}
+
+.text-quimica {
+    color: #68d391;
+    font-weight: 600;
+}
+
+.text-biologia {
+    color: #fc814a;
+    font-weight: 600;
+}
+
+.text-accent {
+    color: var(--accent-color);
+    font-weight: 600;
+}
+
+/* --- SEÇÃO DE FORMAÇÃO ACADÊMICA & PESQUISA --- */
+.academic-section {
+    margin-top: 35px;
+    padding-top: 25px;
+    border-top: 1px solid var(--border-color);
+}
+
+.subsection-title {
+    font-size: 1.3rem;
+    color: var(--text-primary);
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.subsection-title ion-icon {
+    color: var(--accent-color);
+    font-size: 1.5rem;
+}
+
+.academic-card {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.academic-degree {
+    background-color: rgba(15, 23, 42, 0.5);
+    padding: 18px 22px;
+    border-radius: 12px;
+    border-left: 4px solid var(--accent-color);
+}
+
+.degree-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 6px;
+}
+
+.degree-badge {
+    background-color: rgba(250, 204, 21, 0.15);
+    color: var(--accent-color);
+    border: 1px solid rgba(250, 204, 21, 0.3);
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 999px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.academic-degree h4 {
+    font-size: 1.15rem;
+    color: var(--text-primary);
+}
+
+.institution {
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+    font-style: italic;
+    margin-bottom: 0;
+}
+
+.research-section, .outreach-section {
+    background-color: rgba(15, 23, 42, 0.3);
+    padding: 20px;
+    border-radius: 12px;
+    border: 1px solid var(--border-color);
+}
+
+.research-section h5, .outreach-section h5 {
+    font-size: 1.05rem;
+    color: var(--text-primary);
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.research-section h5 ion-icon, .outreach-section h5 ion-icon {
+    color: #63b3ed;
+    font-size: 1.2rem;
+}
+
+.research-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.research-list li {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+}
+
+.research-num {
+    background-color: rgba(99, 179, 237, 0.15);
+    color: #63b3ed;
+    border: 1px solid rgba(99, 179, 237, 0.3);
+    font-weight: 700;
+    font-size: 0.85rem;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+.research-info strong {
+    color: var(--text-primary);
+    font-weight: 600;
+    display: block;
+    margin-bottom: 3px;
+}
+
+.research-info p {
+    margin-bottom: 0;
+    font-size: 0.9rem;
+}
+
+.tech-tag {
+    display: inline-block;
+    background-color: rgba(250, 204, 21, 0.12);
+    color: var(--accent-color);
+    border: 1px solid rgba(250, 204, 21, 0.25);
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 1px 7px;
+    border-radius: 4px;
+    margin-left: 4px;
+}
+
+/* --- STATS GRID --- */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 15px;
+    margin-bottom: 30px;
+}
+
+.stat-card {
+    background-color: rgba(15, 23, 42, 0.4);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    transition: border-color 0.3s ease, transform 0.3s ease;
+}
+
+.stat-card:hover {
+    border-color: var(--accent-color);
+    transform: translateY(-2px);
+}
+
+.stat-icon {
+    font-size: 1.8rem;
+    color: var(--accent-color);
+    background: rgba(250, 204, 21, 0.1);
+    width: 46px;
+    height: 46px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.stat-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.stat-title {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 600;
+}
+
+.stat-desc {
+    font-size: 0.95rem;
+    color: var(--text-primary);
+    font-weight: 600;
+}
+
+/* --- USAGE GUIDE --- */
+.usage-guide-section {
+    margin-top: 35px;
+    padding-top: 25px;
+    border-top: 1px solid var(--border-color);
+}
+
+.usage-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 20px;
+}
+
+.usage-card {
+    background-color: rgba(15, 23, 42, 0.3);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 20px;
+    transition: border-color 0.3s ease, transform 0.3s ease;
+}
+
+.usage-card:hover {
+    border-color: #63b3ed;
+    transform: translateY(-3px);
+}
+
+.usage-icon {
+    font-size: 1.8rem;
+    color: #63b3ed;
+    margin-bottom: 12px;
+}
+
+.usage-card h4 {
+    font-size: 1.05rem;
+    color: var(--text-primary);
+    margin-bottom: 8px;
+}
+
+.usage-card p {
+    font-size: 0.88rem;
+    margin-bottom: 0;
+    line-height: 1.5;
+    text-align: left;
+}
+
+/* --- TECH STACK --- */
+.tech-stack-section {
+    margin-top: 35px;
+    padding-top: 25px;
+    border-top: 1px solid var(--border-color);
+}
+
+.tech-badges-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.tech-pill {
+    background-color: rgba(15, 23, 42, 0.5);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+    padding: 8px 16px;
+    border-radius: 999px;
+    font-size: 0.88rem;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.3s ease;
+}
+
+.tech-pill ion-icon {
+    color: var(--accent-color);
+    font-size: 1.1rem;
+}
+
+.tech-pill:hover {
+    border-color: var(--accent-color);
+    color: var(--accent-color);
+    transform: translateY(-2px);
+}
+
+/* --- DEV CREDITS (GitHub & AI) --- */
+.dev-credits-section {
+    margin-top: 35px;
+    padding-top: 25px;
+    border-top: 1px solid var(--border-color);
+}
+
+.dev-credits-card {
+    background-color: rgba(15, 23, 42, 0.3);
+    border: 1px solid var(--border-color);
+    padding: 20px 24px;
+    border-radius: 12px;
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+}
+
+.dev-credits-icon {
+    font-size: 2rem;
+    color: var(--accent-color);
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+.dev-credits-card p {
+    font-size: 0.93rem;
+    line-height: 1.6;
+    margin-bottom: 0;
+    text-align: left;
+}
+
+.dev-credits-card strong {
+    color: var(--accent-color);
+}
+
+/* --- CTA BUTTON --- */
+.cta-container {
+    margin-top: 40px;
+    display: flex;
+    justify-content: center;
+}
+
+.btn-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    background-color: var(--accent-color);
+    color: var(--bg-main);
+    padding: 14px 32px;
+    border-radius: 999px;
+    font-weight: 700;
+    font-size: 1.05rem;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(250, 204, 21, 0.25);
+}
+
+.btn-cta ion-icon {
+    font-size: 1.4rem;
+}
+
+.btn-cta:hover {
+    background-color: var(--accent-color-hover);
+    transform: translateY(-3px) scale(1.03);
+    box-shadow: 0 8px 25px rgba(250, 204, 21, 0.4);
+}
+
+
+
 /* --- RODAPÉ --- */
 
 .rodape {

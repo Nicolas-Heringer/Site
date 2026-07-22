@@ -10,6 +10,9 @@
         content="simulações, física, matemática, educação, partículas, átomo de hidrogênio, áudio, fônons">
     <meta name="author" content="Nicolas Heringer">
 
+    <!-- Favicon (Ícone da guia do navegador) -->
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+
     <!-- Fonte Inter (Google Fonts) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -63,35 +66,179 @@
         <div id="secao-sobre" class="section active">
             <h2>Sobre mim</h2>
             <div class="card-content">
+                
+                <!-- Destaques Rápidos -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon"><ion-icon name="school-outline"></ion-icon></div>
+                        <div class="stat-info">
+                            <span class="stat-title">Formação</span>
+                            <span class="stat-desc">Física (UFMG)</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon"><ion-icon name="cube-outline"></ion-icon></div>
+                        <div class="stat-info">
+                            <span class="stat-title">Simulações</span>
+                            <span class="stat-desc">Interativas & Visuais</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon"><ion-icon name="book-outline"></ion-icon></div>
+                        <div class="stat-info">
+                            <span class="stat-title">Recurso Didático</span>
+                            <span class="stat-desc">Aberto & Gratuito</span>
+                        </div>
+                    </div>
+                </div>
+
                 <p>
                     Bem-vindo(a) à minha plataforma de simulações educacionais! Minha missão é fornecer recursos
                     didáticos de alta qualidade que auxiliem professores e alunos no aprendizado de conceitos complexos
-                    de física e matemática. Acredito que a visualização e a interação são ferramentas poderosas para a
+                    de <span class="text-fisica">Física</span> e <span class="text-matematica">Matemática</span>.
+                    Acredito que a visualização e a interação são ferramentas poderosas para a
                     compreensão profunda e duradoura dessas disciplinas.
                 </p>
                 <p>
-                    Criei esta página para servir como um suporte para professores, oferecendo uma variedade de
+                    Criei esta página para servir como um suporte pedagógico para professores, oferecendo uma variedade de
                     simulações interativas que podem ser utilizadas em sala de aula ou como material complementar para
                     estudos individuais. Meu objetivo é tornar o aprendizado mais envolvente e acessível, permitindo que
                     os estudantes explorem fenômenos científicos e matemáticos de forma prática e visual.
                 </p>
                 <p>
-                    Minhas simulações cobrem uma ampla gama de tópicos, desde as leis fundamentais da física, como a
-                    cinemática e a dinâmica, até conceitos avançados de matemática, incluindo álgebra, geometria e
-                    cálculo. Projetei cada simulação para ser intuitiva e fácil de usar, proporcionando uma experiência
-                    de aprendizado imersiva e interativa.
+                    Minhas simulações cobrem uma ampla gama de tópicos, desde as leis fundamentais da <span
+                        class="text-fisica">Física</span>, como a
+                    cinemática, dinâmica e mecânica quântica, até conceitos avançados de <span
+                        class="text-matematica">Matemática</span>, incluindo álgebra, geometria e
+                    análise de Fourier — além de aplicações integradas em <span class="text-quimica">Química</span> e
+                    <span class="text-biologia">Biologia</span>. Projetei cada simulação para ser intuitiva e fácil de
+                    usar, proporcionando uma experiência de aprendizado imersiva.
                 </p>
                 <p>
-                    Estou comprometido em expandir e melhorar continuamente minha biblioteca de simulações, com base no
-                    feedback de professores e alunos. Meu objetivo é criar um ambiente de aprendizado dinâmico que
-                    inspire curiosidade e paixão pela ciência e matemática.
+                    Estou comprometido em expandir e melhorar continuamente minha biblioteca de simulações com base no
+                    feedback de professores e alunos, criando um ambiente dinâmico que inspire curiosidade e paixão pela
+                    ciência.
                 </p>
                 <p>
-                    Agradeço por visitar minha página e espero que os recursos aqui disponibilizados contribuam
-                    significativamente para o sucesso educacional de seus alunos. Se tiver alguma sugestão ou precisar
-                    de assistência, não hesite em me contatar. Juntos, podemos transformar a maneira como ensinamos e
-                    aprendemos física e matemática.
+                    Agradeço por visitar minha página! Se tiver alguma sugestão ou precisar de assistência, não hesite
+                    em me contatar. Juntos, podemos transformar a maneira como ensinamos e aprendemos <span
+                        class="text-fisica">física</span> e <span class="text-matematica">matemática</span>.
                 </p>
+
+                <!-- Guia Rápido de Uso Pedagógico -->
+                <div class="usage-guide-section">
+                    <h3 class="subsection-title">
+                        <ion-icon name="easel-outline"></ion-icon> Como utilizar as simulações
+                    </h3>
+                    <div class="usage-grid">
+                        <div class="usage-card">
+                            <div class="usage-icon"><ion-icon name="desktop-outline"></ion-icon></div>
+                            <h4>Em Sala de Aula</h4>
+                            <p>Demonstrações visuais ao vivo para enriquecer aulas expositivas e engajar alunos.</p>
+                        </div>
+                        <div class="usage-card">
+                            <div class="usage-icon"><ion-icon name="flask-outline"></ion-icon></div>
+                            <h4>Laboratório Virtual</h4>
+                            <p>Ambiente para alunos variarem parâmetros em tempo real e testarem hipóteses.</p>
+                        </div>
+                        <div class="usage-card">
+                            <div class="usage-icon"><ion-icon name="body-outline"></ion-icon></div>
+                            <h4>Estudo Autônomo</h4>
+                            <p>Material interativo complementar para desenvolver intuição física e matemática no seu próprio ritmo.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Histórico e Formação Acadêmica -->
+                <div class="academic-section">
+                    <h3 class="subsection-title">
+                        <ion-icon name="school-outline"></ion-icon> Formação Acadêmica & Pesquisa
+                    </h3>
+
+                    <div class="academic-card">
+                        <div class="academic-degree">
+                            <div class="degree-header">
+                                <span class="degree-badge">Graduação</span>
+                                <h4>Bacharelado & Licenciatura em Física</h4>
+                            </div>
+                            <p class="institution">Universidade Federal de Minas Gerais (UFMG)</p>
+                        </div>
+
+                        <div class="research-section">
+                            <h5><ion-icon name="flask-outline"></ion-icon> Projetos de Iniciação Científica</h5>
+                            <ul class="research-list">
+                                <li>
+                                    <span class="research-num">1</span>
+                                    <div class="research-info">
+                                        <strong>Estudo de Espectroscopia de Fotoelétrons de Raio-X (XPS)</strong>
+                                        <p>Desenvolvimento e automação de experimentos com programação via <span
+                                                class="tech-tag">LabVIEW</span>.</p>
+                                    </div>
+                                </li>
+                                <li>
+                                    <span class="research-num">2</span>
+                                    <div class="research-info">
+                                        <strong>Estudo de Magnetometria de Amostra Vibrante (VSM)</strong>
+                                        <p>Caracterização magnética e controle de instrumentação via <span
+                                                class="tech-tag">LabVIEW</span>.</p>
+                                    </div>
+                                </li>
+                                <li>
+                                    <span class="research-num">3</span>
+                                    <div class="research-info">
+                                        <strong>Estudo de Sistemas de Elétrons Fortemente Correlacionados</strong>
+                                        <p>Modelagem física e computacional utilizando a técnica de <em>Dynamic Mean
+                                                Field Theory (DMFT)</em> <span class="tech-tag">Fortran</span>.</p>
+                                    </div>
+                                </li>
+                            </ul>
+                        </div>
+
+                        <div class="outreach-section">
+                            <h5><ion-icon name="planet-outline"></ion-icon> Extensão & Divulgação Científica</h5>
+                            <p>Participação ativa no grupo de astronomia no <strong>Observatório Astronômico Frei
+                                    Rosário</strong> (UFMG).</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tecnologias & Ferramentas -->
+                <div class="tech-stack-section">
+                    <h3 class="subsection-title">
+                        <ion-icon name="code-slash-outline"></ion-icon> Tecnologias & Ferramentas
+                    </h3>
+                    <div class="tech-badges-list">
+                        <span class="tech-pill"><ion-icon name="logo-javascript"></ion-icon> JavaScript (Canvas / WebGL)</span>
+                        <span class="tech-pill"><ion-icon name="logo-html5"></ion-icon> HTML5 & CSS3</span>
+                        <span class="tech-pill"><ion-icon name="hardware-chip-outline"></ion-icon> LabVIEW</span>
+                        <span class="tech-pill"><ion-icon name="terminal-outline"></ion-icon> Fortran</span>
+                        <span class="tech-pill"><ion-icon name="analytics-outline"></ion-icon> Física Computacional</span>
+                        <span class="tech-pill"><ion-icon name="calculator-outline"></ion-icon> Modelagem Matemática</span>
+                    </div>
+                </div>
+
+                <!-- Desenvolvimento & Hospedagem -->
+                <div class="dev-credits-section">
+                    <h3 class="subsection-title">
+                        <ion-icon name="sparkles-outline"></ion-icon> Desenvolvimento & Tecnologias
+                    </h3>
+                    <div class="dev-credits-card">
+                        <ion-icon name="logo-github" class="dev-credits-icon"></ion-icon>
+                        <p>
+                            Esta plataforma é um projeto open-source hospedado no <strong>GitHub Pages</strong>. 
+                            A estrutura da página e suas simulações foram aprimoradas através de ferramentas de Inteligência Artificial, 
+                            com destaque para o <strong>Antigravity do Google</strong> (Google DeepMind), otimizando o design, a interatividade e a arquitetura do código.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Botão Call To Action -->
+                <div class="cta-container">
+                    <a href="#secao-simulacoes" class="btn-cta">
+                        <ion-icon name="play-circle-outline"></ion-icon> Explorar Simulações Agora
+                    </a>
+                </div>
+
             </div>
         </div>
 
@@ -221,7 +368,7 @@
         </div>
 
         <footer class="rodape">
-            <p>Desenvolvido por Nicolas Heringer. Hospedado no Github Pages.</p>
+            <p>Desenvolvido por Nicolas Heringer. Hospedado no GitHub Pages & desenvolvido com auxílio de IA (Google Antigravity).</p>
         </footer>
 
     </main>
