@@ -65,19 +65,19 @@
                     <span class="readout-value highlight-yellow" id="valTimeDual">0.00 s</span>
                 </div>
                 <div class="readout-item">
-                    <span class="readout-label">Objeto A ($x_A$)</span>
+                    <span class="readout-label">Objeto A (x<sub>A</sub>)</span>
                     <span class="readout-value highlight-yellow" id="valPosA">0.00 m</span>
                 </div>
                 <div class="readout-item">
-                    <span class="readout-label">Objeto B ($x_B$)</span>
+                    <span class="readout-label">Objeto B (x<sub>B</sub>)</span>
                     <span class="readout-value highlight-cyan" id="valPosB">0.00 m</span>
                 </div>
                 <div class="readout-item">
-                    <span class="readout-label">Velocidade A ($v_A$)</span>
+                    <span class="readout-label">Velocidade A (v<sub>A</sub>)</span>
                     <span class="readout-value highlight-yellow" id="valVelA">0.00 m/s</span>
                 </div>
                 <div class="readout-item">
-                    <span class="readout-label">Velocidade B ($v_B$)</span>
+                    <span class="readout-label">Velocidade B (v<sub>B</sub>)</span>
                     <span class="readout-value highlight-cyan" id="valVelB">0.00 m/s</span>
                 </div>
             </div>
@@ -106,22 +106,22 @@
             <div id="equationPanelA" class="equation-panel theme-yellow" style="display: none;">
                 <div class="panel-tag">Objeto A (Esfera Amarela)</div>
                 <div class="equation-box" id="equationDisplayA">
-                    S_A(t) = 0.0 + 2.0t + 0.0t²
+                    S<sub>A</sub>(t) = 0.0 + 2.0t + 0.0t²
                 </div>
 
                 <div class="param-inputs-grid">
                     <div class="control-group">
-                        <label for="inputS0A">Posição Inicial ($S_{0A}$ [m])</label>
+                        <label for="inputS0A">Posição Inicial (S<sub>0A</sub> [m])</label>
                         <input type="number" id="inputS0A" class="sim-input" value="-5.0" step="0.5">
                     </div>
 
                     <div class="control-group">
-                        <label for="inputV0A">Velocidade Inicial ($v_{0A}$ [m/s])</label>
+                        <label for="inputV0A">Velocidade Inicial (v<sub>0A</sub> [m/s])</label>
                         <input type="number" id="inputV0A" class="sim-input" value="3.0" step="0.5">
                     </div>
 
                     <div class="control-group">
-                        <label for="inputAA">Aceleração ($a_A$ [m/s²])</label>
+                        <label for="inputAA">Aceleração (a<sub>A</sub> [m/s²])</label>
                         <input type="number" id="inputAA" class="sim-input" value="0.0" step="0.5">
                     </div>
                 </div>
@@ -131,22 +131,22 @@
             <div id="equationPanelB" class="equation-panel theme-cyan" style="display: none;">
                 <div class="panel-tag">Objeto B (Esfera Ciano)</div>
                 <div class="equation-box cyan-box" id="equationDisplayB">
-                    S_B(t) = 10.0 - 2.0t + 0.0t²
+                    S<sub>B</sub>(t) = 10.0 - 2.0t + 0.0t²
                 </div>
 
                 <div class="param-inputs-grid">
                     <div class="control-group">
-                        <label for="inputS0B">Posição Inicial ($S_{0B}$ [m])</label>
+                        <label for="inputS0B">Posição Inicial (S<sub>0B</sub> [m])</label>
                         <input type="number" id="inputS0B" class="sim-input" value="5.0" step="0.5">
                     </div>
 
                     <div class="control-group">
-                        <label for="inputV0B">Velocidade Inicial ($v_{0B}$ [m/s])</label>
+                        <label for="inputV0B">Velocidade Inicial (v<sub>0B</sub> [m/s])</label>
                         <input type="number" id="inputV0B" class="sim-input" value="-2.0" step="0.5">
                     </div>
 
                     <div class="control-group">
-                        <label for="inputAB">Aceleração ($a_B$ [m/s²])</label>
+                        <label for="inputAB">Aceleração (a<sub>B</sub> [m/s²])</label>
                         <input type="number" id="inputAB" class="sim-input" value="0.0" step="0.5">
                     </div>
                 </div>
@@ -169,7 +169,7 @@
                 <h3 id="infoTitle">Como Funciona</h3>
                 <p id="infoText">
                     1. Escolha <strong>2 Objetos (Encontro)</strong>.<br>
-                    2. Digite as equações $S_A(t)$ e $S_B(t)$ para ver quando as trajetórias se cruzam.<br>
+                    2. Digite as equações S<sub>A</sub>(t) e S<sub>B</sub>(t) para ver quando as trajetórias se cruzam.<br>
                     3. Clique em <strong>Iniciar Tempo</strong> e depois em <strong>Ver Movimento</strong> para localizar o ponto de encontro no gráfico 2D!
                 </p>
             </div>

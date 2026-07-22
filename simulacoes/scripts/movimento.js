@@ -288,8 +288,8 @@ class MovimentoSimulation {
     }
 
     updateEquationDisplays() {
-        this.equationDisplayA.textContent = this.formatEquationString('S_A', this.s0A, this.v0A, this.aA);
-        this.equationDisplayB.textContent = this.formatEquationString('S_B', this.s0B, this.v0B, this.aB);
+        this.equationDisplayA.innerHTML = this.formatEquationString('S<sub>A</sub>', this.s0A, this.v0A, this.aA);
+        this.equationDisplayB.innerHTML = this.formatEquationString('S<sub>B</sub>', this.s0B, this.v0B, this.aB);
     }
 
     formatEquationString(prefix, s0, v0, a) {
@@ -588,16 +588,28 @@ class MovimentoSimulation {
             this.groupScrubber.style.display = 'none';
             this.btnViewGraph.disabled = this.recordingA.length < 2;
 
-            this.infoTitle.textContent = isDual ? 'Etapa 3: Encontro de 2 Corpos' : 'Etapa 1: Movimento 1D';
-            this.infoText.innerHTML = isDual ? `
-                • Digite as equações dos corpos A ($S_A$) e B ($S_B$).<br>
-                • O sistema calcula onde os corpos se cruzam ($S_A(t) = S_B(t)$).<br>
-                • Clique em <strong>Iniciar Tempo</strong> e veja as duas esferas se encontrarem!
-            ` : `
-                • No modo <strong>Equação</strong>, digite os valores exatos de $S_0$, $v_0$ e $a$.<br>
-                • Clique em <strong>Iniciar Tempo</strong> para ver o objeto se deslocar.<br>
-                • Pause e clique em <strong>Ver Movimento</strong>!
-            `;
+            if (this.motionType === 'manual') {
+                this.infoTitle.textContent = 'Etapa 1: Movimento Livre (1D)';
+                this.infoText.innerHTML = `
+                    1. Arraste a esfera amarela livremente ao longo do eixo horizontal X.<br>
+                    2. Clique em <strong>▶ Iniciar Tempo</strong> para gravar a posição a cada segundo.<br>
+                    3. Pause e clique em <strong>📈 Ver Movimento</strong> para revelar o gráfico!
+                `;
+            } else if (this.motionType === 'equation_1') {
+                this.infoTitle.textContent = 'Etapa 2: Movimento por Equação';
+                this.infoText.innerHTML = `
+                    1. Digite a posição inicial (S<sub>0</sub>), velocidade (v<sub>0</sub>) e aceleração (a).<br>
+                    2. Clique em <strong>▶ Iniciar Tempo</strong> para ver a esfera se mover por S(t).<br>
+                    3. Clique em <strong>📈 Ver Movimento</strong> para analisar a reta ou parábola!
+                `;
+            } else {
+                this.infoTitle.textContent = 'Etapa 3: Encontro de 2 Corpos';
+                this.infoText.innerHTML = `
+                    1. Preencha os parâmetros das equações S<sub>A</sub>(t) e S<sub>B</sub>(t) nos painéis.<br>
+                    2. Confira o instante e posição previstos no card <strong>📍 Ponto de Encontro</strong>.<br>
+                    3. Clique em <strong>▶ Iniciar Tempo</strong> e veja o cruzamento das esferas!
+                `;
+            }
         } else if (this.mode === '2D_EXTRUDED' || this.mode === '2D_CONVENTIONAL') {
             this.equationPanelA.style.display = 'none';
             this.equationPanelB.style.display = 'none';
@@ -620,6 +632,22 @@ class MovimentoSimulation {
                 } else {
                     this.intersectionValue.innerHTML = `<span style="color: #94a3b8;">Sem cruzamento no gráfico</span>`;
                 }
+            }
+
+            if (this.mode === '2D_EXTRUDED') {
+                this.infoTitle.textContent = 'Visão 2D: Eixo do Tempo (T)';
+                this.infoText.innerHTML = `
+                    1. Observe o eixo do tempo ($T$) se desdobrando na vertical a partir de $X$.<br>
+                    2. Arraste o slider <strong>Histórico Temporal</strong> para inspecionar instantes passados.<br>
+                    3. Clique em <strong>📐 Visão Convencional</strong> para ver o gráfico padrão!
+                `;
+            } else {
+                this.infoTitle.textContent = 'Visão 2D: Gráfico Convencional x(t)';
+                this.infoText.innerHTML = `
+                    1. Veja o gráfico padrão: <strong>Tempo (t)</strong> na horizontal e <strong>Posição (x)</strong> na vertical.<br>
+                    2. Deslize no histórico para acompanhar as posições e velocidades.<br>
+                    3. Localize o ponto exato onde as curvas se cruzam!
+                `;
             }
         }
 
