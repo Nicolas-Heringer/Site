@@ -118,6 +118,11 @@ class MovimentoSimulation {
         this.resize();
         window.addEventListener('resize', () => this.resize());
 
+        if (window.ResizeObserver) {
+            const ro = new ResizeObserver(() => this.resize());
+            ro.observe(this.canvas.parentElement);
+        }
+
         this.setupEvents();
         this.updateEquationDisplays();
         this.updateUI();
@@ -568,9 +573,9 @@ class MovimentoSimulation {
                 // Atualiza Previsão do Encontro
                 const meeting = this.calculateIntersection();
                 if (meeting) {
-                    this.intersectionValue.innerHTML = `Ponto de Encontro: <span class="highlight-yellow">t = ${meeting.t.toFixed(2)}s</span> | <span class="highlight-cyan">x = ${meeting.x.toFixed(2)}m</span>`;
+                    this.intersectionValue.innerHTML = `<span class="highlight-yellow">t = ${meeting.t.toFixed(2)}s</span> &nbsp;|&nbsp; <span class="highlight-cyan">x = ${meeting.x.toFixed(2)}m</span>`;
                 } else {
-                    this.intersectionValue.innerHTML = `<span style="color: #94a3b8;">Nenhum ponto de encontro futuro no mesmo sentido</span>`;
+                    this.intersectionValue.innerHTML = `<span style="color: #94a3b8;">Nenhum ponto de encontro futuro no mesmo sentido.</span>`;
                 }
             }
 
@@ -611,7 +616,7 @@ class MovimentoSimulation {
             if (isDual) {
                 const meeting = this.calculateIntersection();
                 if (meeting) {
-                    this.intersectionValue.innerHTML = `Interseção: <span class="highlight-yellow">t = ${meeting.t.toFixed(2)}s</span> | <span class="highlight-cyan">x = ${meeting.x.toFixed(2)}m</span>`;
+                    this.intersectionValue.innerHTML = `<span class="highlight-yellow">t = ${meeting.t.toFixed(2)}s</span> &nbsp;|&nbsp; <span class="highlight-cyan">x = ${meeting.x.toFixed(2)}m</span>`;
                 } else {
                     this.intersectionValue.innerHTML = `<span style="color: #94a3b8;">Sem cruzamento no gráfico</span>`;
                 }

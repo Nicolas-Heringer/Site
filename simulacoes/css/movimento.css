@@ -1,11 +1,45 @@
 /* Estilos Específicos da Simulação de Movimento 1D e 2D */
 
+/* Ajuste de Grid e Scrollbar Independente no Painel Lateral */
+.sim-layout {
+    height: calc(100vh - 65px);
+    max-height: calc(100vh - 65px);
+    overflow: hidden;
+}
+
 .canvas-area {
-    width: 100%;
     height: 100%;
+    min-height: 0;
+    width: 100%;
     position: relative;
     user-select: none;
     touch-action: none;
+}
+
+.controls-panel {
+    max-height: 100%;
+    min-height: 0;
+    overflow-y: auto;
+    padding-right: 14px; /* Espaço para a scrollbar */
+}
+
+/* Customização da Scrollbar Fina e Elegante para o Painel de Controles */
+.controls-panel::-webkit-scrollbar {
+    width: 6px;
+}
+
+.controls-panel::-webkit-scrollbar-track {
+    background: rgba(15, 23, 42, 0.5);
+    border-radius: 3px;
+}
+
+.controls-panel::-webkit-scrollbar-thumb {
+    background: rgba(148, 163, 184, 0.3);
+    border-radius: 3px;
+}
+
+.controls-panel::-webkit-scrollbar-thumb:hover {
+    background: var(--accent-color);
 }
 
 #simCanvas {
@@ -214,19 +248,21 @@
     color: #38bdf8;
 }
 
+/* --- TAMANHO DA FONTE DA CAIXA DA EQUAÇÃO --- */
 .equation-box {
     background: rgba(15, 23, 42, 0.9);
     border: 1px solid var(--border-color);
     border-radius: 8px;
-    padding: 8px 12px;
+    padding: 8px 10px;
     text-align: center;
     font-family: 'Courier New', monospace;
-    font-size: 0.98rem;
+    font-size: 0.88rem; /* <-- AJUSTADO: Altere este valor para mudar o tamanho do texto da equação horária! */
     font-weight: 700;
     color: var(--accent-color);
     letter-spacing: 0.5px;
     box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.5);
     text-shadow: 0 0 8px rgba(250, 204, 21, 0.4);
+    word-break: break-all;
 }
 
 .equation-box.cyan-box {
@@ -240,11 +276,12 @@
     gap: 8px;
 }
 
+/* --- TAMANHO DA FONTE DOS INPUTS NUMÉRICOS --- */
 .param-inputs-grid input[type="number"].sim-input {
     font-weight: 600;
     font-family: monospace, var(--font-family);
     padding: 8px 12px;
-    font-size: 0.9rem;
+    font-size: 0.88rem; /* <-- AJUSTADO: Altere este valor para mudar o tamanho dos números digitados! */
 }
 
 .theme-yellow .param-inputs-grid input[type="number"].sim-input {
