@@ -42,9 +42,9 @@
                 </a>
             </li>
             <li class="list">
-                <a href="#secao-outra">
-                    <span class="icone"><ion-icon name="balloon-outline"></ion-icon></span>
-                    <span class="texto">Em construção</span>
+                <a href="#secao-bibliografia">
+                    <span class="icone"><ion-icon name="book-outline"></ion-icon></span>
+                    <span class="texto">Material Bibliográfico</span>
                 </a>
             </li>
         </ul>
@@ -360,11 +360,31 @@
         </div>
 
 
-        <div id="secao-outra" class="section">
-            <div class="card-content">
-                <h2>Em construção</h2>
-                <p>Esta seção será preenchida em breve.</p>
+        <div id="secao-bibliografia" class="section">
+            <h2>Material Bibliográfico</h2>
+            <p style="margin-bottom: 25px;">Recomendações e referências bibliográficas fundamentais abrangendo do ensino médio à física de muitos corpos.</p>
+            
+            <div class="biblio-controls">
+                <div class="biblio-search-box">
+                    <ion-icon name="search-outline" class="search-icon"></ion-icon>
+                    <input type="text" id="biblio-search" placeholder="Buscar por título, autor, assunto ou ano...">
+                </div>
+                
+                <div class="filter-bar" id="biblio-filter-bar">
+                    <button class="filter-btn active" data-filtro="todas">Todas as áreas</button>
+                    <button class="filter-btn" data-filtro="ensino-medio">Ensino Médio & Conceitual</button>
+                    <button class="filter-btn" data-filtro="fisica-geral">Física Geral</button>
+                    <button class="filter-btn" data-filtro="eletromagnetismo">Eletromagnetismo</button>
+                    <button class="filter-btn" data-filtro="fisica-quantica">Física Quântica</button>
+                    <button class="filter-btn" data-filtro="muitos-corpos">Muitos Corpos</button>
+                </div>
             </div>
+
+            <div id="grid-livros" class="grid-livros">
+                <!-- Injetado dinamicamente via script.js -->
+            </div>
+
+            <p class="no-results" id="biblio-no-results" style="display:none;">Nenhum livro encontrado para esta busca.</p>
         </div>
 
         <footer class="rodape">
