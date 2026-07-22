@@ -1,0 +1,76 @@
+/* Layout específico para a simulação de gravidade */
+.sim-layout {
+    display: grid;
+    grid-template-columns: 3fr 1fr;
+    gap: 20px;
+    padding: 20px;
+    height: calc(100vh - 80px);
+    min-height: 0; /* Necessário para o grid não estourar a viewport */
+    overflow: hidden;
+}
+
+.canvas-area {
+    background-color: #000;
+    border-radius: 8px;
+    overflow: hidden;
+    min-height: 0;
+}
+
+canvas#simulationCanvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+}
+
+.side-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    background-color: #1e1e24;
+    color: #f0f0f0;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.5);
+}
+
+.controls-section {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.controls-section label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.chart-section {
+    flex: 1 1 0;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    overflow-y: auto;
+    min-height: 0;
+}
+
+.chart-wrapper {
+    position: relative;
+    width: 100%;
+    height: 220px;
+}
+
+.chart-wrapper canvas {
+    width: 100% !important;
+    height: 100% !important;
+}
+
+/* Responsividade básica */
+@media (max-width: 768px) {
+    .sim-layout {
+        grid-template-columns: 1fr;
+        grid-template-rows: 2fr 1fr;
+    }
+}

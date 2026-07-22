@@ -12,6 +12,8 @@
     <meta name="author" content="Nicolas Heringer">
 
     <link rel="stylesheet" href="css/base.css">
+    <link rel="stylesheet" href="css/gravidade.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 
 <body>
@@ -20,9 +22,31 @@
         <span class="sim-title">Movimento Planetário (Gravidade 3D)</span>
     </header>
 
-    <main class="sim-layout" style="grid-template-columns: 1fr;"> <!-- Apenas canvas para este -->
+    <main class="sim-layout">
         <div class="canvas-area">
             <canvas id="simulationCanvas"></canvas>
+        </div>
+        <div class="side-panel">
+            <div class="controls-section">
+                <h3>Controles</h3>
+                <label>
+                    <input type="checkbox" id="showPosition"> Mostrar Vetor Posição
+                </label>
+                <label>
+                    <input type="checkbox" id="showVelocity"> Mostrar Vetor Velocidade
+                </label>
+            </div>
+            <div class="chart-section">
+                <h3>Energia Cinética (K)</h3>
+                <div class="chart-wrapper">
+                    <canvas id="kineticChart"></canvas>
+                </div>
+                
+                <h3>Energia Potencial (U)</h3>
+                <div class="chart-wrapper">
+                    <canvas id="potentialChart"></canvas>
+                </div>
+            </div>
         </div>
     </main>
 
