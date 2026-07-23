@@ -514,3 +514,10 @@ function anima() {
 
 // Inicia a animação
 anima();
+
+// -----------------------------------------------------------------------------
+// PRÓXIMO PASSO:
+// Efeito Doppler Relativístico e Cone de Mach (Radiação de Cherenkov)
+// - Ativar o fator de Lorentz (gamma) para dilatação temporal da frequência de emissão.
+// - Formação de ondas de choque quando v > c.
+// -----------------------------------------------------------------------------
