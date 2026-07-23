@@ -103,16 +103,21 @@ class Particle {
                 if (wave.emissorId !== this.id) {
                     const dx = (wave.x - this.x) / 100; // Distância no eixo X
                     const dy = (wave.y - this.y) / 100; // Distância no eixo Y
-                    const distance = Math.sqrt(dx * dx + dy * dy); // Distância total
+                    const distSq = dx * dx + dy * dy; // Distância ao quadrado
 
-                    // Verifica se a partícula está dentro da influência da onda
-                    if (Math.abs(distance - wave.raio) < 10) {
-                        // Calcula força de atração
+                    // Limiares ao quadrado para filtrar sem usar Math.sqrt
+                    const minR = Math.max(0, wave.raio - 10);
+                    const maxR = wave.raio + 10;
+
+                    // Apenas calcula a raiz se a partícula estiver dentro do raio de influência
+                    if (distSq >= minR * minR && distSq <= maxR * maxR) {
+                        const distance = Math.sqrt(distSq); // Distância total
                         const force = 0.05; // Intensidade da força
 
                         if (tipoDeInteracao === 'ambas') {
-                            const fx = (0.1 * (dx / distance) - 0.1 * (dx / distance ** 6)) * force;
-                            const fy = (0.1 * (dy / distance) - 0.1 * (dy / distance ** 6)) * force;
+                            const dist6 = distSq * distSq * distSq; // distance^6 via multiplicações de hardware
+                            const fx = (0.1 * (dx / distance) - 0.1 * (dx / dist6)) * force;
+                            const fy = (0.1 * (dy / distance) - 0.1 * (dy / dist6)) * force;
                             // Aplica força à velocidade da partícula
                             this.velocityX += fx / this.mass;
                             this.velocityY += fy / this.mass;
@@ -129,7 +134,6 @@ class Particle {
                             this.velocityX += fx / this.mass;
                             this.velocityY += fy / this.mass;
                         };
-
                     }
                 }
             });
@@ -286,7 +290,7 @@ const positionGenerators = {
         velocity: () => ({ x: 0, y: 0 }),
         radius: (type) => (type === 'Na' ? 3 : 6), // Raio maior para Cl
         color: (type) => (type === 'Na' ? 'orange' : 'cyan'), // Laranjado para Na, ciano para Cl
-        mass: (type) => (type === 'Na' ? 1 : 2), // Massa maior para Cl
+        mass: (type) => (type === 'Na' ? 2 : 4), // Massa maior para Cl
         charge: (type) => (type === 'Na' ? 1 : -1), // Carga para Na (+1) e Cl (-1)
     },
     none: {
@@ -418,13 +422,13 @@ class Circulo {
 let circulos = [];
 let particles = createParticles(canvas, template); // Cria 10 partículas
 
-// Função para calcular a energia cinética total do sistema
+// Função para calcular a energia cinética total do sistema (sem Math.sqrt)
 function calcularEnergiaCinetica(particles) {
     let energiaTotal = 0;
 
     particles.forEach(particle => {
-        const velocidade = Math.sqrt(particle.velocityX ** 2 + particle.velocityY ** 2); // Calcula a magnitude da velocidade
-        energiaTotal += 0.5 * particle.mass * velocidade * velocidade; // Energia cinética de cada partícula
+        const vSq = particle.velocityX * particle.velocityX + particle.velocityY * particle.velocityY;
+        energiaTotal += 0.5 * particle.mass * vSq; // Ek = 0.5 * m * v^2
     });
 
     return energiaTotal; // Retorna a energia cinética total
@@ -450,9 +454,10 @@ function anima() {
         circulo.propagaCampo(c);
         circulo.mostra(ctx);
 
-        // Remove ondas fora do canvas
+        // Remove ondas fora do canvas em O(1) via Swap-and-Pop
         if (circulo.aSerRemovido) {
-            circulos.splice(i, 1);
+            circulos[i] = circulos[circulos.length - 1];
+            circulos.pop();
         }
     }
 
