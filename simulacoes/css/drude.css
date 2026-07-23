@@ -1,17 +1,12 @@
-/* 
-  Esses estilos agora são apenas para o Canvas.
-  O layout da página (Grid) está em base.css 
-*/
+/* Estilos específicos da simulação Modelo de Drude */
 
-#transformationCanvas {
-  border: 1px solid #000;
+#drudeCanvas {
+  border: none;
   display: block;
   margin: 0 auto;
-  opacity: 1;
-  transition: opacity 0.2s ease;
 }
 
-canvas {
-  /* border:1px solid #fff; */
-  border: none;
+#btnZerar {
+  width: 100%;
+  margin-top: 10px;
 }

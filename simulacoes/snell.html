@@ -16,101 +16,7 @@
     <link rel="icon" type="image/svg+xml" href="../favicon.svg">
 
     <link rel="stylesheet" href="css/base.css">
-
-    <style>
-        /* Indicador de carregamento (Worker computando) */
-        #loadingIndicator {
-            position: absolute;
-            inset: 0;
-            display: none;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            background: rgba(15, 23, 42, 0.75);
-            backdrop-filter: blur(4px);
-            z-index: 10;
-            border-radius: inherit;
-            gap: 14px;
-            color: var(--text-secondary);
-            font-size: 0.95rem;
-        }
-
-        .spinner {
-            width: 36px;
-            height: 36px;
-            border: 3px solid rgba(250, 204, 21, 0.2);
-            border-top-color: var(--accent-color);
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite;
-        }
-
-        @keyframes spin {
-            to {
-                transform: rotate(360deg);
-            }
-        }
-
-        /* Toggle de dispersão */
-        .toggle-row {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            cursor: pointer;
-            color: var(--text-secondary);
-            font-size: 0.9rem;
-            font-weight: 500;
-            user-select: none;
-        }
-
-        .toggle-row input[type="checkbox"] {
-            appearance: none;
-            width: 36px;
-            height: 20px;
-            border-radius: 10px;
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid var(--border-color);
-            cursor: pointer;
-            position: relative;
-            transition: background 0.3s;
-            flex-shrink: 0;
-        }
-
-        .toggle-row input[type="checkbox"]::before {
-            content: '';
-            position: absolute;
-            width: 14px;
-            height: 14px;
-            border-radius: 50%;
-            background: var(--text-secondary);
-            top: 2px;
-            left: 2px;
-            transition: left 0.3s, background 0.3s;
-        }
-
-        .toggle-row input[type="checkbox"]:checked {
-            background: rgba(250, 204, 21, 0.25);
-            border-color: var(--accent-color);
-        }
-
-        .toggle-row input[type="checkbox"]:checked::before {
-            left: 18px;
-            background: var(--accent-color);
-        }
-
-        .controls-divider {
-            height: 1px;
-            background: var(--border-color);
-            margin: 4px 0;
-        }
-
-        .equation {
-            font-style: italic;
-            text-align: center;
-            color: var(--accent-color);
-            font-size: 0.85rem;
-            margin: 6px 0;
-        }
-    </style>
+    <link rel="stylesheet" href="css/snell.css">
 </head>
 
 <body>
@@ -183,7 +89,7 @@
                 </label>
             </div>
 
-            <div id="wavelengthControl" class="control-group" style="display:none;">
+            <div id="wavelengthControl" class="control-group">
                 <label for="numWavelengthsSlider">Comprimentos de onda: <strong><span
                             id="numWavelengthsValue">5</span></strong></label>
                 <input type="range" id="numWavelengthsSlider" class="sim-slider" min="1" max="7" step="1" value="5">
@@ -193,7 +99,7 @@
 
             <!-- LIMPAR -->
             <div class="control-group">
-                <button id="btnLimparFeixes" class="sim-btn" style="width:100%;">Limpar feixes e rastros</button>
+                <button id="btnLimparFeixes" class="sim-btn">Limpar feixes e rastros</button>
             </div>
 
             <!-- INFORMAÇÕES EDUCACIONAIS -->

@@ -1,0 +1,10 @@
+/* Estilos específicos para a simulação Ondas Estacionárias 2D */
+
+#simulacao {
+    border-radius: 8px;
+    background-color: #000;
+}
+
+.info-section a {
+    color: var(--accent-color);
+}
