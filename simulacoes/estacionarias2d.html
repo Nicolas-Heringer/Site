@@ -2,32 +2,40 @@
 <html lang="pt-br">
 
 <head>
-    <meta charset="UTF-8">
+    <!-- Metadados da Página -->
+    <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ondas estacionárias 2D</title>
-    <meta name="description" content="Plataforma de simulações educacionais de física e matemática.">
+    <title>Ondas Estacionárias 2D — Padrões de Chladni</title>
+
+    <meta name="description"
+        content="Simulação de ondas estacionárias bidimensionais em superfícies quadradas. Visualize os padrões modais e linhas nodais de Chladni para diferentes modos de vibração n e m.">
     <meta name="keywords"
-        content="simulações, física, matemática, educação, partículas, átomo de hidrogênio, áudio, fônons">
+        content="ondas estacionárias, figuras de chladni, padrões modais, linhas nodais, vibração 2D, acústica, física ondulatória">
     <meta name="author" content="Nicolas Heringer">
 
     <!-- Favicon -->
     <link rel="icon" type="image/svg+xml" href="../favicon.svg">
 
+    <!-- Estilos CSS -->
     <link rel="stylesheet" href="css/base.css">
     <link rel="stylesheet" href="css/estacionarias2d.css">
 </head>
 
 <body>
+    <!-- Cabeçalho da Simulação -->
     <header class="sim-header">
         <a href="../index.html#secao-simulacoes" class="btn-back">← Voltar ao Hub</a>
         <span class="sim-title">Ondas Estacionárias 2D</span>
     </header>
 
+    <!-- Conteúdo Principal -->
     <main class="sim-layout">
+        <!-- Área de Visualização (Canvas) -->
         <div class="canvas-area">
             <canvas id="simulacao" width="600" height="600"></canvas>
         </div>
 
+        <!-- Painel de Controles -->
         <aside class="controls-panel">
             <div class="control-group">
                 <label for="n">Modo n:</label>
@@ -60,6 +68,7 @@
         </aside>
     </main>
 
+    <!-- Script da Simulação -->
     <script type="text/javascript" src="scripts/estacionarias2d.js"></script>
 </body>
 

@@ -2,29 +2,35 @@
 <html lang="pt-br">
 
 <head>
+    <!-- Metadados da Página -->
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Análise de Áudio em Tempo Real</title>
+    <title>Análise de Áudio e Sintetizador Espectral</title>
 
-    <meta name="description" content="Plataforma de simulações educacionais de física e matemática.">
+    <meta name="description"
+        content="Simulação e análise de sinal de áudio em tempo real via Web Audio API. Visualização espectral FFT, forma de onda no tempo e sintetizador aditivo interativo.">
     <meta name="keywords"
-        content="simulações, física, matemática, educação, partículas, átomo de hidrogênio, áudio, fônons">
+        content="análise de áudio, FFT, transformada de Fourier, Web Audio API, espectrograma, sintetizador, frequência, osciloscópio, simulação">
     <meta name="author" content="Nicolas Heringer">
 
     <!-- Favicon -->
     <link rel="icon" type="image/svg+xml" href="../favicon.svg">
 
+    <!-- Estilos CSS -->
     <link rel="stylesheet" href="css/base.css">
     <link rel="stylesheet" href="css/audio.css">
 </head>
 
 <body>
+    <!-- Cabeçalho da Simulação -->
     <header class="sim-header">
         <a href="../index.html#secao-simulacoes" class="btn-back">← Voltar ao Hub</a>
         <span class="sim-title">Análise de Áudio em Tempo Real</span>
     </header>
 
+    <!-- Conteúdo Principal -->
     <main class="sim-layout">
+        <!-- Área de Visualização (Canvases do Domínio do Tempo e Frequência) -->
         <div class="canvas-area">
             <div class="audio-canvas-container" id="canvasContainer1">
                 <canvas id="timeCanvas"></canvas>
@@ -35,6 +41,7 @@
             </div>
         </div>
 
+        <!-- Painel de Controles -->
         <aside class="controls-panel">
             <div class="control-group">
                 <button id="modeButton" class="sim-btn sim-btn--accent">⚡ Modo: Análise</button>
@@ -58,6 +65,7 @@
         </aside>
     </main>
 
+    <!-- Script da Simulação -->
     <script src="scripts/audio.js"></script>
 </body>
 

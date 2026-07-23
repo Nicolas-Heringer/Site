@@ -1,34 +1,42 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-br">
 
 <head>
-    <meta charset="UTF-8">
+    <!-- Metadados da Página -->
+    <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Simulação 3D de Movimento Planetário</title>
+    <title>Movimento Planetário 3D — Gravitação Universal</title>
 
-    <meta name="description" content="Plataforma de simulações educacionais de física e matemática.">
+    <meta name="description"
+        content="Simulação 3D de órbitas planetárias sob a gravitação universal de Newton. Visualize vetores de posição e velocidade e acompanhe o gráfico de energia cinética e potencial em tempo real.">
     <meta name="keywords"
-        content="simulações, física, matemática, educação, partículas, átomo de hidrogênio, áudio, fônons">
+        content="gravitação 3D, órbitas planetárias, leis de kepler, mecânica celeste, energia cinética, energia potencial, simulação física, vetores">
     <meta name="author" content="Nicolas Heringer">
 
     <!-- Favicon -->
     <link rel="icon" type="image/svg+xml" href="../favicon.svg">
 
+    <!-- Estilos CSS e Libs -->
     <link rel="stylesheet" href="css/base.css">
     <link rel="stylesheet" href="css/gravidade.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 
 <body>
+    <!-- Cabeçalho da Simulação -->
     <header class="sim-header">
         <a href="../index.html#secao-simulacoes" class="btn-back">← Voltar ao Hub</a>
         <span class="sim-title">Movimento Planetário (Gravidade 3D)</span>
     </header>
 
+    <!-- Conteúdo Principal -->
     <main class="sim-layout">
+        <!-- Área de Visualização 3D (Canvas) -->
         <div class="canvas-area">
             <canvas id="simulationCanvas"></canvas>
         </div>
+
+        <!-- Painel de Controles e Gráficos -->
         <div class="side-panel">
             <div class="controls-section">
                 <h3>Controles</h3>
@@ -53,6 +61,7 @@
         </div>
     </main>
 
+    <!-- Script da Simulação -->
     <script src="scripts/gravidade.js"></script>
 </body>
 

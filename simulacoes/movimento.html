@@ -2,34 +2,42 @@
 <html lang="pt-br">
 
 <head>
+    <!-- Metadados da Página -->
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Simulação de Movimento em 1D e 2D</title>
+    <title>Movimento 1D e 2D — Cinemática e Encontro de Corpos</title>
 
-    <meta name="description" content="Plataforma de simulações educacionais de física - Movimento 1D, MRU, MRUV, Encontro de Dois Corpos e Gráfico Espaço x Tempo.">
-    <meta name="keywords" content="simulações, física, movimento 1D, MRU, MRUV, encontro de corpos, gráfico espaço tempo, educação">
+    <meta name="description"
+        content="Simulação cinemática de movimento unidimensional e bidimensional (MRU e MRUV). Acompanhe gráficos de posição x tempo, extrusão espaço-temporal e ponto de encontro de dois corpos.">
+    <meta name="keywords"
+        content="cinemática, movimento 1D, movimento 2D, MRU, MRUV, encontro de corpos, gráfico posição tempo, velocidade, aceleração, simulação física">
     <meta name="author" content="Nicolas Heringer">
 
     <!-- Favicon -->
     <link rel="icon" type="image/svg+xml" href="../favicon.svg">
 
+    <!-- Estilos CSS -->
     <link rel="stylesheet" href="css/base.css">
     <link rel="stylesheet" href="css/movimento.css">
 </head>
 
 <body>
+    <!-- Cabeçalho da Simulação -->
     <header class="sim-header">
         <a href="../index.html#secao-simulacoes" class="btn-back">← Voltar ao Hub</a>
         <span class="sim-title">Movimento em 1D e 2D: Encontro de Corpos</span>
     </header>
 
+    <!-- Conteúdo Principal -->
     <main class="sim-layout">
+        <!-- Área de Visualização (Canvas) -->
         <div class="canvas-area">
             <canvas id="simCanvas"></canvas>
             <div class="canvas-overlay-badge" id="modeBadge">Modo 1D: Posição no Eixo X</div>
             <div class="canvas-instructions" id="canvasHint">💡 Arraste a esfera amarela ao longo do eixo horizontal X</div>
         </div>
 
+        <!-- Painel de Controles -->
         <aside class="controls-panel">
             <!-- Seletor de Tipo de Movimento -->
             <div class="control-group">
@@ -179,6 +187,7 @@
         </aside>
     </main>
 
+    <!-- Script da Simulação -->
     <script src="scripts/movimento.js"></script>
 </body>
 

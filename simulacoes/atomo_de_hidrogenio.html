@@ -1,20 +1,22 @@
 <!DOCTYPE html>
-<html lang='pt-br'>
+<html lang="pt-br">
 
 <head>
-    <meta charset='utf-8'>
+    <!-- Metadados da Página -->
+    <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Átomo de Hidrogênio — Orbitais Quânticos</title>
 
     <meta name="description"
         content="Visualização interativa 3D dos orbitais do átomo de hidrogênio. Selecione os números quânticos n, l, mₗ e mₛ para ver a distribuição da função de onda Ψ(r,θ,φ).">
     <meta name="keywords"
-        content="átomo de hidrogênio, orbitais quânticos, números quânticos, física quântica, simulação, harmonicos esféricos, funções de onda">
+        content="átomo de hidrogênio, orbitais quânticos, números quânticos, física quântica, simulação 3D, harmônicos esféricos, função de onda, Monte Carlo, Three.js">
     <meta name="author" content="Nicolas Heringer">
 
     <!-- Favicon -->
     <link rel="icon" type="image/svg+xml" href="../favicon.svg">
 
+    <!-- Estilos CSS -->
     <link rel="stylesheet" href="css/base.css">
     <link rel="stylesheet" href="css/atomo_de_hidrogenio.css">
 
@@ -31,14 +33,16 @@
 
 <body>
 
+    <!-- Cabeçalho da Simulação -->
     <header class="sim-header">
         <a href="../index.html#secao-simulacoes" class="btn-back">← Voltar ao Hub</a>
         <span class="sim-title">Átomo de Hidrogênio — Orbitais Quânticos</span>
     </header>
 
+    <!-- Conteúdo Principal -->
     <main class="sim-layout">
 
-        <!-- Área 3D -->
+        <!-- Área de Visualização 3D -->
         <div class="canvas-area">
             <div id="three-container"></div>
         </div>
@@ -152,6 +156,7 @@
         </aside>
     </main>
 
+    <!-- Script da Simulação -->
     <script type="module" src="scripts/atomo_de_hidrogenio.js"></script>
 </body>
 

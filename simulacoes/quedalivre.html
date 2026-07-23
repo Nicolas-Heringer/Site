@@ -2,33 +2,40 @@
 <html lang="pt-br">
 
 <head>
-    <meta charset="UTF-8">
+    <!-- Metadados da Página -->
+    <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Queda Livre Interativa</title>
+    <title>Queda Livre Interativa e Lançamento de Corpos</title>
 
-    <meta name="description" content="Plataforma de simulações educacionais de física e matemática.">
+    <meta name="description"
+        content="Simulação física de queda livre sob aceleração gravitacional com colisões elásticas/inelásticas nas bordas e arremesso interativo de objetos.">
     <meta name="keywords"
-        content="simulações, física, matemática, educação, partículas, átomo de hidrogênio, áudio, fônons">
+        content="queda livre, gravidade, cinemática, colisão elástica, coeficiente de restituição, velocidade, simulação interativa">
     <meta name="author" content="Nicolas Heringer">
 
     <!-- Favicon -->
     <link rel="icon" type="image/svg+xml" href="../favicon.svg">
 
+    <!-- Estilos CSS -->
     <link rel="stylesheet" href="css/base.css">
-    <link rel="stylesheet" type="text/css" href="css/quedalivre.css">
+    <link rel="stylesheet" href="css/quedalivre.css">
 </head>
 
 <body>
+    <!-- Cabeçalho da Simulação -->
     <header class="sim-header">
         <a href="../index.html#secao-simulacoes" class="btn-back">← Voltar ao Hub</a>
         <span class="sim-title">Queda Livre Interativa</span>
     </header>
 
+    <!-- Conteúdo Principal -->
     <main class="sim-layout">
+        <!-- Área de Visualização (Canvas) -->
         <div class="canvas-area">
             <canvas id="simulacao" width="600" height="600"></canvas>
         </div>
 
+        <!-- Painel de Informações -->
         <aside class="controls-panel">
             <div class="info-section">
                 <p>Nesta simulação é possível interagir com um objeto submetido à força da gravidade (queda livre).</p>
@@ -36,6 +43,7 @@
         </aside>
     </main>
 
+    <!-- Script da Simulação -->
     <script type="text/javascript" src="scripts/quedalivre.js"></script>
 </body>
 

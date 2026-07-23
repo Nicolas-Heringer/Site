@@ -2,34 +2,41 @@
 <html lang="pt-br">
 
 <head>
-    <meta charset='utf-8'>
+    <!-- Metadados da Página -->
+    <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Simulação de fônons</title>
+    <title>Simulação de Fônons e Modos de Vibração</title>
 
-    <meta name="description" content="Plataforma de simulações educacionais de física e matemática.">
+    <meta name="description"
+        content="Simulação interativa de fônons e modos normais de vibração em redes cristalinas 2D monoatômicas e diatômicas. Interaja com as partículas para observar ondas de matéria e condutividade térmica.">
     <meta name="keywords"
-        content="simulações, física, matemática, educação, partículas, átomo de hidrogênio, áudio, fônons">
+        content="fônons, rede cristalina, modos de vibração, ondas de matéria, dinâmica de redes, rede monoatômica, rede diatômica, física do estado sólido">
     <meta name="author" content="Nicolas Heringer">
 
     <!-- Favicon -->
     <link rel="icon" type="image/svg+xml" href="../favicon.svg">
 
+    <!-- Estilos CSS -->
     <link rel="stylesheet" href="css/base.css">
     <link rel="stylesheet" href="css/fonons.css">
 </head>
 
 <body>
 
+    <!-- Cabeçalho da Simulação -->
     <header class="sim-header">
         <a href="../index.html#secao-simulacoes" class="btn-back">← Voltar ao Hub</a>
         <span class="sim-title">Simulação de fônons</span>
     </header>
 
+    <!-- Conteúdo Principal -->
     <main class="sim-layout">
+        <!-- Área de Visualização (Canvas) -->
         <div class="canvas-area">
             <canvas id="myCanvas" width="900" height="600"></canvas>
         </div>
 
+        <!-- Painel de Controles -->
         <aside class="controls-panel">
 
             <div class="control-group">
@@ -68,6 +75,7 @@
         </aside>
     </main>
 
+    <!-- Script da Simulação -->
     <script src="scripts/fonons.js"></script>
 </body>
 

@@ -2,32 +2,36 @@
 <html lang="pt-br">
 
 <head>
-    <meta charset="UTF-8">
+    <!-- Metadados da Página -->
+    <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Simulação da Lei de Snell — Ray Tracing Contínuo</title>
+    <title>Lei de Snell — Ray Tracing em Meios Contínuos</title>
 
     <meta name="description"
-        content="Simulação educacional de propagação de luz em meios com índice de refração variável n(x,y). Visualize refração, miragens, fibras ópticas e dispersão cromática.">
+        content="Simulação educacional de óptica geométrica e ray tracing contínuo em meios com índice de refração variável n(x,y). Explore miragens, fibra óptica, lentes GRIN e dispersão cromática.">
     <meta name="keywords"
-        content="Lei de Snell, ray tracing, índice de refração, dispersão, física óptica, simulação educacional">
+        content="lei de snell, ray tracing, índice de refração, dispersão cromática, óptica geométrica, fibra óptica, lente grin, miragem, física óptica">
     <meta name="author" content="Nicolas Heringer">
 
     <!-- Favicon -->
     <link rel="icon" type="image/svg+xml" href="../favicon.svg">
 
+    <!-- Estilos CSS -->
     <link rel="stylesheet" href="css/base.css">
     <link rel="stylesheet" href="css/snell.css">
 </head>
 
 <body>
+    <!-- Cabeçalho da Simulação -->
     <header class="sim-header">
         <a href="../index.html#secao-simulacoes" class="btn-back">← Voltar ao Hub</a>
         <span class="sim-title">Lei de Snell — Ray Tracing Contínuo</span>
     </header>
 
+    <!-- Conteúdo Principal -->
     <main class="sim-layout">
 
-        <!-- Área do Canvas -->
+        <!-- Área de Visualização (Canvas) -->
         <div class="canvas-area">
             <canvas id="simulationCanvas"></canvas>
             <div id="loadingIndicator">
@@ -114,6 +118,7 @@
         </aside>
     </main>
 
+    <!-- Script da Simulação -->
     <script src="scripts/snell.js"></script>
 </body>
 

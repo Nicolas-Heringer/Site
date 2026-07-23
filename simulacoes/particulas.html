@@ -2,36 +2,41 @@
 <html lang="pt-br">
 
 <head>
-    <meta charset='utf-8'>
+    <!-- Metadados da Página -->
+    <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Simulação de partículas</title>
+    <title>Simulação de Partículas — Interações e Campos Retardados</title>
 
-    <meta name="description" content="Plataforma de simulações educacionais de física e matemática.">
+    <meta name="description"
+        content="Simulação de dinâmica molecular de partículas interagindo via potenciais de Lennard-Jones, Coulomb e forças mediadas por frentes de onda retardadas com controle termodinâmico.">
     <meta name="keywords"
-        content="simulações, física, matemática, educação, partículas, átomo de hidrogênio, áudio, fônons">
+        content="simulação de partículas, dinâmica molecular, lennard-jones, coulomb, campos retardados, frentes de onda, temperatura, termodinâmica">
     <meta name="author" content="Nicolas Heringer">
 
     <!-- Favicon -->
     <link rel="icon" type="image/svg+xml" href="../favicon.svg">
 
+    <!-- Estilos CSS -->
     <link rel="stylesheet" href="css/base.css">
-
     <link rel="stylesheet" href="css/particulas.css">
 </head>
 
 <body>
 
+    <!-- Cabeçalho da Simulação -->
     <header class="sim-header">
         <a href="../index.html#secao-simulacoes" class="btn-back">← Voltar ao Hub</a>
         <span class="sim-title">Simulação de partículas</span>
     </header>
 
+    <!-- Conteúdo Principal -->
     <main class="sim-layout">
-
+        <!-- Área de Visualização (Canvas) -->
         <div class="canvas-area">
             <canvas id="myCanvas" width="900" height="675"></canvas>
         </div>
 
+        <!-- Painel de Controles -->
         <aside class="controls-panel">
 
             <div class="control-group">
@@ -111,6 +116,7 @@
 
     </main>
 
+    <!-- Script da Simulação -->
     <script src="scripts/particulas.js"></script>
 </body>
 
