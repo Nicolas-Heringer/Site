@@ -14,13 +14,53 @@ const resetButton = document.getElementById('reset-button');
 
 // Variáveis dinâmicas
 let resetState = false;
-let tipoDeInteracao = 'ambas';
+let tipoDeInteracao = 'lennardJones';
 let interactionEnabled = false;
 let TEMP_LIMIT = 0.001;
 let numParticles = 1;
 let c = 1; // Velocidade da onda
 let attenuation = 0.09; // Fator de resfriamento para reduzir a velocidade das partículas
 let template = 'livre';
+let epsilonCoulomb = 0.1; // Constante de acoplamento da interação coulombiana retardada
+
+// Dicionário de estratégias de cálculo de interação
+const calculadoresDeInteracao = {
+    lennardJones(particle, wave, dx, dy, distance, distSq, force) {
+        const dist6 = distSq * distSq * distSq;
+        const fx = (0.1 * (dx / distance) - 0.1 * (dx / dist6)) * force;
+        const fy = (0.1 * (dy / distance) - 0.1 * (dy / dist6)) * force;
+        return { fx, fy };
+    },
+    ambos(particle, wave, dx, dy, distance, distSq, force) {
+        return calculadoresDeInteracao.lennardJones(particle, wave, dx, dy, distance, distSq, force);
+    },
+    atracao(particle, wave, dx, dy, distance, distSq, force) {
+        const fx = 0.1 * (dx / distance) * force;
+        const fy = 0.1 * (dy / distance) * force;
+        return { fx, fy };
+    },
+    repulsao(particle, wave, dx, dy, distance, distSq, force) {
+        const fx = 0.1 * (dx / distance) * (-force);
+        const fy = 0.1 * (dy / distance) * (-force);
+        return { fx, fy };
+    },
+    coulomb(particle, wave, dx, dy, distance, distSq, force) {
+        const qProduct = particle.charge * wave.charge;
+        const dist6 = distSq * distSq * distSq;
+        const factorCoulomb = -qProduct * epsilonCoulomb;
+        const fx = (factorCoulomb * (dx / distance) - 0.01 * (dx / dist6)) * force;
+        const fy = (factorCoulomb * (dy / distance) - 0.01 * (dy / dist6)) * force;
+        return { fx, fy };
+    }/* ,
+    general(particle, wave, dx, dy, distance, distSq, force, repulsionComponent = 0.01) {
+        const qProduct = particle.charge * wave.charge;
+        const dist6 = distSq * distSq * distSq;
+        const factorCoulomb = -qProduct * epsilonCoulomb;
+        const fx = (factorCoulomb * (dx / distance) - repulsionComponent * (dx / dist6)) * force;
+        const fy = (factorCoulomb * (dy / distance) - repulsionComponent * (dy / dist6)) * force;
+        return { fx, fy };
+    }*/
+};
 
 // Manipuladores de eventos
 interactionSelector.addEventListener('change', () => {
@@ -112,28 +152,13 @@ class Particle {
                     // Apenas calcula a raiz se a partícula estiver dentro do raio de influência
                     if (distSq >= minR * minR && distSq <= maxR * maxR) {
                         const distance = Math.sqrt(distSq); // Distância total
-                        const force = 0.05; // Intensidade da força
-
-                        if (tipoDeInteracao === 'ambas') {
-                            const dist6 = distSq * distSq * distSq; // distance^6 via multiplicações de hardware
-                            const fx = (0.1 * (dx / distance) - 0.1 * (dx / dist6)) * force;
-                            const fy = (0.1 * (dy / distance) - 0.1 * (dy / dist6)) * force;
-                            // Aplica força à velocidade da partícula
+                        const force = 0.05; // Intensidade da força base
+                        const calcular = calculadoresDeInteracao[tipoDeInteracao];
+                        if (calcular) {
+                            const { fx, fy } = calcular(this, wave, dx, dy, distance, distSq, force);
                             this.velocityX += fx / this.mass;
                             this.velocityY += fy / this.mass;
-                        } else if (tipoDeInteracao === 'atracao') {
-                            const fx = 0.1 * (dx / distance) * force;
-                            const fy = 0.1 * (dy / distance) * force;
-                            // Aplica força à velocidade da partícula
-                            this.velocityX += fx / this.mass;
-                            this.velocityY += fy / this.mass;
-                        } else if (tipoDeInteracao === 'repulsao') {
-                            const fx = 0.1 * (dx / distance) * (-force);
-                            const fy = 0.1 * (dy / distance) * (-force);
-                            // Aplica força à velocidade da partícula
-                            this.velocityX += fx / this.mass;
-                            this.velocityY += fy / this.mass;
-                        };
+                        }
                     }
                 }
             });
