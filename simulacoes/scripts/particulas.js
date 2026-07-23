@@ -37,6 +37,7 @@ temperatureSelector.addEventListener('change', () => {
 
 waveSpeedSelector.addEventListener('change', () => {
     c = parseFloat(waveSpeedSelector.value);
+    waveCache.clear();
     console.log(`Velocidade da onda: ${c}`);
     // Atualize a velocidade da onda na simulação aqui
 });
@@ -55,6 +56,8 @@ temperatureAtenuation.addEventListener('input', () => {
 positionTemplates.addEventListener('input', () => {
     template = positionTemplates.value;
     console.log(`Template selecionado: ${template}`);
+    Particle.nextId = 0;
+    waveCache.clear();
     particles = createParticles(canvas, template);
 });
 
@@ -63,6 +66,8 @@ resetButton.addEventListener('click', () => {
     // Reseta listas e o template
     circulos = [];
     particles = [];
+    Particle.nextId = 0;
+    waveCache.clear();
     positionTemplates.value = 'none';
 
     // Opcional: Atualiza a interface ou chama uma função de renderização
@@ -71,7 +76,10 @@ resetButton.addEventListener('click', () => {
 
 // Classe para representar uma partícula
 class Particle {
-    constructor(x, y, radius, color, velocityX, velocityY, charge = 1, mass = 1) {
+    static nextId = 0;
+
+    constructor(x, y, radius, color, velocityX, velocityY, charge = 0, mass = 1) {
+        this.id = Particle.nextId++;
         this.x = x;
         this.y = y;
         this.radius = radius;
@@ -83,17 +91,16 @@ class Particle {
         this.waveTimer = 0; // Temporizador para emissão de ondas
         this.baseWaveInterval = 5;
         this.waveInterval = 5; // Intervalo entre emissões de ondas (em frames)
-        this.ondasEmitidas = []; // Lista de ondas emitidas pela partícula
         this.gamma = null;
     }
 
     // Método para atualizar a posição da partícula
     update(canvas, waves, interaction, interactionType) {
         if (interaction == true) {
-            // Aplica forças das ondas (ignorando suas próprias ondas)
+            // Aplica forças das ondas (ignorando suas próprias ondas em O(1))
             waves.forEach(wave => {
-                // Verifica se a onda foi emitida pela própria partícula
-                if (!this.ondasEmitidas.includes(wave)) {
+                // Verifica se a onda foi emitida por outra partícula
+                if (wave.emissorId !== this.id) {
                     const dx = (wave.x - this.x) / 100; // Distância no eixo X
                     const dy = (wave.y - this.y) / 100; // Distância no eixo Y
                     const distance = Math.sqrt(dx * dx + dy * dy); // Distância total
@@ -107,20 +114,20 @@ class Particle {
                             const fx = (0.1 * (dx / distance) - 0.1 * (dx / distance ** 6)) * force;
                             const fy = (0.1 * (dy / distance) - 0.1 * (dy / distance ** 6)) * force;
                             // Aplica força à velocidade da partícula
-                            this.velocityX += fx;
-                            this.velocityY += fy;
+                            this.velocityX += fx / this.mass;
+                            this.velocityY += fy / this.mass;
                         } else if (tipoDeInteracao === 'atracao') {
                             const fx = 0.1 * (dx / distance) * force;
                             const fy = 0.1 * (dy / distance) * force;
                             // Aplica força à velocidade da partícula
-                            this.velocityX += fx;
-                            this.velocityY += fy;
+                            this.velocityX += fx / this.mass;
+                            this.velocityY += fy / this.mass;
                         } else if (tipoDeInteracao === 'repulsao') {
                             const fx = 0.1 * (dx / distance) * (-force);
                             const fy = 0.1 * (dy / distance) * (-force);
                             // Aplica força à velocidade da partícula
-                            this.velocityX += fx;
-                            this.velocityY += fy;
+                            this.velocityX += fx / this.mass;
+                            this.velocityY += fy / this.mass;
                         };
 
                     }
@@ -144,9 +151,8 @@ class Particle {
         this.waveTimer++;
         if (this.waveTimer >= this.waveInterval) {
             this.waveTimer = 0;
-            // Adiciona uma nova onda na posição atual da partícula
-            const novaOnda = new Circulo(this.x, this.y);
-            this.ondasEmitidas.push(novaOnda);
+            // Adiciona uma nova onda informando carga e o ID da partícula emissora
+            const novaOnda = new Circulo(this.x, this.y, this.charge, this.id);
             waves.push(novaOnda);
         }
     }
@@ -191,6 +197,8 @@ const positionGenerators = {
         velocity: () => ({ x: 1, y: 1.2 }),
         radius: () => 5,
         color: () => `rgba(255, 255, 255, 1)`,
+        mass: () => 1,
+        charge: () => 0,
     },
     double: {
         num: () => 2, // Duas partículas
@@ -203,6 +211,8 @@ const positionGenerators = {
         velocity: (index) => ({ x: 0, y: 1 - (2 * index) }),
         radius: () => 5,
         color: () => `rgba(255, 255, 255, 1)`,
+        mass: () => 1,
+        charge: () => 0,
     },
     many: {
         num: () => 3,
@@ -216,9 +226,11 @@ const positionGenerators = {
         velocity: (index) => ({ x: 0, y: (1 - 2 * index / 3) }),
         radius: () => 5,
         color: () => `rgba(255, 255, 255, 1)`,
+        mass: () => 1,
+        charge: () => 0,
     },
     circular: {
-        num: () => 20, // Número fixo de partículas
+        num: () => 12, // Número fixo de partículas
         generate(canvas, index, total) {
             const centerX = canvas.width / 2;
             const centerY = canvas.height / 2;
@@ -232,6 +244,8 @@ const positionGenerators = {
         velocity: () => ({ x: 0, y: 0 }),
         radius: () => 3,
         color: () => `rgba(255, 255, 255, 1)`,
+        mass: () => 1,
+        charge: () => 0,
     },
     grid: {
         num: () => 36, // Grid com 36 partículas
@@ -250,9 +264,11 @@ const positionGenerators = {
         velocity: () => ({ x: 0, y: 0 }),
         radius: () => 3,
         color: () => `rgba(255, 255, 255, 1)`,
+        mass: () => 2,
+        charge: () => 0,
     },
     NaCl: {
-        num: () => 36, // Total de partículas (ajuste conforme necessário)
+        num: () => 64, // Total de partículas (ajuste conforme necessário)
         generate(canvas, index, total) {
             const cols = Math.ceil(Math.sqrt(total));
             const rows = Math.ceil(total / cols);
@@ -269,7 +285,9 @@ const positionGenerators = {
         },
         velocity: () => ({ x: 0, y: 0 }),
         radius: (type) => (type === 'Na' ? 3 : 6), // Raio maior para Cl
-        color: (type) => (type === 'Na' ? 'blue' : 'green'), // Azul para Na, verde para Cl
+        color: (type) => (type === 'Na' ? 'orange' : 'cyan'), // Laranjado para Na, ciano para Cl
+        mass: (type) => (type === 'Na' ? 1 : 2), // Massa maior para Cl
+        charge: (type) => (type === 'Na' ? 1 : -1), // Carga para Na (+1) e Cl (-1)
     },
     none: {
         num: () => 0,
@@ -288,18 +306,76 @@ function createParticles(canvas, template = "livre") {
     const particles = Array.from({ length: particleCount }, (_, i) => {
         const { x, y, type } = generator.generate(canvas, i, particleCount);
         const { x: vx, y: vy } = generator.velocity(i);
-        return new Particle(x, y, generator.radius(type), generator.color(type), vx, vy);
+        const mass = generator.mass ? generator.mass(type) : 1;
+        const charge = generator.charge ? generator.charge(type) : 0;
+        return new Particle(x, y, generator.radius(type), generator.color(type), vx, vy, charge, mass);
     });
 
     return particles;
 }
 
 
+// Cache de Sprites em Offscreen Canvas sob demanda (memoização por raio e carga)
+const waveCache = new Map();
+
+function criarWaveSpritePorRaio(charge, raio) {
+    const r = Math.max(1, Math.round(raio));
+    const padding = 2; // Margem para a linha de 1px não cortar
+    const size = (r + padding) * 2;
+    const offCanvas = document.createElement('canvas');
+    offCanvas.width = size;
+    offCanvas.height = size;
+    const offCtx = offCanvas.getContext('2d');
+
+    const center = size / 2;
+    const innerRadius = Math.max(0, r - r * 0.3);
+    const outerRadius = r + r * 0.3;
+
+    const grad = offCtx.createRadialGradient(
+        center, center, innerRadius,
+        center, center, outerRadius
+    );
+
+    let rgb;
+    if (charge > 0) {
+        rgb = '255, 140, 0'; // Laranja (Na+)
+    } else if (charge < 0) {
+        rgb = '0, 200, 255'; // Ciano (Cl-)
+    } else {
+        rgb = '0, 200, 180'; // Verde-água (Neutro)
+    }
+
+    grad.addColorStop(0, `rgba(${rgb}, 1)`);
+    grad.addColorStop(1, `rgba(${rgb}, 0)`);
+
+    offCtx.beginPath();
+    offCtx.arc(center, center, r, 0, Math.PI * 2);
+    offCtx.lineWidth = 1; // Espessura de linha fixa de 1px!
+    offCtx.strokeStyle = grad;
+    offCtx.stroke();
+    offCtx.closePath();
+
+    return offCanvas;
+}
+
+function getWaveSprite(charge, raio) {
+    const rKey = Math.round(raio);
+    const key = `${charge}_${rKey}`;
+    let sprite = waveCache.get(key);
+    if (!sprite) {
+        sprite = criarWaveSpritePorRaio(charge, rKey);
+        waveCache.set(key, sprite);
+    }
+    return sprite;
+}
+
 // Classe para criar as ondas
 class Circulo {
-    constructor(x, y) {
+    constructor(x, y, charge = 0, emissorId = null) {
         this.x = x; // Posição x do centro da onda
         this.y = y; // Posição y do centro da onda
+        this.charge = charge; // Carga associada à onda gerada
+        this.emissorId = emissorId; // ID da partícula que gerou a onda
         this.raio = 0; // Raio inicial da onda
         this.aSerRemovido = false; // Condição de remoção
     }
@@ -314,33 +390,27 @@ class Circulo {
 
     // Função de controle (brilho/intensidade)
     static intensidade(x) {
-        return Math.min(1, Math.exp(-(x ** 2) / 1e4)); // Exemplo com decaimento exponencial
+        return Math.min(1, Math.exp(-(x ** 2) / 2e4)); // Exemplo com decaimento exponencial
     }
 
-    // Função para criar o gradiente com base na intensidade
-    criaGradiente(ctx) {
-        const grad = ctx.createRadialGradient(
-            this.x, this.y, this.raio - this.raio * 0.3, // Raio interno
-            this.x, this.y, this.raio + this.raio * 0.3  // Raio externo
-        );
-
-        const intensidade = Circulo.intensidade(this.raio); // Controle com decaimento
-        grad.addColorStop(0, `rgba(0, 200, 180, ${intensidade})`);
-
-        return grad;
-    }
-
-    // Desenha o círculo no canvas
+    // Desenha o círculo no canvas usando o sprite pré-renderizado no raio exato (1:1 sem distorção)
     mostra(ctx) {
-        ctx.beginPath();
-        const grad = this.criaGradiente(ctx);
+        if (this.raio <= 0) return;
 
-        ctx.lineWidth = 1;
-        ctx.strokeStyle = grad;
+        const intensidade = Circulo.intensidade(this.raio);
+        if (intensidade <= 0.001) return; // Ignora ondas praticamente invisíveis
 
-        ctx.arc(this.x, this.y, this.raio, 0, Math.PI * 2);
-        ctx.stroke();
-        ctx.closePath();
+        const sprite = getWaveSprite(this.charge, this.raio);
+        const halfSize = sprite.width / 2;
+
+        ctx.save();
+        ctx.globalAlpha = Math.min(1, Math.max(0, intensidade * 2));
+        ctx.drawImage(
+            sprite,
+            this.x - halfSize,
+            this.y - halfSize
+        );
+        ctx.restore();
     }
 }
 
