@@ -1,3 +1,14 @@
+// =============================================================================
+// Autor: Nicolas Heringer
+// Coautor / Revisor: Gemini 3.6 Flash
+// Simulação: Modelo de Drude — Condução Elétrica em Redes Cristalinas
+// Descrição: Simulação microscópica do transporte de carga em metais e redes
+//            cristalinas (triangular, hexagonal, armchair), agitação térmica e colisões.
+// =============================================================================
+
+// =============================================================================
+// 1. ELEMENTOS DOM E CONFIGURAÇÃO DA INTERFACE
+// =============================================================================
 const canvas = document.getElementById('drudeCanvas');
 const ctx = canvas.getContext('2d');
 canvas.width = 800;
@@ -41,6 +52,9 @@ const wireTop = 150;
 const wireBottom = 450;
 const wireHeight = wireBottom - wireTop;
 
+// =============================================================================
+// 2. CLASSES DA SIMULAÇÃO (NÚCLEO E ELÉTRON)
+// =============================================================================
 class Nucleo {
     constructor(x, y, radius) {
         this.fixedX = x;
@@ -143,6 +157,9 @@ class Eletron {
     }
 }
 
+// =============================================================================
+// 3. GERAÇÃO DE REDES CRISTALINAS E ESTADO
+// =============================================================================
 let nucleos = [];
 let eletrons = [];
 const numEletrons = 200;
@@ -242,6 +259,9 @@ function iniciarSimulacao() {
     }
 }
 
+// =============================================================================
+// 4. RENDERIZAÇÃO DO FUNDO E CAMPO ELÉTRICO
+// =============================================================================
 function desenharFundo() {
     // Background geral
     ctx.fillStyle = 'rgba(20,20,20,1)';
@@ -290,6 +310,9 @@ function desenharFundo() {
     }
 }
 
+// =============================================================================
+// 5. LOOP PRINCIPAL DE SIMULAÇÃO
+// =============================================================================
 function update() {
     for (let n of nucleos) n.update();
     for (let e of eletrons) e.update(nucleos);

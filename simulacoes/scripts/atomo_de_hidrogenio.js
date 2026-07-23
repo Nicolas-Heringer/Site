@@ -1,14 +1,10 @@
-// ============================================================================
-// Átomo de Hidrogênio — Simulação de Orbitais Quânticos
-//
-// Solução analítica de Ψ_{n,l,mₗ}(r,θ,φ) via:
-//   • Polinômios de Laguerre Generalizados   (parte radial R_nl)
-//   • Polinômios de Legendre Associados      (parte angular Y_lm)
-//
-// Amostragem por rejeição de Monte Carlo em coordenadas esféricas.
-// Renderização com Three.js: nuvem de pontos 3D com cor proporcional à
-// fase arg(Ψ) ou à densidade |Ψ|², selecionável pelo usuário.
-// ============================================================================
+// =============================================================================
+// Autor: Nicolas Heringer
+// Coautor / Revisor: Gemini 3.6 Flash
+// Simulação: Átomo de Hidrogênio — Orbitais Quânticos
+// Descrição: Solução analítica de Ψ_{n,l,mₗ}(r,θ,φ) via polinômios de Laguerre
+//            e Legendre associados com amostragem Monte Carlo 3D (Three.js).
+// =============================================================================
 
 import * as THREE              from 'three';
 import { OrbitControls }      from 'three/addons/controls/OrbitControls.js';

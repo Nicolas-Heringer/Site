@@ -1,3 +1,14 @@
+// =============================================================================
+// Autor: Nicolas Heringer
+// Coautor / Revisor: Gemini 3.6 Flash
+// Simulação: Ondas Estacionárias 2D (Figuras de Chladni)
+// Descrição: Visualização de padrões modais de vibração em superfícies bidimensionais
+//            através da equação de Chladni e mapeamento de intensidade nodal.
+// =============================================================================
+
+// =============================================================================
+// 1. CANVAS E ELEMENTOS DE CONTROLE DA INTERFACE
+// =============================================================================
 const canvas = document.getElementById("simulacao");
 const ctx = canvas.getContext("2d");
 
@@ -36,6 +47,9 @@ btnAtualizar.addEventListener("click", () => {
     draw(drawTypeSelected);
 });
 
+// =============================================================================
+// 2. MODELO FÍSICO — EQUAÇÃO DE CHLADNI
+// =============================================================================
 function linearmap(value, minFrom, maxFrom, minTo, maxTo) {
     return minTo + (maxTo - minTo) * (value - minFrom) / (maxFrom - minFrom);
 }
@@ -49,6 +63,9 @@ function Chladni(x, y, n, m) {
 }
 
 
+// =============================================================================
+// 3. MAPEAMENTO DE CORES E MODOS DE DESENHO
+// =============================================================================
 const drawType = {
     // Mapeamento linear para escala de cinza
     mapped: (chladniValue) => {
@@ -83,6 +100,9 @@ const drawType = {
 
 };
 
+// =============================================================================
+// 4. RENDERIZAÇÃO E LOOP DA SIMULAÇÃO
+// =============================================================================
 function draw(type = "mapped") {
     // Verifica se o tipo de desenho existe no objeto drawType
     if (!drawType[type]) {

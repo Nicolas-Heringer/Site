@@ -1,4 +1,14 @@
-// script.js
+// =============================================================================
+// Autor: Nicolas Heringer
+// Coautor / Revisor: Gemini 3.6 Flash
+// Simulação: Controle UI — Sliders e Botões Gerais
+// Descrição: Manipulação interativa de elementos de entrada da interface (DOM),
+//            atualização visual de posicionamento de sliders e rótulos de valores.
+// =============================================================================
+
+// =============================================================================
+// 1. MANIPULAÇÃO DE SLIDERS E EVENTOS DE ENTRADA
+// =============================================================================
 const slider = document.getElementById('aberturaSlider');
 const sliderThumb = document.querySelector('.slider-thumb');
 const aberturaValue = document.getElementById('aberturaValue');

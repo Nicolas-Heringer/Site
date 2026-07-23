@@ -1,10 +1,16 @@
 'use strict';
 
 // =============================================================================
-// Snell Web Worker — Computa mapas de n(x,y) e ∇n fora da thread principal
+// Autor: Nicolas Heringer
+// Coautor / Revisor: Gemini 3.6 Flash
+// Simulação: Lei de Snell (Web Worker para Ray Tracing)
+// Descrição: Computação de mapas bidimensionais de índice de refração n(x,y) e
+//            gradiente ∇n em thread secundária para ray tracing contínuo.
 // =============================================================================
-// Recebe: { funcName, canvasWidth, canvasHeight }
-// Envia:  { n, gx, gy, dispersion, minN, maxN } como ArrayBuffers transferíveis
+
+// =============================================================================
+// 1. PERFIS DE ÍNDICE DE REFRAÇÃO n(x,y)
+// =============================================================================
 
 const refractiveIndexFunctions = {
 
@@ -95,6 +101,9 @@ const refractiveIndexFunctions = {
     }
 };
 
+// =============================================================================
+// 2. PROCESSAMENTO DE MENSAGENS E CÁLCULO DE GRADIENTE (WORKER THREAD)
+// =============================================================================
 self.onmessage = function (e) {
     const { funcName, canvasWidth: W, canvasHeight: H } = e.data;
     const profile = refractiveIndexFunctions[funcName];

@@ -1,3 +1,14 @@
+// =============================================================================
+// Autor: Nicolas Heringer
+// Coautor / Revisor: Gemini 3.6 Flash
+// Simulação: Gravitação e Órbitas Planetárias 3D
+// Descrição: Simulação orbital 3D sob a Lei da Gravitação Universal de Newton,
+//            projeção perspectiva 3D->2D, vetores de posição/velocidade e gráficos de energia.
+// =============================================================================
+
+// =============================================================================
+// 1. CONFIGURAÇÃO DO CANVAS E PROJEÇÃO PERSPECTIVA 3D->2D
+// =============================================================================
 const canvas = document.getElementById('simulationCanvas');
 const ctx = canvas.getContext('2d');
 
@@ -27,6 +38,9 @@ function project3DTo2D(x, y, z) {
     };
 }
 
+// =============================================================================
+// 2. CLASSE PLANET E CORPOS CELESTES
+// =============================================================================
 class Planet {
     constructor(x, y, z, vx, vy, vz, mass) {
         this.x = x;
@@ -82,6 +96,9 @@ const sun = {
 // Criação de um planeta
 const planet = new Planet(200, 0, 0, 0, 5, 0, 10);
 
+// =============================================================================
+// 3. MONITORAMENTO DE ENERGIA E GRÁFICOS (CHART.JS)
+// =============================================================================
 // Configuração global do Chart.js para melhorar leitura no tema escuro
 Chart.defaults.color = '#f0f0f0';
 Chart.defaults.font.size = 14;
@@ -194,6 +211,9 @@ function updateChart() {
     frameCount++;
 }
 
+// =============================================================================
+// 4. DESENHO DE VETORES E LOOP DE ANIMAÇÃO
+// =============================================================================
 // Função para desenhar vetores
 function drawArrow(x0, y0, x1, y1, color) {
     const headlen = 8; // tamanho da ponta da seta

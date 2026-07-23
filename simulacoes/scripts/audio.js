@@ -1,4 +1,14 @@
-// ─── DOM References ───────────────────────────────────────────────────────────
+// =============================================================================
+// Autor: Nicolas Heringer
+// Coautor / Revisor: Gemini 3.6 Flash
+// Simulação: Análise e Síntese de Áudio (Espectrograma FFT e Sintetizador)
+// Descrição: Processamento de áudio via Web Audio API, análise espectral FFT em
+//            tempo real (domínio do tempo e frequência) e síntese por aditiva.
+// =============================================================================
+
+// =============================================================================
+// 1. ELEMENTOS DOM E CONFIGURAÇÕES DE CANVAS
+// =============================================================================
 const startButton  = document.getElementById('startButton');
 const stopButton   = document.getElementById('stopButton');
 const modeButton   = document.getElementById('modeButton');
@@ -9,14 +19,12 @@ const infoText     = document.getElementById('infoText');
 const timeCanvas   = document.getElementById('timeCanvas');
 const freqCanvas   = document.getElementById('freqCanvas');
 
-// ─── Canvas dimensions ────────────────────────────────────────────────────────
 const WIDTH  = 800;
 const HEIGHT = 300;
 
 timeCanvas.width = freqCanvas.width = WIDTH;
 timeCanvas.height = freqCanvas.height = HEIGHT;
 
-// ─── Graph layout constants ───────────────────────────────────────────────────
 const ML = 60;   // margin left
 const MB = 50;   // margin bottom
 const MT = 20;   // margin top
@@ -24,7 +32,9 @@ const MR = 20;   // margin right
 const DW = WIDTH  - ML - MR;   // drawable width
 const DH = HEIGHT - MT - MB;   // drawable height
 
-// ─── Shared audio state ───────────────────────────────────────────────────────
+// =============================================================================
+// 2. ESTADO GLOBAL DO ÁUDIO E SINTETIZADOR
+// =============================================================================
 let audioContext;
 let analyser;
 let dataArray;
@@ -32,10 +42,8 @@ let animationId;
 let bufferLength;
 let isLogScale = false;
 
-// ─── Mode state ───────────────────────────────────────────────────────────────
 let currentMode = 'analysis'; // 'analysis' | 'generator'
 
-// ─── Generator-specific state ─────────────────────────────────────────────────
 const NUM_OSCS    = 48;   // number of oscillators in the bank
 const MIN_FREQ    = 20;   // Hz
 const MAX_FREQ    = 20000; // Hz (may be capped by sampleRate/2 after init)
@@ -47,7 +55,9 @@ let generatorSpectrum = new Float32Array(NUM_OSCS); // amplitude 0..1 per band
 let oscFrequencies  = [];   // centre frequency of each oscillator (Hz)
 let isDrawing       = false;
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
+// =============================================================================
+// 3. FUNÇÕES AUXILIARES DE ESCALA E CONVERSÃO
+// =============================================================================
 
 /** Map a normalised x position [0,1] → frequency in Hz, honoring scale mode. */
 function xNormToFreq(xNorm, maxFreq) {
@@ -80,7 +90,9 @@ function freqToOscIndex(freq) {
     return best;
 }
 
-// ─── Grid + axis drawing shared helper ───────────────────────────────────────
+// =============================================================================
+// 4. RENDERIZAÇÃO DE EIXOS E GRADES
+// =============================================================================
 
 function drawFreqAxes(ctx, maxFreq) {
     ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
@@ -132,7 +144,9 @@ function drawFreqAxes(ctx, maxFreq) {
     ctx.restore();
 }
 
-// ─── Analysis mode ────────────────────────────────────────────────────────────
+// =============================================================================
+// 5. INICIALIZAÇÃO DE MODOS (ANÁLISE E SINTETIZADOR)
+// =============================================================================
 
 async function initAnalysis() {
     try {
@@ -247,7 +261,9 @@ function setMode(mode) {
     }
 }
 
-// ─── Draw: time domain ────────────────────────────────────────────────────────
+// =============================================================================
+// 6. VISUALIZAÇÃO E DESENHO DOS GRÁFICOS (TEMPO E FREQUÊNCIA)
+// =============================================================================
 
 function drawTimeDomain() {
     const ctx = timeCanvas.getContext('2d');
@@ -433,7 +449,9 @@ function stopVisualization() {
     });
 }
 
-// ─── Mouse interaction on freqCanvas (generator mode only) ───────────────────
+// =============================================================================
+// 7. LOOP DE ANIMAÇÃO E INTERAÇÃO COM O USUÁRIO (EVENTOS)
+// =============================================================================
 
 function getCanvasPaintCoords(e) {
     const rect   = freqCanvas.getBoundingClientRect();

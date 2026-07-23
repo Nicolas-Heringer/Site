@@ -1,4 +1,14 @@
-// Configurações iniciais
+// =============================================================================
+// Autor: Nicolas Heringer
+// Coautor / Revisor: Gemini 3.6 Flash
+// Simulação: Interação de Partículas por Ondas Retardadas (Campos & Lennard-Jones/Coulomb)
+// Descrição: Simulação de dinâmica molecular e interações mediadas por frentes de onda,
+//            propagação de campo retardado, controle de temperatura e potenciais efetivos.
+// =============================================================================
+
+// =============================================================================
+// 1. CONFIGURAÇÕES, DOM E VARIÁVEIS DA SIMULAÇÃO
+// =============================================================================
 const canvas = document.getElementById('myCanvas');
 const ctx = canvas.getContext('2d');
 
@@ -23,6 +33,9 @@ let attenuation = 0.09; // Fator de resfriamento para reduzir a velocidade das p
 let template = 'livre';
 let epsilonCoulomb = 0.1; // Constante de acoplamento da interação coulombiana retardada
 
+// =============================================================================
+// 2. ESTRATÉGIAS DE INTERAÇÃO E EVENTOS DOM
+// =============================================================================
 // Dicionário de estratégias de cálculo de interação
 const calculadoresDeInteracao = {
     lennardJones(particle, wave, dx, dy, distance, distSq, force) {
@@ -114,6 +127,9 @@ resetButton.addEventListener('click', () => {
     console.log("Partículas e ondas resetadas");
 });
 
+// =============================================================================
+// 3. CLASSE PARTICLE E TEMPLATES DE POSICIONAMENTO
+// =============================================================================
 // Classe para representar uma partícula
 class Particle {
     static nextId = 0;
@@ -344,6 +360,9 @@ function createParticles(canvas, template = "livre") {
 }
 
 
+// =============================================================================
+// 4. CACHE DE SPRITES E CLASSE CIRCULO (PROPAGAÇÃO DE ONDAS)
+// =============================================================================
 // Cache de Sprites em Offscreen Canvas sob demanda (memoização por raio e carga)
 const waveCache = new Map();
 
@@ -443,6 +462,9 @@ class Circulo {
     }
 }
 
+// =============================================================================
+// 5. CÁLCULOS TERMODINÂMICOS E LOOP PRINCIPAL
+// =============================================================================
 // Lista de partículas e ondas
 let circulos = [];
 let particles = createParticles(canvas, template); // Cria 10 partículas

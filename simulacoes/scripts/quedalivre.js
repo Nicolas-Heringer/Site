@@ -1,3 +1,14 @@
+// =============================================================================
+// Autor: Nicolas Heringer
+// Coautor / Revisor: Gemini 3.6 Flash
+// Simulação: Queda Livre e Lançamento de Corpos (Gravidade & Colisão com Restituição)
+// Descrição: Simulação física de queda livre com aceleração gravitacional constante,
+//            colisão elástica/inelástica nas bordas e arremesso interativo via arrasto.
+// =============================================================================
+
+// =============================================================================
+// 1. CANVAS, CONSTANTES FÍSICAS E VARIÁVEIS GLOBAIS
+// =============================================================================
 const canvas = document.getElementById("simulacao");
 const ctx = canvas.getContext("2d");
 
@@ -10,6 +21,9 @@ let mouseXAnterior = 0; // Armazena a posição X anterior do mouse
 let mouseYAnterior = 0; // Armazena a posição Y anterior do mouse
 let tempoAnterior = 0; // Armazena o tempo do último frame
 
+// =============================================================================
+// 2. CLASSE OBJETO E DINÂMICA DE MOVIMENTO
+// =============================================================================
 class Objeto {
     constructor(x, y, raio, massa) {
         this.x = x;
@@ -109,6 +123,9 @@ class Objeto {
     }
 }
 
+// =============================================================================
+// 3. ANIMACÃO E LOOP DA SIMULAÇÃO
+// =============================================================================
 const bola = new Objeto(200, 200, 50);
 
 function animacao() {
@@ -124,6 +141,9 @@ function animacao() {
     requestAnimationFrame(animacao); // Chama a próxima frame
 }
 
+// =============================================================================
+// 4. INTERAÇÃO INTERATIVA VIA MOUSE
+// =============================================================================
 // Função para verificar se o mouse está sobre o objeto
 function verificaHover(mouseX, mouseY) {
     const distancia = Math.sqrt((mouseX - bola.x) ** 2 + (mouseY - bola.y) ** 2);

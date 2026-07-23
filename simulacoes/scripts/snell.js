@@ -1,10 +1,11 @@
 'use strict';
 
 // =============================================================================
-// Simulação — Lei de Snell (Ray Tracing Contínuo)
-// =============================================================================
-// Os raios seguem a equação diferencial do raio: d/ds(n·dr/ds) = ∇n
-// Isso permite simular refração em meios com índice n(x,y) variável e contínuo.
+// Autor: Nicolas Heringer
+// Coautor / Revisor: Gemini 3.6 Flash
+// Simulação: Lei de Snell (Ray Tracing Contínuo)
+// Descrição: Os raios seguem a equação diferencial d/ds(n·dr/ds) = ∇n, permitindo
+//            simular refração em meios com índice n(x,y) variável e contínuo.
 // =============================================================================
 
 window.onload = function () {

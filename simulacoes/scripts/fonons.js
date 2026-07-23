@@ -1,6 +1,15 @@
-// fonons.js (versão atualizada)
+// =============================================================================
+// Autor: Nicolas Heringer
+// Coautor / Revisor: Gemini 3.6 Flash
+// Simulação: Fônons e Modos de Vibração em Redes Cristalinas
+// Descrição: Simulação de acoplamento harmônico massa-mola em redes 2D,
+//            excitação de fônons por forças de arrasto e modos normais de vibração.
+// =============================================================================
 
 document.addEventListener('DOMContentLoaded', () => {
+    // =========================================================================
+    // 1. CLASSES FÍSICAS (PARTÍCULA, MOLA E SISTEMA)
+    // =========================================================================
     class Particula {
         constructor(x, y) {
             // Propriedades de estado
@@ -149,6 +158,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // =========================================================================
+    // 2. INTERAÇÃO E CONTROLE COM MOUSE
+    // =========================================================================
     class InteracaoMouse {
         constructor(canvas, sistema) {
             this.canvas = canvas;
@@ -233,6 +245,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // =========================================================================
+    // 3. MAPEAMENTO DE CORES E RENDERIZAÇÃO CANVAS
+    // =========================================================================
     // Função auxiliar para cores
     function velocidadeParaCor(vx, vy) {
         const velocidade = Math.sqrt(vx * vx + vy * vy);
@@ -288,6 +303,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // =========================================================================
+    // 4. LOOP DE ANIMAÇÃO E EVENTOS DA INTERFACE
+    // =========================================================================
     // Loop de animação
     let ultimoTempo = 0;
     let pausado = false;

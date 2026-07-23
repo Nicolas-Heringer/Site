@@ -1,7 +1,10 @@
-/**
- * Simulação de Movimento 1D e 2D (Posição × Tempo & Encontro de Dois Corpos)
- * Autor: Nicolas Heringer
- */
+// =============================================================================
+// Autor: Nicolas Heringer
+// Coautor / Revisor: Gemini 3.6 Flash
+// Simulação: Movimento 1D e 2D (Posição × Tempo & Encontro de Dois Corpos)
+// Descrição: Simulação cinemática de movimento unidimensional e bidimensional,
+//            extrusão espaço-temporal, gráficos de trajetória e ponto de encontro.
+// =============================================================================
 
 class MovimentoSimulation {
     constructor() {
