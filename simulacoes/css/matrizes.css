@@ -1,0 +1,291 @@
+/* 
+  Estilos Específicos para a Simulação de Transformações Matriciais
+*/
+
+/* --- MATRIX 2x2 DISPLAY & INPUTS --- */
+.group-title {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 10px;
+    display: block;
+}
+
+.matrix-box {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(15, 23, 42, 0.6);
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    padding: 12px;
+    margin-bottom: 10px;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.matrix-bracket {
+    font-family: 'Times New Roman', serif;
+    font-size: 3.5rem;
+    font-weight: 300;
+    color: #94a3b8;
+    line-height: 1;
+    user-select: none;
+}
+
+.matrix-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px 12px;
+    padding: 0 10px;
+}
+
+.matrix-cell {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.matrix-cell input[type="number"] {
+    width: 68px;
+    height: 38px;
+    text-align: center;
+    background-color: var(--bg-surface);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 6px;
+    color: #ffffff;
+    font-family: var(--font-family);
+    font-weight: 600;
+    font-size: 1rem;
+    outline: none;
+    transition: all 0.2s ease;
+}
+
+.cell-i input[type="number"] {
+    border-color: rgba(250, 204, 21, 0.4);
+}
+
+.cell-i input[type="number"]:focus {
+    border-color: #facc15;
+    box-shadow: 0 0 8px rgba(250, 204, 21, 0.3);
+}
+
+.cell-j input[type="number"] {
+    border-color: rgba(56, 189, 248, 0.4);
+}
+
+.cell-j input[type="number"]:focus {
+    border-color: #38bdf8;
+    box-shadow: 0 0 8px rgba(56, 189, 248, 0.3);
+}
+
+.cell-sub {
+    font-size: 0.7rem;
+    color: var(--text-secondary);
+    margin-top: 2px;
+}
+
+/* Bases vetoriais etiquetas */
+.basis-info {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.basis-badge {
+    flex: 1;
+    text-align: center;
+    padding: 6px 8px;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    font-family: monospace;
+}
+
+.badge-i {
+    background: rgba(250, 204, 21, 0.15);
+    color: #facc15;
+    border: 1px solid rgba(250, 204, 21, 0.3);
+}
+
+.badge-j {
+    background: rgba(56, 189, 248, 0.15);
+    color: #38bdf8;
+    border: 1px solid rgba(56, 189, 248, 0.3);
+}
+
+/* --- SELECT STYLING --- */
+.styled-select {
+    width: 100%;
+    padding: 10px 12px;
+    background-color: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    color: var(--text-primary);
+    font-family: var(--font-family);
+    font-size: 0.9rem;
+    outline: none;
+    cursor: pointer;
+    transition: border-color 0.2s;
+}
+
+.styled-select:hover, .styled-select:focus {
+    border-color: var(--accent-color);
+}
+
+/* --- SLIDERS & HEADERS --- */
+.slider-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    margin-bottom: 4px;
+}
+
+.slider-val {
+    font-weight: 600;
+    color: var(--accent-color);
+    font-family: monospace;
+}
+
+input[type="range"] {
+    width: 100%;
+    accent-color: var(--accent-color);
+    cursor: pointer;
+}
+
+/* --- BUTTONS --- */
+.button-row {
+    display: flex;
+    gap: 10px;
+    margin-top: 6px;
+}
+
+.btn-action {
+    flex: 1;
+    padding: 10px;
+    border: none;
+    border-radius: 8px;
+    font-family: var(--font-family);
+    font-weight: 600;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-action.primary {
+    background-color: #facc15;
+    color: #0f172a;
+}
+
+.btn-action.primary.pulse-accent {
+    animation: pulseGlow 1.2s infinite alternate;
+}
+
+@keyframes pulseGlow {
+    0% {
+        box-shadow: 0 0 6px rgba(250, 204, 21, 0.4);
+        transform: scale(1);
+    }
+    100% {
+        box-shadow: 0 0 16px rgba(250, 204, 21, 0.9);
+        transform: scale(1.02);
+    }
+}
+
+.btn-action.primary:hover {
+    background-color: #eab308;
+    box-shadow: 0 0 12px rgba(250, 204, 21, 0.4);
+}
+
+.btn-action.secondary {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+}
+
+.btn-action.secondary:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+}
+
+/* --- READOUT CARD --- */
+.readout-header {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 10px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding-bottom: 6px;
+}
+
+/* --- CUSTOM VECTOR CONTROLS --- */
+.checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    user-select: none;
+}
+
+.checkbox-label input[type="checkbox"] {
+    accent-color: #f472b6;
+    width: 16px;
+    height: 16px;
+}
+
+.custom-vector-inputs {
+    margin-top: 8px;
+    padding: 8px 10px;
+    background: rgba(244, 114, 182, 0.08);
+    border: 1px solid rgba(244, 114, 182, 0.2);
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.input-pair {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.85rem;
+    color: #f472b6;
+    font-weight: 500;
+}
+
+.input-pair input[type="number"] {
+    width: 60px;
+    padding: 4px 6px;
+    background: var(--bg-surface);
+    border: 1px solid rgba(244, 114, 182, 0.4);
+    border-radius: 4px;
+    color: white;
+    font-weight: 600;
+    text-align: center;
+}
+
+.transformed-v-badge {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #f472b6;
+    text-align: center;
+    padding-top: 4px;
+    font-family: monospace;
+}
+
+/* --- CANVAS OVERLAYS --- */
+#determinantBadge {
+    top: 15px;
+    left: 20px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    font-family: monospace;
+    background: rgba(15, 23, 42, 0.85);
+    border: 1px solid rgba(250, 204, 21, 0.4);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+#badgeDetValue {
+    color: #facc15;
+}

@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <!-- Metadados da Página -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Transformações Matriciais 2D — Interpretação Geométrica</title>
+
+    <meta name="description"
+        content="Simulação matemática interativa de transformações matriciais em 2D. Visualize como matrizes 2x2 alteram vetores da base, deformam o plano cartesiano e alteram a área através do determinante.">
+    <meta name="keywords"
+        content="álgebra linear, matrizes, transformação linear, vetores unitários, determinante, plano cartesiano, rotação, cisalhamento, escala, simulação matemática">
+    <meta name="author" content="Nicolas Heringer">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="../favicon.svg">
+
+    <!-- Estilos CSS -->
+    <link rel="stylesheet" href="css/base.css">
+    <link rel="stylesheet" href="css/matrizes.css">
+</head>
+
+<body>
+    <!-- Cabeçalho da Simulação -->
+    <header class="sim-header">
+        <a href="../index.html#secao-simulacoes" class="btn-back">← Voltar ao Hub</a>
+        <span class="sim-title">Transformações Matriciais em 2D: Interpretação Geométrica</span>
+    </header>
+
+    <!-- Conteúdo Principal -->
+    <main class="sim-layout">
+        <!-- Área de Visualização (Canvas) -->
+        <div class="canvas-area">
+            <canvas id="simCanvas"></canvas>
+
+            <!-- Badges e Dicas no Canvas -->
+            <div class="canvas-overlay-badge" id="determinantBadge">
+                Determinante: <span id="badgeDetValue">det(M) = 1.00</span>
+            </div>
+            
+            <div class="canvas-instructions" id="canvasHint">
+                💡 Arraste as pontas dos vetores <strong>î</strong> (amarelo) ou <strong>ĵ</strong> (ciano) no gráfico!
+            </div>
+        </div>
+
+        <!-- Painel de Controles -->
+        <aside class="controls-panel">
+
+            <!-- Painel da Matriz 2x2 -->
+            <div class="control-group">
+                <label class="group-title">Matriz de Transformação 2x2</label>
+                <div class="matrix-box">
+                    <span class="matrix-bracket left">[</span>
+                    <div class="matrix-grid">
+                        <div class="matrix-cell cell-i">
+                            <input type="number" id="m11" step="0.1" value="1.0">
+                            <span class="cell-sub">a (î<sub>x</sub>)</span>
+                        </div>
+                        <div class="matrix-cell cell-j">
+                            <input type="number" id="m12" step="0.1" value="0.0">
+                            <span class="cell-sub">b (ĵ<sub>x</sub>)</span>
+                        </div>
+                        <div class="matrix-cell cell-i">
+                            <input type="number" id="m21" step="0.1" value="0.0">
+                            <span class="cell-sub">c (î<sub>y</sub>)</span>
+                        </div>
+                        <div class="matrix-cell cell-j">
+                            <input type="number" id="m22" step="0.1" value="1.0">
+                            <span class="cell-sub">d (ĵ<sub>y</sub>)</span>
+                        </div>
+                    </div>
+                    <span class="matrix-bracket right">]</span>
+                </div>
+                <div class="basis-info">
+                    <div class="basis-badge badge-i">î' = (<span id="valIx">1.0</span>, <span id="valIy">0.0</span>)</div>
+                    <div class="basis-badge badge-j">ĵ' = (<span id="valJx">0.0</span>, <span id="valJy">1.0</span>)</div>
+                </div>
+            </div>
+
+            <!-- Presets de Transformação -->
+            <div class="control-group">
+                <label for="presetSelect">Transformações Pré-definidas</label>
+                <select id="presetSelect" class="styled-select">
+                    <option value="identity">Identidade (Sem alteração)</option>
+                    <option value="shearX">Cisalhamento Horizontal (Shear X)</option>
+                    <option value="shearY">Cisalhamento Vertical (Shear Y)</option>
+                    <option value="scale">Escala Assimétrica (2x, 1.5y)</option>
+                    <option value="rotation">Rotação Ângular (θ)</option>
+                    <option value="reflectX">Reflexão no Eixo X</option>
+                    <option value="reflectY">Reflexão no Eixo Y</option>
+                    <option value="projection">Projeção no Eixo X (det = 0)</option>
+                    <option value="inversion">Inversão Espacial (-î, -ĵ)</option>
+                </select>
+            </div>
+
+            <!-- Slider de Ângulo de Rotação (Aparece se rotação for selecionada) -->
+            <div class="control-group" id="rotationGroup" style="display: none;">
+                <div class="slider-header">
+                    <label for="rotSlider">Ângulo de Rotação (θ)</label>
+                    <span class="slider-val" id="rotVal">45°</span>
+                </div>
+                <input type="range" id="rotSlider" min="-180" max="180" step="5" value="45">
+            </div>
+
+            <!-- Ações de Transformação -->
+            <div class="control-group">
+                <div class="button-row">
+                    <button id="btnApply" class="btn-action primary">▶ Aplicar Matriz</button>
+                    <button id="btnReset" class="btn-action secondary">↺ Resetar</button>
+                </div>
+            </div>
+
+            <!-- Leitura do Determinante & Intuição Geométrica -->
+            <div class="readout-card">
+                <div class="readout-header">📐 Geometria do Espaço</div>
+                <div class="readout-item">
+                    <span class="readout-label">Determinante det(M)</span>
+                    <span class="readout-value highlight-yellow" id="detVal">1.00</span>
+                </div>
+                <div class="readout-item">
+                    <span class="readout-label">Escala de Área</span>
+                    <span class="readout-value highlight-cyan" id="detAreaText">1.00x (Preservada)</span>
+                </div>
+                <div class="readout-item">
+                    <span class="readout-label">Orientação</span>
+                    <span class="readout-value highlight-green" id="detOrientText">Preservada (+)</span>
+                </div>
+            </div>
+
+            <!-- Vetor Personalizado (Vetor de Prova) -->
+            <div class="control-group">
+                <label class="checkbox-label">
+                    <input type="checkbox" id="chkCustomVector" checked>
+                    <span>Exibir Vetor de Prova <strong>v⃗</strong></span>
+                </label>
+                <div class="custom-vector-inputs" id="customVectorControls">
+                    <div class="input-pair">
+                        <span>v<sub>x</sub>:</span>
+                        <input type="number" id="vxInput" step="0.5" value="2.0">
+                    </div>
+                    <div class="input-pair">
+                        <span>v<sub>y</sub>:</span>
+                        <input type="number" id="vyInput" step="0.5" value="1.0">
+                    </div>
+                    <div class="transformed-v-badge">
+                        v⃗' = Mv⃗ = (<span id="valVxPrime">2.0</span>, <span id="valVyPrime">1.0</span>)
+                    </div>
+                </div>
+            </div>
+
+        </aside>
+    </main>
+
+    <!-- Scripts JavaScript -->
+    <script src="scripts/matrizes.js"></script>
+</body>
+
+</html>
