@@ -1,7 +1,8 @@
-/**
- * Simulação de Transformações Matriciais 2D: Interpretação Geométrica
- * Autor: Nicolas Heringer
- */
+// =============================================================================
+// Autor: Nicolas Heringer
+// Coautor / Revisor: Gemini 3.0 Flash
+// Simulação: Transformações Lineares
+// =============================================================================
 
 class PlanoCartesiano {
     constructor(canvas) {
@@ -35,7 +36,7 @@ class PlanoCartesiano {
         this.canvas.width = rect.width;
         this.canvas.height = rect.height;
         this.origin = { x: this.canvas.width / 2, y: this.canvas.height / 2 };
-        
+
         // Ajustar escala responsiva para telas menores
         if (this.canvas.width < 600) {
             this.scale = 38;
@@ -501,7 +502,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const vx = parseFloat(vxInput.value) || 0;
         const vy = parseFloat(vyInput.value) || 0;
         plano.vVec = { x: vx, y: vy };
-        
+
         const vPrime = plano.transformPoint(vx, vy);
         valVxPrime.textContent = vPrime.x.toFixed(2);
         valVyPrime.textContent = vPrime.y.toFixed(2);
@@ -571,7 +572,7 @@ document.addEventListener('DOMContentLoaded', () => {
         presetSelect.value = 'identity';
         rotationGroup.style.display = 'none';
         if (btnApply) btnApply.classList.remove('pulse-accent');
-        
+
         targetMatrix = { a: 1, b: 0, c: 0, d: 1 };
         setInputsFromMatrix(targetMatrix);
         triggerAnimation();
@@ -661,7 +662,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (plano.draggingTarget) {
             // Convertemos clique para coordenadas matemáticas
             const mathPos = plano.toMath(mouseX, mouseY);
-            
+
             // Arredondar suavemente para 1 casa decimal para facilidade de uso
             const roundedX = Math.round(mathPos.x * 10) / 10;
             const roundedY = Math.round(mathPos.y * 10) / 10;
