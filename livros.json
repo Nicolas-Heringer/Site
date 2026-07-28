@@ -11,7 +11,9 @@
     "categoriaNome": "Ensino Médio & Conceitual",
     "nivel": "Ensino Médio",
     "descricao": "Volume focado em Termologia, Óptica e Ondas. Apresentação didática consagrada para introdução aos conceitos fundamentais da física.",
-    "tags": ["Física", "Termologia", "Óptica", "Ondas", "Ensino Médio"]
+    "tags": ["Física", "Termologia", "Óptica", "Ondas", "Ensino Médio"],
+    "link": false,
+    "url": null
   },
   {
     "id": "maximo-alvarenga-guimaraes-contexto",
@@ -25,7 +27,9 @@
     "categoriaNome": "Ensino Médio & Conceitual",
     "nivel": "Ensino Médio",
     "descricao": "Abordagem moderna conectando os princípios da física a fenômenos do cotidiano, tecnologias atuais e aplicações práticas.",
-    "tags": ["Física", "Aplicações", "Cotidiano", "Ensino Médio"]
+    "tags": ["Física", "Aplicações", "Cotidiano", "Ensino Médio"],
+    "link": false,
+    "url": null
   },
   {
     "id": "maximo-alvarenga-vu",
@@ -39,7 +43,9 @@
     "categoriaNome": "Ensino Médio & Conceitual",
     "nivel": "Ensino Médio",
     "descricao": "Visão abrangente e condensada de todo o programa de física do ensino médio em um único volume de fácil consulta.",
-    "tags": ["Física Geral", "Mecânica", "Eletromagnetismo", "Ensino Médio"]
+    "tags": ["Física Geral", "Mecânica", "Eletromagnetismo", "Ensino Médio"],
+    "link": false,
+    "url": null
   },
   {
     "id": "hewitt-fisica-conceitual",
@@ -53,7 +59,9 @@
     "categoriaNome": "Ensino Médio & Conceitual",
     "nivel": "Ensino Médio / Introdução",
     "descricao": "Referência mundial na compreensão intutiva da física. Prioriza ideias e conceitos físicos antes das formalizações matemáticas pesadas.",
-    "tags": ["Física Conceitual", "Intuição", "Mecânica", "Física Geral"]
+    "tags": ["Física Conceitual", "Intuição", "Mecânica", "Física Geral"],
+    "link": false,
+    "url": null
   },
   {
     "id": "nussenzveig-vol1",
@@ -67,7 +75,9 @@
     "categoriaNome": "Física Geral (Graduação)",
     "nivel": "Graduação",
     "descricao": "Clássico da física universitária brasileira. Apresenta a mecânica clássica com rigor conceitual, cálculo vetorial e elegante profundidade física.",
-    "tags": ["Mecânica", "Cálculo", "Cinemática", "Dinâmica", "Graduação"]
+    "tags": ["Mecânica", "Cálculo", "Cinemática", "Dinâmica", "Graduação"],
+    "link": false,
+    "url": null
   },
   {
     "id": "nussenzveig-vol3",
@@ -81,7 +91,9 @@
     "categoriaNome": "Eletromagnetismo",
     "nivel": "Graduação",
     "descricao": "Trata de eletrostática, magnetostática, equações de Maxwell e circuitos elétricos com clareza exemplar e aplicações físicas marcantes.",
-    "tags": ["Eletromagnetismo", "Eletrostática", "Maxwell", "Graduação"]
+    "tags": ["Eletromagnetismo", "Eletrostática", "Maxwell", "Graduação"],
+    "link": false,
+    "url": null
   },
   {
     "id": "nussenzveig-vol4",
@@ -95,7 +107,9 @@
     "categoriaNome": "Física Quântica & Moderna",
     "nivel": "Graduação",
     "descricao": "Introdução primorosa à física moderna: ondas eletromagnéticas, ótica física, relatividade restrita e origens da mecânica quântica.",
-    "tags": ["Ótica", "Relatividade", "Física Moderna", "Física Quântica", "Graduação"]
+    "tags": ["Ótica", "Relatividade", "Física Moderna", "Física Quântica", "Graduação"],
+    "link": false,
+    "url": null
   },
   {
     "id": "eisberg-resnick-quantica",
@@ -109,7 +123,9 @@
     "categoriaNome": "Física Quântica & Moderna",
     "nivel": "Graduação",
     "descricao": "Texto de referência indispensável para física quântica aplicada à matéria. Cobre de espectroscopia atômica a física nuclear e estado sólido.",
-    "tags": ["Física Quântica", "Átomos", "Sólidos", "Partículas", "Graduação"]
+    "tags": ["Física Quântica", "Átomos", "Sólidos", "Partículas", "Graduação"],
+    "link": false,
+    "url": null
   },
   {
     "id": "griffiths-electrodynamics",
@@ -123,7 +139,9 @@
     "categoriaNome": "Eletromagnetismo",
     "nivel": "Graduação",
     "descricao": "O livro-texto definitivo de eletrodinâmica para graduação em física. Linguagem extremamente acessível, pedagógica e repleta de problemas excelentes.",
-    "tags": ["Eletrodinâmica", "Campos Vetoriais", "Relatividade", "Graduação"]
+    "tags": ["Eletrodinâmica", "Campos Vetoriais", "Relatividade", "Graduação"],
+    "link": false,
+    "url": null
   },
   {
     "id": "griffiths-quantum",
@@ -137,7 +155,9 @@
     "categoriaNome": "Física Quântica & Moderna",
     "nivel": "Graduação",
     "descricao": "Abordagem física direta da equação de Schrödinger, perturbações e formalismo quântico, consagrado mundialmente no ensino universitário.",
-    "tags": ["Mecânica Quântica", "Equação de Schrödinger", "Graduação"]
+    "tags": ["Mecânica Quântica", "Equação de Schrödinger", "Graduação"],
+    "link": false,
+    "url": null
   },
   {
     "id": "mattuck-feynman-diagrams",
@@ -151,7 +171,9 @@
     "categoriaNome": "Física de Muitos Corpos",
     "nivel": "Pós-Graduação / Avançado",
     "descricao": "Guia intuitivo e incrivelmente didático sobre teorias de muitos corpos, funções de Green e diagramas de Feynman aplicados à matéria condensada.",
-    "tags": ["Diagramas de Feynman", "Funções de Green", "Matéria Condensada", "Pós-Graduação"]
+    "tags": ["Diagramas de Feynman", "Funções de Green", "Matéria Condensada", "Pós-Graduação"],
+    "link": false,
+    "url": null
   },
   {
     "id": "pavarini-manybody",
@@ -165,6 +187,8 @@
     "categoriaNome": "Física de Muitos Corpos",
     "nivel": "Pós-Graduação / Avançado",
     "descricao": "Texto avançado focado em elétrons fortemente correlacionados, modelo de Hubbard, efeito Kondo e técnicas quânticas modernas de muitos corpos.",
-    "tags": ["Matéria Condensada", "Elétrons Correlacionados", "Modelo de Hubbard", "Pós-Graduação"]
+    "tags": ["Matéria Condensada", "Elétrons Correlacionados", "Modelo de Hubbard", "Pós-Graduação"],
+    "link": false,
+    "url": null
   }
 ]
