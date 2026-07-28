@@ -147,9 +147,10 @@ async function initBibliograficaSection() {
 
     if (noResults) noResults.style.display = "none";
 
-    livros.forEach(livro => {
+    livros.forEach((livro, index) => {
       const item = document.createElement("div");
       item.className = "biblio-item";
+      item.style.animationDelay = `${index * 0.1}s`;
       item.setAttribute("data-categoria", livro.categoria);
 
       const nivelClass = getLevelClass(livro.nivel);
@@ -209,7 +210,7 @@ async function initBibliograficaSection() {
 
     const livrosFiltrados = livrosData.filter(livro => {
       const bateCategoria = categoriaFiltro === "todas" || livro.categoria === categoriaFiltro;
-      
+
       const textoCompleto = `${livro.titulo} ${livro.autores} ${livro.editora} ${livro.ano} ${livro.descricao} ${(livro.tags || []).join(' ')}`.toLowerCase();
       const bateBusca = !termoBusca || textoCompleto.includes(termoBusca);
 
