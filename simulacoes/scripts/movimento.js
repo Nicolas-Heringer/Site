@@ -563,7 +563,7 @@ class MovimentoSimulation {
                 this.equationPanelB.style.display = 'none';
                 this.intersectionCard.style.display = 'none';
                 this.groupPosSlider.style.display = 'none';
-                this.modeBadge.textContent = 'Modo 1D: Equação S_A(t)';
+                this.modeBadge.textContent = 'Modo 1D: Equação S<sub>A</sub>(t)';
                 this.canvasHint.innerHTML = '⚙️ Digite os parâmetros e clique em Iniciar Tempo';
             } else {
                 this.equationPanelA.style.display = 'flex';
@@ -571,7 +571,7 @@ class MovimentoSimulation {
                 this.intersectionCard.style.display = 'flex';
                 this.groupPosSlider.style.display = 'none';
                 this.modeBadge.textContent = 'Modo 1D: Encontro de 2 Objetos';
-                this.canvasHint.innerHTML = '⚡ Digite as equações S_A e S_B para ver o ponto de encontro';
+                this.canvasHint.innerHTML = '⚡ Digite as equações S<sub>A</sub> e S<sub>B</sub> para ver o ponto de encontro';
 
                 // Atualiza Previsão do Encontro
                 const meeting = this.calculateIntersection();
