@@ -373,7 +373,7 @@ class MovimentoSimulation {
         this.isPlaying = !this.isPlaying;
         if (this.isPlaying) {
             this.btnPlayPause.classList.add('is-playing');
-            this.btnPlayPause.innerHTML = '⏸ Pausar Tempo';
+            this.btnPlayPause.innerHTML = 'Pausar Tempo';
 
             if (this.recordingA.length === 0) {
                 if (this.motionType !== 'manual') {
@@ -386,7 +386,7 @@ class MovimentoSimulation {
             }
         } else {
             this.btnPlayPause.classList.remove('is-playing');
-            this.btnPlayPause.innerHTML = '▶ Continuar Tempo';
+            this.btnPlayPause.innerHTML = 'Continuar Tempo';
         }
         this.updateUI();
     }
@@ -412,7 +412,7 @@ class MovimentoSimulation {
         this.targetAxisRotate = 0;
 
         this.btnPlayPause.classList.remove('is-playing');
-        this.btnPlayPause.innerHTML = '▶ Iniciar Tempo';
+        this.btnPlayPause.innerHTML = 'Iniciar Tempo';
 
         this.updateUI();
     }
@@ -454,7 +454,7 @@ class MovimentoSimulation {
 
         this.isPlaying = false;
         this.btnPlayPause.classList.remove('is-playing');
-        this.btnPlayPause.innerHTML = '▶ Iniciar Tempo';
+        this.btnPlayPause.innerHTML = 'Iniciar Tempo';
 
         this.mode = '2D_EXTRUDED';
         this.targetTransition = 1;
@@ -557,21 +557,21 @@ class MovimentoSimulation {
                 this.intersectionCard.style.display = 'none';
                 this.groupPosSlider.style.display = 'flex';
                 this.modeBadge.textContent = 'Modo 1D: Manual (Livre)';
-                this.canvasHint.innerHTML = '💡 Arraste a esfera amarela ao longo do eixo X';
+                this.canvasHint.innerHTML = 'Arraste a esfera amarela ao longo do eixo X';
             } else if (this.motionType === 'equation_1') {
                 this.equationPanelA.style.display = 'flex';
                 this.equationPanelB.style.display = 'none';
                 this.intersectionCard.style.display = 'none';
                 this.groupPosSlider.style.display = 'none';
-                this.modeBadge.textContent = 'Modo 1D: Equação S<sub>A</sub>(t)';
-                this.canvasHint.innerHTML = '⚙️ Digite os parâmetros e clique em Iniciar Tempo';
+                this.modeBadge.textContent = 'Modo 1D: Função horária da posição';
+                this.canvasHint.innerHTML = 'Digite os parâmetros e clique em Iniciar Tempo';
             } else {
                 this.equationPanelA.style.display = 'flex';
                 this.equationPanelB.style.display = 'flex';
                 this.intersectionCard.style.display = 'flex';
                 this.groupPosSlider.style.display = 'none';
                 this.modeBadge.textContent = 'Modo 1D: Encontro de 2 Objetos';
-                this.canvasHint.innerHTML = '⚡ Digite as equações S<sub>A</sub> e S<sub>B</sub> para ver o ponto de encontro';
+                this.canvasHint.innerHTML = 'Digite as equações S<sub>A</sub> e S<sub>B</sub> para ver o ponto de encontro';
 
                 // Atualiza Previsão do Encontro
                 const meeting = this.calculateIntersection();
@@ -595,22 +595,22 @@ class MovimentoSimulation {
                 this.infoTitle.textContent = 'Etapa 1: Movimento Livre (1D)';
                 this.infoText.innerHTML = `
                     1. Arraste a esfera amarela livremente ao longo do eixo horizontal X.<br>
-                    2. Clique em <strong>▶ Iniciar Tempo</strong> para gravar a posição a cada segundo.<br>
-                    3. Pause e clique em <strong>📈 Ver Movimento</strong> para revelar o gráfico!
+                    2. Clique em <strong>Iniciar Tempo</strong> para gravar a posição a cada segundo.<br>
+                    3. Pause e clique em <strong>Ver Movimento</strong> para revelar o gráfico!
                 `;
             } else if (this.motionType === 'equation_1') {
                 this.infoTitle.textContent = 'Etapa 2: Movimento por Equação';
                 this.infoText.innerHTML = `
                     1. Digite a posição inicial (S<sub>0</sub>), velocidade (v<sub>0</sub>) e aceleração (a).<br>
-                    2. Clique em <strong>▶ Iniciar Tempo</strong> para ver a esfera se mover por S(t).<br>
-                    3. Clique em <strong>📈 Ver Movimento</strong> para analisar a reta ou parábola!
+                    2. Clique em <strong>Iniciar Tempo</strong> para ver a esfera se mover por S(t).<br>
+                    3. Clique em <strong>Ver Movimento</strong> para analisar a reta ou parábola!
                 `;
             } else {
                 this.infoTitle.textContent = 'Etapa 3: Encontro de 2 Corpos';
                 this.infoText.innerHTML = `
                     1. Preencha os parâmetros das equações S<sub>A</sub>(t) e S<sub>B</sub>(t) nos painéis.<br>
-                    2. Confira o instante e posição previstos no card <strong>📍 Ponto de Encontro</strong>.<br>
-                    3. Clique em <strong>▶ Iniciar Tempo</strong> e veja o cruzamento das esferas!
+                    2. Confira o instante e posição previstos no card <strong> Ponto de Encontro</strong>.<br>
+                    3. Clique em <strong>Iniciar Tempo</strong> e veja o cruzamento das esferas!
                 `;
             }
         } else if (this.mode === '2D_EXTRUDED' || this.mode === '2D_CONVENTIONAL') {
@@ -624,7 +624,7 @@ class MovimentoSimulation {
 
             this.btnViewGraph.style.display = 'none';
             this.btnToggleAxis.style.display = 'inline-block';
-            this.btnToggleAxis.textContent = this.mode === '2D_EXTRUDED' ? '📐 Visão Convencional (t no X)' : '🔄 Visão Desdobrada (t no Y)';
+            this.btnToggleAxis.textContent = this.mode === '2D_EXTRUDED' ? 'Visão Convencional (t no X)' : 'Visão Desdobrada (t no Y)';
             this.btnBackTo1D.style.display = 'inline-block';
             this.groupScrubber.style.display = 'flex';
 
@@ -642,7 +642,7 @@ class MovimentoSimulation {
                 this.infoText.innerHTML = `
                     1. Observe o eixo do tempo ($T$) se desdobrando na vertical a partir de $X$.<br>
                     2. Arraste o slider <strong>Histórico Temporal</strong> para inspecionar instantes passados.<br>
-                    3. Clique em <strong>📐 Visão Convencional</strong> para ver o gráfico padrão!
+                    3. Clique em <strong>Visão Convencional</strong> para ver o gráfico padrão!
                 `;
             } else {
                 this.infoTitle.textContent = 'Visão 2D: Gráfico Convencional x(t)';
