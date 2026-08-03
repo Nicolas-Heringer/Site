@@ -457,14 +457,16 @@ p {
     margin-bottom: 0;
 }
 
-.research-section, .outreach-section {
+.research-section,
+.outreach-section {
     background-color: rgba(15, 23, 42, 0.3);
     padding: 20px;
     border-radius: 12px;
     border: 1px solid var(--border-color);
 }
 
-.research-section h5, .outreach-section h5 {
+.research-section h5,
+.outreach-section h5 {
     font-size: 1.05rem;
     color: var(--text-primary);
     margin-bottom: 15px;
@@ -473,7 +475,8 @@ p {
     gap: 8px;
 }
 
-.research-section h5 ion-icon, .outreach-section h5 ion-icon {
+.research-section h5 ion-icon,
+.outreach-section h5 ion-icon {
     color: #63b3ed;
     font-size: 1.2rem;
 }
@@ -864,6 +867,7 @@ p {
         opacity: 0;
         transform: translateX(-25px);
     }
+
     to {
         opacity: 1;
         transform: translateX(0);
@@ -981,7 +985,7 @@ p {
         align-items: flex-start;
         gap: 14px;
     }
-    
+
     .biblio-actions {
         width: 100%;
         justify-content: flex-end;

@@ -145,8 +145,8 @@ class Particle {
         this.velocityX = velocityX; // Velocidade no eixo X
         this.velocityY = velocityY; // Velocidade no eixo Y
         this.waveTimer = 0; // Temporizador para emissão de ondas
-        this.baseWaveInterval = 5;
-        this.waveInterval = 5; // Intervalo entre emissões de ondas (em frames)
+        this.baseWaveInterval = 1;
+        this.waveInterval = 1; // Intervalo entre emissões de ondas (em frames)
         this.gamma = null;
     }
 
