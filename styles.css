@@ -837,7 +837,7 @@ p {
 
 .biblio-search-box input {
     width: 100%;
-    padding: 12px 15px 12px 45px;
+    padding: 12px 42px 12px 45px;
     background-color: var(--bg-card);
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
@@ -853,6 +853,42 @@ p {
 .biblio-search-box input:focus {
     border-color: var(--accent-color);
     box-shadow: 0 0 10px rgba(250, 204, 21, 0.2);
+}
+
+.biblio-clear-btn {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%) scale(0.8);
+    background: rgba(255, 255, 255, 0.08);
+    border: none;
+    outline: none;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-secondary);
+    font-size: 1.15rem;
+    cursor: pointer;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: all 0.2s ease;
+}
+
+.biblio-clear-btn.visible {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transform: translateY(-50%) scale(1);
+}
+
+.biblio-clear-btn:hover {
+    background: rgba(250, 204, 21, 0.2);
+    color: var(--accent-color);
+    transform: translateY(-50%) scale(1.1);
 }
 
 .grid-livros {

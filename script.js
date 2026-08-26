@@ -114,6 +114,7 @@ document.addEventListener("DOMContentLoaded", function () {
 async function initBibliograficaSection() {
   const gridLivros = document.getElementById("grid-livros");
   const searchInput = document.getElementById("biblio-search");
+  const clearSearchBtn = document.getElementById("biblio-clear-search");
   const filterBtns = document.querySelectorAll("#biblio-filter-bar .filter-btn");
   const noResults = document.getElementById("biblio-no-results");
 
@@ -203,7 +204,15 @@ async function initBibliograficaSection() {
     });
   }
 
+  function updateClearButton() {
+    if (!clearSearchBtn) return;
+    const hasText = searchInput && searchInput.value.trim().length > 0;
+    clearSearchBtn.classList.toggle("visible", hasText);
+  }
+
   function filterAndSearch() {
+    updateClearButton();
+
     const activeBtn = document.querySelector("#biblio-filter-bar .filter-btn.active");
     const categoriaFiltro = activeBtn ? activeBtn.getAttribute("data-filtro") : "todas";
     const termoBusca = (searchInput ? searchInput.value : "").toLowerCase().trim();
@@ -229,9 +238,24 @@ async function initBibliograficaSection() {
     });
   });
 
-  // Event Listener para Busca Textual
+  // Event Listener para Busca Textual e Botão Limpar
   if (searchInput) {
     searchInput.addEventListener("input", filterAndSearch);
+
+    searchInput.addEventListener("keydown", function (e) {
+      if (e.key === "Escape" && this.value) {
+        this.value = "";
+        filterAndSearch();
+      }
+    });
+  }
+
+  if (clearSearchBtn && searchInput) {
+    clearSearchBtn.addEventListener("click", function () {
+      searchInput.value = "";
+      searchInput.focus();
+      filterAndSearch();
+    });
   }
 
   // Renderização inicial
