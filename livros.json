@@ -573,5 +573,28 @@
     ],
     "link": false,
     "url": null
+  },
+  {
+    "id": "zilio-optica-moderna",
+    "titulo": "Óptica moderna: fundamentos e aplicações",
+    "autores": "Sérgio Carlos Zilio",
+    "citacao": "ZILIO, Sérgio Carlos. Óptica moderna: fundamentos e aplicações. São Carlos: IFSC/USP, 2009.",
+    "editora": "IFSC / USP (Portal de Livros Abertos da USP)",
+    "ano": 2009,
+    "volume": null,
+    "categoria": "eletromagnetismo",
+    "categoriaNome": "Eletromagnetismo",
+    "nivel": "Graduação / Pós-Graduação",
+    "descricao": "Texto aberto e aprofundado cobrindo propagação e traçado de raios em meios não homogêneos, óptica geométrica e ondulatória, lasers, guias de onda e aplicações modernas.",
+    "tags": [
+      "Óptica",
+      "Ray Tracing",
+      "Gradiente de Índice",
+      "Lasers",
+      "Graduação",
+      "Acesso Aberto"
+    ],
+    "link": true,
+    "url": "https://www.livrosabertos.abcd.usp.br/portaldelivrosUSP/catalog/download/96/80/396?inline=1"
   }
 ]

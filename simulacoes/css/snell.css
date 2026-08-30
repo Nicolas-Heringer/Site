@@ -97,6 +97,145 @@
     display: none;
 }
 
-#btnLimparFeixes {
+/* HUD do Índice de Refração sob o mouse e Orientação */
+.index-hud {
+    position: absolute;
+    top: 16px;
+    left: 16px;
+    background: rgba(15, 23, 42, 0.88);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 10px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    pointer-events: none;
+    z-index: 5;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.35);
+    transition: opacity 0.2s ease, transform 0.2s ease;
+    min-width: 170px;
+}
+
+.index-hud .hud-section {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.index-hud .hud-divider {
+    height: 1px;
+    background: var(--border-color);
+    margin: 1px 0;
+}
+
+.index-hud .hud-label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--text-secondary);
+    font-weight: 600;
+}
+
+.index-hud .hud-values {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+}
+
+.index-hud .hud-main strong,
+.index-hud .hud-angle strong {
+    font-size: 1.05rem;
+    color: var(--accent-color);
+    font-family: monospace;
+    font-weight: 700;
+}
+
+.index-hud .hud-coords,
+.index-hud .hud-tip {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    font-family: monospace;
+}
+
+/* Controle Segmentado (Pills para Modo de Emissão) */
+.segmented-control {
+    display: flex;
+    background: rgba(15, 23, 42, 0.6);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 3px;
+    gap: 3px;
+}
+
+.segment-btn {
+    flex: 1;
+    background: transparent;
+    border: none;
+    color: var(--text-secondary);
+    font-family: inherit;
+    font-size: 0.85rem;
+    font-weight: 500;
+    padding: 8px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    text-align: center;
+}
+
+.segment-btn:hover {
+    color: var(--text-primary);
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.segment-btn.active {
+    background: var(--accent-color);
+    color: var(--bg-main);
+    font-weight: 600;
+    box-shadow: 0 2px 8px rgba(250, 204, 21, 0.25);
+}
+
+/* Grupo de Ações (Play/Pause e Limpar) */
+.actions-group {
+    display: grid;
+    grid-template-columns: 1.2fr 1fr;
+    gap: 10px;
+}
+
+.actions-group .sim-btn {
     width: 100%;
+    padding: 10px 12px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    font-size: 0.85rem;
+    letter-spacing: 0.5px;
+}
+
+.actions-group .btn-primary.paused {
+    background-color: rgba(250, 204, 21, 0.15);
+    border-color: var(--accent-color);
+    color: var(--accent-color);
+}
+
+/* Referência Bibliográfica */
+.biblio-ref {
+    margin-top: 10px;
+    padding-top: 8px;
+    border-top: 1px dashed var(--border-color);
+    font-size: 0.8rem !important;
+}
+
+.biblio-ref a {
+    color: var(--accent-color);
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.2s, text-decoration 0.2s;
+}
+
+.biblio-ref a:hover {
+    color: var(--accent-color-hover);
+    text-decoration: underline;
 }

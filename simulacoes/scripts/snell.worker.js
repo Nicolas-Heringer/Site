@@ -19,6 +19,15 @@ const refractiveIndexFunctions = {
         n: (x, y, W, H) => 1.0
     },
 
+    interfacePlana: {
+        minN: 1.0, maxN: 1.5, dispersion: 0.1,
+        n: (x, y, W, H) => {
+            const cy = H / 2;
+            const nTop = 1.0, nBottom = 1.5;
+            return nTop + (nBottom - nTop) / (1 + Math.exp(-(y - cy) * 0.8));
+        }
+    },
+
     fibraOptica: {
         minN: 0.0, maxN: 2.0, dispersion: 0.05,
         n: (x, y, W, H) => {
@@ -65,6 +74,18 @@ const refractiveIndexFunctions = {
         }
     },
 
+    circulo: {
+        minN: 1.0, maxN: 1.333, dispersion: 0.12,
+        n: (x, y, W, H) => {
+            const cx = W / 2, cy = H / 2;
+            const radius = Math.min(W, H) * 0.22;
+            const nOut = 1.0, nIn = 1.333;
+            const distCenter = Math.sqrt((x - cx) ** 2 + (y - cy) ** 2);
+            const distEdge = radius - distCenter;
+            return nOut + (nIn - nOut) / (1 + Math.exp(-distEdge * 0.8));
+        }
+    },
+
     prisma: {
         minN: 1.0, maxN: 1.5, dispersion: 0.15,
         n: (x, y, W, H) => {
@@ -84,8 +105,8 @@ const refractiveIndexFunctions = {
     // n diminui com a altitude (y pequeno = alto). Raios curvam para baixo,
     // explicando por que vemos o sol ainda visível logo após o pôr-do-sol.
     atmosfera: {
-        minN: 1.0, maxN: 1.003, dispersion: 0.02,
-        n: (x, y, W, H) => 1.0 + 0.003 * Math.exp(-3.5 * y / H)
+        minN: 1.0, maxN: 1.03, dispersion: 0.02,
+        n: (x, y, W, H) => 1.0 + 0.03 * Math.exp(-3.5 * y / H)
     },
 
     // Novo: Miragem óptica

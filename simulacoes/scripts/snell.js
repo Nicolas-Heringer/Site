@@ -29,16 +29,24 @@ window.onload = function () {
     let maps = null;   // { n, gx, gy, minN, maxN, dispersion } — Float32Arrays
     let feixes = [];     // Raios ativos na simulação
     let isComputing = false;  // Worker em execução
+    let isPaused = false;     // Estado de pausa da simulação
+    let currentMode = 'point'; // 'point' | 'plane'
+    let angleDeg = 0;         // Ângulo de orientação da emissão em graus (0–359)
+    let isEmitting = false;   // Disparo contínuo ao arrastar o mouse
+    const mousePos = { x: 0, y: 0, inside: false };
+
     let backgroundCache = null;   // ImageData do fundo (desenhado uma vez ao trocar perfil)
     // trailCanvas: onde os rastros dos raios são acumulados de forma persistente
     const trailCanvas = document.createElement('canvas');
     const trailCtx = trailCanvas.getContext('2d');
 
     // =========================================================================
-    // 3. CONTROLES (DOM)
+    // 3. CONTROLES (DOM) E HUD
     // =========================================================================
     const sliderAbertura = document.getElementById('aberturaSlider');
     const spanAbertura = document.getElementById('aberturaValue');
+    const spanAberturaLabel = document.getElementById('aberturaLabel');
+    const spanAberturaUnit = document.getElementById('aberturaUnit');
     const sliderNumFeixes = document.getElementById('numFeixesSlider');
     const spanNumFeixes = document.getElementById('numFeixesValue');
     const selectPerfil = document.getElementById('refractiveIndexFunction');
@@ -49,11 +57,18 @@ window.onload = function () {
     const sliderPersistencia = document.getElementById('persistenciaSlider');
     const spanPersistencia = document.getElementById('persistenciaValue');
     const btnLimparFeixes = document.getElementById('btnLimparFeixes');
+    const btnPlayPause = document.getElementById('btnPlayPause');
+    const btnPlayPauseIcon = document.getElementById('btnPlayPauseIcon');
+    const btnPlayPauseText = document.getElementById('btnPlayPauseText');
     const loadingIndicator = document.getElementById('loadingIndicator');
+    const hudNValue = document.getElementById('hudNValue');
+    const hudCoords = document.getElementById('hudCoords');
+    const hudAngle = document.getElementById('hudAngle');
+    const segmentBtns = document.querySelectorAll('#emissionModeControl .segment-btn');
 
     // Atualização dos displays dos sliders
     sliderAbertura.addEventListener('input', () => {
-        spanAbertura.textContent = sliderAbertura.value + '°';
+        spanAbertura.textContent = sliderAbertura.value;
     });
     sliderNumFeixes.addEventListener('input', () => {
         spanNumFeixes.textContent = sliderNumFeixes.value;
@@ -66,6 +81,39 @@ window.onload = function () {
         spanPersistencia.textContent = val === 100 ? 'Permanente' : val + '%';
     });
 
+    // Seletor de modo de emissão (Fonte Pontual vs Onda Plana)
+    segmentBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            segmentBtns.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            currentMode = btn.dataset.mode;
+
+            if (currentMode === 'point') {
+                spanAberturaLabel.textContent = 'Abertura angular';
+                spanAberturaUnit.textContent = '°';
+                sliderAbertura.min = '0';
+                sliderAbertura.max = '360';
+                sliderAbertura.step = '2';
+                sliderAbertura.value = '45';
+                spanAbertura.textContent = '45';
+            } else {
+                spanAberturaLabel.textContent = 'Largura da frente';
+                spanAberturaUnit.textContent = 'px';
+                sliderAbertura.min = '10';
+                sliderAbertura.max = '400';
+                sliderAbertura.step = '5';
+                sliderAbertura.value = '120';
+                spanAbertura.textContent = '120';
+            }
+        });
+    });
+
+    // Atualiza HUD de ângulo
+    function updateHudAngle() {
+        hudAngle.textContent = `θ = ${Math.round(angleDeg)}°`;
+    }
+    updateHudAngle();
+
     // Toggle dispersão cromática
     toggleDispersao.addEventListener('change', () => {
         wavelengthControl.style.display = toggleDispersao.checked ? 'block' : 'none';
@@ -74,14 +122,27 @@ window.onload = function () {
     // Troca de perfil → dispara o worker e limpa tudo
     selectPerfil.addEventListener('change', () => requestMaps(selectPerfil.value));
 
+    // Play / Pause
+    function togglePlayPause() {
+        isPaused = !isPaused;
+        if (isPaused) {
+            btnPlayPause.classList.add('paused');
+            btnPlayPauseIcon.textContent = '▶';
+            btnPlayPauseText.textContent = 'Continuar';
+        } else {
+            btnPlayPause.classList.remove('paused');
+            btnPlayPauseIcon.textContent = '⏸';
+            btnPlayPauseText.textContent = 'Pausar';
+        }
+    }
+    btnPlayPause.addEventListener('click', togglePlayPause);
+
     // Limpar feixes e rastros
     btnLimparFeixes.addEventListener('click', clearTrails);
 
     // =========================================================================
     // 4. WEB WORKER — Pré-computação de n(x,y) e ∇n
     // =========================================================================
-    // Usamos um parâmetro de versão (timestamp) para evitar que o navegador use 
-    // uma versão em cache do worker durante o desenvolvimento.
     const worker = new Worker('scripts/snell.worker.js?v=' + Date.now());
 
     worker.onmessage = function (e) {
@@ -117,8 +178,6 @@ window.onload = function () {
         for (let i = 0; i < W * H; i++) {
             const t = Math.max(0, Math.min(1, (n[i] - minN) / range));
             const p = i * 4;
-            // Fundo neutro em tons de cinza escuro para destacar as cores dos feixes
-            // n baixo = escuro (15), n alto = cinza (55)
             const luma = Math.round(15 + 40 * t);
             d[p] = luma;
             d[p + 1] = luma;
@@ -138,10 +197,6 @@ window.onload = function () {
     // =========================================================================
     // 6. TRAIL CANVAS — Rastro acumulado dos feixes
     // =========================================================================
-    // Os rastros são desenhados em um canvas secundário (trailCanvas).
-    // A cada frame, copiamos o trailCanvas para o canvas principal.
-    // O fade é aplicado sobrepondo um retângulo semitransparente sobre o trailCanvas.
-
     function syncTrailCanvas() {
         trailCanvas.width = canvas.width;
         trailCanvas.height = canvas.height;
@@ -153,11 +208,9 @@ window.onload = function () {
         trailCtx.clearRect(0, 0, trailCanvas.width, trailCanvas.height);
     }
 
-    // Retorna o alpha de fade baseado no slider (100 = permanente, 0 = some rápido)
     function getFadeAlpha() {
-        const val = parseInt(sliderPersistencia.value); // 0–100
-        if (val === 100) return 0; // 100 = permanente: nunca aplica fade
-        // Mapeamos 0-99 para um alpha de fade. 99 = lento (0.005), 0 = rápido (0.15)
+        const val = parseInt(sliderPersistencia.value);
+        if (val === 100) return 0;
         return 0.005 + ((100 - val) / 100) * 0.145;
     }
 
@@ -191,7 +244,7 @@ window.onload = function () {
     }
 
     // =========================================================================
-    // 8. CLASSE FEIXE (Raio de luz)
+    // 8. CLASSE FEIXE (Raio de luz individual)
     // =========================================================================
     class Feixe {
         constructor(x, y, angle, colorCSS, dispFactor) {
@@ -237,46 +290,272 @@ window.onload = function () {
     }
 
     // =========================================================================
-    // 9. EMISSÃO DE FEIXES
+    // 9. CLASSE FEIXESBUILDER (Construtor e Preview de Feixes)
     // =========================================================================
-    function emitFeixes(startX, startY, aberturaRad) {
-        if (!maps || isComputing) return;
+    class FeixesBuilder {
+        constructor() {
+            this.mode = 'point'; // 'point' | 'plane'
+            this.angle = 0;      // em radianos
+            this.aperture = Math.PI / 4; // radianos (modo ponto)
+            this.width = 120;    // pixels (modo plano)
+            this.count = 100;
+            this.useDispersion = false;
+            this.numWavelengths = 5;
+            this.dispersionB = 0.0;
+        }
 
-        const useDispersion = toggleDispersao.checked;
-        const numFeixes = parseInt(sliderNumFeixes.value);
+        build(startX, startY) {
+            const feixesCriados = [];
+            const angleRad = this.angle;
+            const numFeixes = this.count;
+            const useDisp = this.useDispersion;
+            const numWav = this.numWavelengths;
+            const B = this.dispersionB;
 
-        if (useDispersion) {
-            const numWav = parseInt(sliderNumWav.value);
-            const B = maps.dispersion;
-            const step = Math.max(1, Math.floor(WAVELENGTHS_NM.length / numWav));
-            const wavs = WAVELENGTHS_NM.filter((_, i) => i % step === 0).slice(0, numWav);
-            const fxPerWav = Math.max(1, Math.round(numFeixes / wavs.length));
-
-            wavs.forEach(λ => {
-                const { css } = wavelengthToColor(λ);
-                const dfac = dispersionFactor(λ, B);
-                for (let i = 0; i < fxPerWav; i++) {
-                    const angle = aberturaRad * (i / fxPerWav - 0.5);
-                    feixes.push(new Feixe(startX, startY, angle, css, dfac));
-                }
-            });
-        } else {
-            for (let i = 0; i < numFeixes; i++) {
-                const angle = aberturaRad * (i / numFeixes - 0.5);
-                feixes.push(new Feixe(startX, startY, angle, 'rgba(255, 230, 50, 0.9)', 1.0));
+            // Configurações de cores e fatores de dispersão
+            const configs = [];
+            if (useDisp) {
+                const step = Math.max(1, Math.floor(WAVELENGTHS_NM.length / numWav));
+                const wavs = WAVELENGTHS_NM.filter((_, i) => i % step === 0).slice(0, numWav);
+                const fxPerWav = Math.max(1, Math.round(numFeixes / wavs.length));
+                wavs.forEach(λ => {
+                    const { css } = wavelengthToColor(λ);
+                    const dfac = dispersionFactor(λ, B);
+                    configs.push({ css, dfac, subCount: fxPerWav });
+                });
+            } else {
+                configs.push({ css: 'rgba(255, 230, 50, 0.9)', dfac: 1.0, subCount: numFeixes });
             }
+
+            if (this.mode === 'point') {
+                configs.forEach(cfg => {
+                    for (let i = 0; i < cfg.subCount; i++) {
+                        const t = cfg.subCount > 1 ? (i / (cfg.subCount - 1) - 0.5) : 0;
+                        const rayAngle = angleRad + t * this.aperture;
+                        feixesCriados.push(new Feixe(startX, startY, rayAngle, cfg.css, cfg.dfac));
+                    }
+                });
+            } else {
+                // Modo Onda Plana: vetor normal e propagação
+                const nx = -Math.sin(angleRad);
+                const ny = Math.cos(angleRad);
+
+                configs.forEach(cfg => {
+                    for (let i = 0; i < cfg.subCount; i++) {
+                        const t = cfg.subCount > 1 ? (i / (cfg.subCount - 1) - 0.5) : 0;
+                        const posX = startX + nx * (t * this.width);
+                        const posY = startY + ny * (t * this.width);
+                        feixesCriados.push(new Feixe(posX, posY, angleRad, cfg.css, cfg.dfac));
+                    }
+                });
+            }
+
+            return feixesCriados;
+        }
+
+        drawPreview(targetCtx, x, y) {
+            targetCtx.save();
+            targetCtx.translate(x, y);
+
+            const angleRad = this.angle;
+            const uX = Math.cos(angleRad);
+            const uY = Math.sin(angleRad);
+
+            if (this.mode === 'point') {
+                // 1. Seta de direção principal
+                const arrowLen = 34;
+                targetCtx.strokeStyle = 'rgba(250, 204, 21, 0.95)';
+                targetCtx.fillStyle = 'rgba(250, 204, 21, 0.95)';
+                targetCtx.lineWidth = 2;
+
+                targetCtx.beginPath();
+                targetCtx.moveTo(0, 0);
+                targetCtx.lineTo(uX * arrowLen, uY * arrowLen);
+                targetCtx.stroke();
+
+                // Ponta da seta
+                const tipLen = 7;
+                const headAngle = Math.PI / 6;
+                targetCtx.beginPath();
+                targetCtx.moveTo(uX * arrowLen, uY * arrowLen);
+                targetCtx.lineTo(
+                    uX * arrowLen - tipLen * Math.cos(angleRad - headAngle),
+                    uY * arrowLen - tipLen * Math.sin(angleRad - headAngle)
+                );
+                targetCtx.lineTo(
+                    uX * arrowLen - tipLen * Math.cos(angleRad + headAngle),
+                    uY * arrowLen - tipLen * Math.sin(angleRad + headAngle)
+                );
+                targetCtx.closePath();
+                targetCtx.fill();
+
+                // 2. Arco / Leque da abertura angular
+                const arcRadius = 45;
+                const halfAp = this.aperture / 2;
+                targetCtx.beginPath();
+                targetCtx.setLineDash([3, 3]);
+                targetCtx.strokeStyle = 'rgba(250, 204, 21, 0.5)';
+                targetCtx.fillStyle = 'rgba(250, 204, 21, 0.08)';
+                targetCtx.moveTo(0, 0);
+                targetCtx.arc(0, 0, arcRadius, angleRad - halfAp, angleRad + halfAp);
+                targetCtx.closePath();
+                targetCtx.stroke();
+                targetCtx.fill();
+
+                // Ponto central de origem
+                targetCtx.setLineDash([]);
+                targetCtx.beginPath();
+                targetCtx.arc(0, 0, 3.5, 0, Math.PI * 2);
+                targetCtx.fillStyle = '#ffffff';
+                targetCtx.fill();
+
+            } else {
+                // Modo Onda Plana
+                const nx = -Math.sin(angleRad);
+                const ny = Math.cos(angleRad);
+                const halfW = this.width / 2;
+
+                // Barra transversal da frente de onda
+                targetCtx.strokeStyle = 'rgba(250, 204, 21, 0.9)';
+                targetCtx.lineWidth = 2.5;
+                targetCtx.beginPath();
+                targetCtx.moveTo(-nx * halfW, -ny * halfW);
+                targetCtx.lineTo(nx * halfW, ny * halfW);
+                targetCtx.stroke();
+
+                // Setas paralelas indicando a direção de avanço ao longo da barra
+                const numArrows = Math.max(3, Math.min(7, Math.floor(this.width / 25)));
+                const arrowLen = 20;
+                const tipLen = 5;
+                const headAngle = Math.PI / 6;
+
+                targetCtx.lineWidth = 1.5;
+                targetCtx.strokeStyle = 'rgba(250, 204, 21, 0.75)';
+                targetCtx.fillStyle = 'rgba(250, 204, 21, 0.75)';
+
+                for (let i = 0; i < numArrows; i++) {
+                    const t = numArrows > 1 ? (i / (numArrows - 1) - 0.5) : 0;
+                    const ax = nx * (t * this.width);
+                    const ay = ny * (t * this.width);
+
+                    targetCtx.beginPath();
+                    targetCtx.moveTo(ax, ay);
+                    targetCtx.lineTo(ax + uX * arrowLen, ay + uY * arrowLen);
+                    targetCtx.stroke();
+
+                    // Ponta da seta
+                    targetCtx.beginPath();
+                    targetCtx.moveTo(ax + uX * arrowLen, ay + uY * arrowLen);
+                    targetCtx.lineTo(
+                        ax + uX * arrowLen - tipLen * Math.cos(angleRad - headAngle),
+                        ay + uY * arrowLen - tipLen * Math.sin(angleRad - headAngle)
+                    );
+                    targetCtx.lineTo(
+                        ax + uX * arrowLen - tipLen * Math.cos(angleRad + headAngle),
+                        ay + uY * arrowLen - tipLen * Math.sin(angleRad + headAngle)
+                    );
+                    targetCtx.closePath();
+                    targetCtx.fill();
+                }
+
+                // Ponto central
+                targetCtx.beginPath();
+                targetCtx.arc(0, 0, 3, 0, Math.PI * 2);
+                targetCtx.fillStyle = '#ffffff';
+                targetCtx.fill();
+            }
+
+            targetCtx.restore();
         }
     }
 
+    const builder = new FeixesBuilder();
+
     // =========================================================================
-    // 10. INTERAÇÃO — Clique no canvas emite feixes
+    // 10. INTERAÇÃO, EMISSÃO E INSPEÇÃO SOB O MOUSE
     // =========================================================================
-    canvas.addEventListener('click', function (e) {
+    function emitAt(x, y) {
+        if (!maps || isComputing) return;
+
+        builder.mode = currentMode;
+        builder.angle = angleDeg * (Math.PI / 180);
+        if (currentMode === 'point') {
+            builder.aperture = parseInt(sliderAbertura.value) * (Math.PI / 180);
+        } else {
+            builder.width = parseInt(sliderAbertura.value);
+        }
+        builder.count = parseInt(sliderNumFeixes.value);
+        builder.useDispersion = toggleDispersao.checked;
+        builder.numWavelengths = parseInt(sliderNumWav.value);
+        builder.dispersionB = maps.dispersion;
+
+        const novosFeixes = builder.build(x, y);
+        feixes.push(...novosFeixes);
+    }
+
+    function updateHudAt(clientX, clientY) {
+        if (!maps || !maps.n) return;
         const rect = canvas.getBoundingClientRect();
-        const mx = e.clientX - rect.left;
-        const my = e.clientY - rect.top;
-        const aberturaRad = 2 * Math.PI * (parseInt(sliderAbertura.value) / 360);
-        emitFeixes(mx, my, aberturaRad);
+        const scaleX = canvas.width / rect.width;
+        const scaleY = canvas.height / rect.height;
+        const px = Math.floor((clientX - rect.left) * scaleX);
+        const py = Math.floor((clientY - rect.top) * scaleY);
+
+        if (px >= 0 && px < canvas.width && py >= 0 && py < canvas.height) {
+            const idx = py * canvas.width + px;
+            const nVal = maps.n[idx];
+            hudNValue.textContent = `n = ${nVal.toFixed(3)}`;
+            hudCoords.textContent = `(x: ${px}, y: ${py})`;
+        }
+    }
+
+    // Scroll do mouse altera a orientação do feixe
+    canvas.addEventListener('wheel', function (e) {
+        e.preventDefault();
+        const step = e.shiftKey ? 1 : 5;
+        const delta = e.deltaY < 0 ? -step : step;
+        angleDeg = (angleDeg + delta + 360) % 360;
+        updateHudAngle();
+    }, { passive: false });
+
+    // Disparo por clique / arrasto
+    canvas.addEventListener('mousedown', function (e) {
+        if (e.button !== 0) return;
+        isEmitting = true;
+        const rect = canvas.getBoundingClientRect();
+        const scaleX = canvas.width / rect.width;
+        const scaleY = canvas.height / rect.height;
+        const mx = (e.clientX - rect.left) * scaleX;
+        const my = (e.clientY - rect.top) * scaleY;
+        emitAt(mx, my);
+    });
+
+    window.addEventListener('mouseup', function () {
+        isEmitting = false;
+    });
+
+    canvas.addEventListener('mousemove', function (e) {
+        const rect = canvas.getBoundingClientRect();
+        const scaleX = canvas.width / rect.width;
+        const scaleY = canvas.height / rect.height;
+        const px = (e.clientX - rect.left) * scaleX;
+        const py = (e.clientY - rect.top) * scaleY;
+
+        mousePos.x = px;
+        mousePos.y = py;
+        mousePos.inside = true;
+
+        updateHudAt(e.clientX, e.clientY);
+
+        if (isEmitting) {
+            emitAt(px, py);
+        }
+    });
+
+    canvas.addEventListener('mouseleave', function () {
+        mousePos.inside = false;
+        isEmitting = false;
+        hudCoords.textContent = '(fora da área)';
     });
 
     // =========================================================================
@@ -286,27 +565,42 @@ window.onload = function () {
         requestAnimationFrame(animate);
         if (!maps || !backgroundCache) return;
 
-        // 1. Aplica fade no trailCanvas (se persistência < 100)
-        const fadeAlpha = getFadeAlpha();
-        if (fadeAlpha > 0) {
-            trailCtx.globalCompositeOperation = 'destination-out';
-            trailCtx.fillStyle = `rgba(0, 0, 0, ${fadeAlpha})`;
-            trailCtx.fillRect(0, 0, trailCanvas.width, trailCanvas.height);
+        if (!isPaused) {
+            // 1. Aplica fade no trailCanvas (se persistência < 100)
+            const fadeAlpha = getFadeAlpha();
+            if (fadeAlpha > 0) {
+                trailCtx.globalCompositeOperation = 'destination-out';
+                trailCtx.fillStyle = `rgba(0, 0, 0, ${fadeAlpha})`;
+                trailCtx.fillRect(0, 0, trailCanvas.width, trailCanvas.height);
+                trailCtx.globalCompositeOperation = 'source-over';
+            }
+
+            // 2. Atualiza todos os feixes ativos (eles desenham em trailCtx)
+            trailCtx.globalCompositeOperation = 'lighter';
+            for (let i = feixes.length - 1; i >= 0; i--) {
+                const f = feixes[i];
+                f.update(1.5);
+                if (f.foraDoCanvas) feixes.splice(i, 1);
+            }
             trailCtx.globalCompositeOperation = 'source-over';
         }
-
-        // 2. Atualiza todos os feixes ativos (eles desenham em trailCtx)
-        trailCtx.globalCompositeOperation = 'lighter';
-        for (let i = feixes.length - 1; i >= 0; i--) {
-            const f = feixes[i];
-            f.update(1.5);
-            if (f.foraDoCanvas) feixes.splice(i, 1);
-        }
-        trailCtx.globalCompositeOperation = 'source-over';
 
         // 3. Compõe: fundo + rastros
         ctx.putImageData(backgroundCache, 0, 0);
         ctx.drawImage(trailCanvas, 0, 0);
+
+        // 4. Desenha Live Preview do feixe sob o cursor
+        if (mousePos.inside && !isComputing) {
+            builder.mode = currentMode;
+            builder.angle = angleDeg * (Math.PI / 180);
+            if (currentMode === 'point') {
+                builder.aperture = parseInt(sliderAbertura.value) * (Math.PI / 180);
+            } else {
+                builder.width = parseInt(sliderAbertura.value);
+            }
+            builder.count = parseInt(sliderNumFeixes.value);
+            builder.drawPreview(ctx, mousePos.x, mousePos.y);
+        }
     }
 
     animate();

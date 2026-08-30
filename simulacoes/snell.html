@@ -19,6 +19,19 @@
     <!-- Estilos CSS -->
     <link rel="stylesheet" href="css/base.css">
     <link rel="stylesheet" href="css/snell.css">
+
+    <!-- Suporte a LaTeX com KaTeX -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" onload="renderMathInElement(document.body, {
+            delimiters: [
+                {left: '$$', right: '$$', display: true},
+                {left: '$', right: '$', display: false},
+                {left: '\\(', right: '\\)', display: false},
+                {left: '\\[', right: '\\]', display: true}
+            ],
+            throwOnError: false
+        });"></script>
 </head>
 
 <body>
@@ -34,6 +47,26 @@
         <!-- Área de Visualização (Canvas) -->
         <div class="canvas-area">
             <canvas id="simulationCanvas"></canvas>
+
+            <!-- HUD de Inspeção de Índice de Refração n(x,y) e Ângulo -->
+            <div id="indexInspector" class="index-hud">
+                <div class="hud-section">
+                    <span class="hud-label">Índice sob o cursor</span>
+                    <div class="hud-values">
+                        <span class="hud-main"><strong id="hudNValue">n = 1.000</strong></span>
+                        <span class="hud-coords" id="hudCoords">(x: -, y: -)</span>
+                    </div>
+                </div>
+                <div class="hud-divider"></div>
+                <div class="hud-section">
+                    <span class="hud-label">Orientação do feixe</span>
+                    <div class="hud-values">
+                        <span class="hud-angle"><strong id="hudAngle">θ = 0°</strong></span>
+                        <span class="hud-tip">(scroll para girar)</span>
+                    </div>
+                </div>
+            </div>
+
             <div id="loadingIndicator">
                 <div class="spinner"></div>
                 <span>Calculando campo n(x,y)…</span>
@@ -48,6 +81,8 @@
                 <label for="refractiveIndexFunction">Perfil de n(x,y):</label>
                 <select id="refractiveIndexFunction" class="sim-control">
                     <option value="constante">Constante (n = 1.0)</option>
+                    <option value="interfacePlana">Interface Plana (n₁ = 1.0 / n₂ = 1.5)</option>
+                    <option value="circulo">Lente Circular / Esfera</option>
                     <option value="fibraOptica">Fibra óptica</option>
                     <option value="gaussiana">Gaussiana</option>
                     <option value="senoidal">Senoidal</option>
@@ -61,10 +96,21 @@
 
             <div class="controls-divider"></div>
 
-            <!-- ABERTURA E FEIXES -->
+            <!-- MODO DE EMISSÃO -->
             <div class="control-group">
-                <label for="aberturaSlider">Abertura angular: <strong><span
-                            id="aberturaValue">45</span>°</strong></label>
+                <label>Modo de emissão:</label>
+                <div class="segmented-control" id="emissionModeControl">
+                    <button type="button" class="segment-btn active" data-mode="point">Fonte Pontual</button>
+                    <button type="button" class="segment-btn" data-mode="plane">Onda Plana</button>
+                </div>
+            </div>
+
+            <!-- ABERTURA ANGULAR / LARGURA DA FRENTE -->
+            <div class="control-group">
+                <label for="aberturaSlider">
+                    <span id="aberturaLabel">Abertura angular</span>:
+                    <strong><span id="aberturaValue">45</span><span id="aberturaUnit">°</span></strong>
+                </label>
                 <input type="range" id="aberturaSlider" class="sim-slider" min="0" max="360" value="45" step="2">
             </div>
 
@@ -101,18 +147,28 @@
 
             <div class="controls-divider"></div>
 
-            <!-- LIMPAR -->
-            <div class="control-group">
-                <button id="btnLimparFeixes" class="sim-btn">Limpar feixes e rastros</button>
+            <!-- AÇÕES: PLAY/PAUSE E LIMPAR -->
+            <div class="actions-group">
+                <button id="btnPlayPause" class="sim-btn btn-primary" title="Pausar ou Retomar a simulação">
+                    <span id="btnPlayPauseIcon">⏸</span> <span id="btnPlayPauseText">Pausar</span>
+                </button>
+                <button id="btnLimparFeixes" class="sim-btn btn-secondary">Limpar</button>
             </div>
 
             <!-- INFORMAÇÕES EDUCACIONAIS -->
             <div class="info-section">
-                <p>Esta simulação resolve a <strong>equação diferencial do raio</strong> em um meio com índice de
-                    refração contínuo n(x,y):</p>
-                <p class="equation">d/ds ( n · dr/ds ) = ∇n</p>
-                <p>Clique no canvas para emitir feixes a partir daquele ponto. Ative a <strong>dispersão
-                        cromática</strong> para visualizar a separação das cores como em um prisma.</p>
+                <p>Esta simulação resolve a <strong>equação diferencial do raio</strong> em um meio com índice $n(x,y)$
+                    contínuo:</p>
+                <p class="equation">$$\frac{d}{ds} \left( n \frac{d\vec{r}}{ds} \right) = \nabla n$$</p>
+                <p>Clique ou arraste no canvas para emitir raios. Role o scroll do mouse para girar o ângulo de emissão
+                    $\theta$.
+                </p>
+                <p class="biblio-ref">
+                    📖 <strong>Referência:</strong> Cap. 2.6 (<em>A equação dos raios</em>) de <a
+                        href="https://www.livrosabertos.abcd.usp.br/portaldelivrosUSP/catalog/download/96/80/396?inline=1"
+                        target="_blank" rel="noopener noreferrer">Óptica Moderna — Fundamentos e Aplicações</a> (S. C.
+                    Zilio, USP).
+                </p>
             </div>
 
         </aside>
