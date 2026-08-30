@@ -269,9 +269,10 @@
 }
 
 .segment-btn.active {
-    background: #0284c7;
-    color: #ffffff;
-    box-shadow: 0 2px 8px rgba(2, 132, 199, 0.4);
+    background: var(--accent-color);
+    color: var(--bg-main);
+    font-weight: 600;
+    box-shadow: 0 2px 8px rgba(250, 204, 21, 0.25);
 }
 
 /* --- BARRA DE ABAS NO PAINEL --- */
@@ -307,10 +308,10 @@
 }
 
 .tab-nav-btn.active {
-    background: rgba(14, 165, 233, 0.2);
-    color: #38bdf8;
-    box-shadow: 0 0 10px rgba(56, 189, 248, 0.2);
-    border: 1px solid rgba(56, 189, 248, 0.4);
+    background: var(--accent-color);
+    color: var(--bg-main);
+    font-weight: 600;
+    box-shadow: 0 2px 8px rgba(250, 204, 21, 0.25);
 }
 
 .tab-header h3 {
@@ -337,7 +338,7 @@
     margin-bottom: 5px;
 }
 
-/* --- BOTÕES DO PAINEL --- */
+/* --- BOTÕES DO PAINEL (Estilo Snell: Fundo Transparente com Borda Colorida) --- */
 .actions-group {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -346,48 +347,64 @@
 }
 
 .sim-btn--primary {
-    background: linear-gradient(135deg, #0284c7, #0ea5e9);
-    border: 1px solid #38bdf8;
-    color: #ffffff;
-    font-weight: bold;
+    background-color: transparent;
+    border: 1px solid var(--accent-color);
+    color: var(--accent-color);
+    padding: 12px 20px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 0.92rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
 }
 
 .sim-btn--primary:hover:not(:disabled) {
-    background: linear-gradient(135deg, #0369a1, #0284c7);
-    box-shadow: 0 0 15px rgba(14, 165, 233, 0.5);
-    color: #ffffff;
+    background-color: var(--accent-color);
+    color: var(--bg-main);
+    box-shadow: 0 4px 15px rgba(250, 204, 21, 0.3);
 }
 
 .sim-btn--freeze {
-    background: linear-gradient(135deg, #475569, #334155);
-    border: 1px solid #94a3b8;
-    color: #f8fafc;
-    font-weight: bold;
+    background-color: transparent;
+    border: 1px solid #f59e0b;
+    color: #f59e0b;
+    padding: 12px 20px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 0.92rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
 }
 
 .sim-btn--freeze:hover:not(:disabled) {
-    background: linear-gradient(135deg, #0284c7, #38bdf8);
-    border-color: #38bdf8;
-    box-shadow: 0 0 12px rgba(56, 189, 248, 0.4);
-}
-
-.sim-btn--freeze.is-frozen {
-    background: linear-gradient(135deg, #0284c7, #0284c7);
-    border-color: #38bdf8;
-    color: #ffffff;
-    box-shadow: 0 0 12px rgba(56, 189, 248, 0.4);
+    background-color: #f59e0b;
+    color: var(--bg-main);
+    box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3);
 }
 
 .sim-btn--secondary {
-    padding: 8px 12px;
-    font-size: 0.82rem;
-    border: 1px solid rgba(255, 255, 255, 0.15);
+    background-color: transparent;
+    padding: 10px 16px;
+    font-size: 0.85rem;
+    border: 1px solid var(--border-color);
     color: var(--text-secondary);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
 }
 
 .sim-btn--secondary:hover:not(:disabled) {
-    background: rgba(255, 255, 255, 0.08);
-    color: #ffffff;
+    background-color: rgba(255, 255, 255, 0.08);
+    border-color: var(--text-secondary);
+    color: var(--text-primary);
 }
 
 .sim-btn:disabled {

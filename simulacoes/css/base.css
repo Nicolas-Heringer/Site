@@ -234,10 +234,96 @@ button.sim-btn {
     letter-spacing: 1px;
 }
 
-button.sim-btn:hover {
+button.sim-btn:hover:not(:disabled) {
     background-color: var(--accent-color);
     color: var(--bg-main);
     box-shadow: 0 4px 15px rgba(250, 204, 21, 0.3);
+}
+
+button.sim-btn:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+    border-color: rgba(255, 255, 255, 0.1);
+    color: var(--text-secondary);
+    background: transparent;
+    box-shadow: none;
+}
+
+/* --- CONTROLE SEGMENTADO (PILLS / CHAVE SELETORA) --- */
+.segmented-control {
+    display: flex;
+    background: rgba(15, 23, 42, 0.6);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 3px;
+    gap: 3px;
+}
+
+.segment-btn {
+    flex: 1;
+    background: transparent;
+    border: none;
+    color: var(--text-secondary);
+    font-family: inherit;
+    font-size: 0.85rem;
+    font-weight: 500;
+    padding: 8px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    text-align: center;
+}
+
+.segment-btn:hover {
+    color: var(--text-primary);
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.segment-btn.active {
+    background: var(--accent-color);
+    color: var(--bg-main);
+    font-weight: 600;
+    box-shadow: 0 2px 8px rgba(250, 204, 21, 0.25);
+}
+
+/* --- BARRA DE ABAS NO PAINEL --- */
+.tabs-nav {
+    display: flex;
+    gap: 6px;
+    background: rgba(15, 23, 42, 0.6);
+    padding: 4px;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.tab-nav-btn {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 8px 6px;
+    border: none;
+    background: transparent;
+    color: var(--text-secondary);
+    font-family: inherit;
+    font-size: 0.8rem;
+    font-weight: 600;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.tab-nav-btn:hover {
+    color: var(--text-primary);
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.tab-nav-btn.active {
+    background: var(--accent-color);
+    color: var(--bg-main);
+    font-weight: 600;
+    box-shadow: 0 2px 8px rgba(250, 204, 21, 0.25);
 }
 
 /* Seção de Texto explicativo dentro dos controles */
