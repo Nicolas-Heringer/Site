@@ -1,65 +1,87 @@
 // =============================================================================
 // Autor: Nicolas Heringer
-// Coautor / Revisor: Gemini 3.6 Flash
-// Simulação: Análise e Síntese de Áudio (Espectrograma FFT e Sintetizador)
-// Descrição: Processamento de áudio via Web Audio API, análise espectral FFT em
-//            tempo real (domínio do tempo e frequência) e síntese por aditiva.
+// Coautor / Revisor: Gemini
+// Simulação: Laboratório de Áudio e Análise Espectral
+// Descrição: Captura de microfone com processamento Web Audio API, osciloscópio
+//            com trigger de zero-crossing, FFT e congelamento didático (Freeze Frame).
+//            Layout com Canvas Principal em destaque e Miniatura PIP alternável.
 // =============================================================================
 
 // =============================================================================
-// 1. ELEMENTOS DOM E CONFIGURAÇÕES DE CANVAS
-// =============================================================================
-const startButton  = document.getElementById('startButton');
-const stopButton   = document.getElementById('stopButton');
-const modeButton   = document.getElementById('modeButton');
-const clearButton  = document.getElementById('clearButton');
-const clearGroup   = document.getElementById('clearGroup');
-const scaleButton  = document.getElementById('scaleButton');
-const infoText     = document.getElementById('infoText');
-const timeCanvas   = document.getElementById('timeCanvas');
-const freqCanvas   = document.getElementById('freqCanvas');
-
-const WIDTH  = 800;
-const HEIGHT = 300;
-
-timeCanvas.width = freqCanvas.width = WIDTH;
-timeCanvas.height = freqCanvas.height = HEIGHT;
-
-const ML = 60;   // margin left
-const MB = 50;   // margin bottom
-const MT = 20;   // margin top
-const MR = 20;   // margin right
-const DW = WIDTH  - ML - MR;   // drawable width
-const DH = HEIGHT - MT - MB;   // drawable height
-
-// =============================================================================
-// 2. ESTADO GLOBAL DO ÁUDIO E SINTETIZADOR
-// =============================================================================
-let audioContext;
-let analyser;
-let dataArray;
-let animationId;
-let bufferLength;
-let isLogScale = false;
-
-let currentMode = 'analysis'; // 'analysis' | 'generator'
-
-const NUM_OSCS    = 48;   // number of oscillators in the bank
-const MIN_FREQ    = 20;   // Hz
-const MAX_FREQ    = 20000; // Hz (may be capped by sampleRate/2 after init)
-
-let oscillators     = [];   // OscillatorNode[]
-let oscGains        = [];   // GainNode[] — one per oscillator
-let masterGain;             // GainNode
-let generatorSpectrum = new Float32Array(NUM_OSCS); // amplitude 0..1 per band
-let oscFrequencies  = [];   // centre frequency of each oscillator (Hz)
-let isDrawing       = false;
-
-// =============================================================================
-// 3. FUNÇÕES AUXILIARES DE ESCALA E CONVERSÃO
+// 1. ELEMENTOS DOM
 // =============================================================================
 
-/** Map a normalised x position [0,1] → frequency in Hz, honoring scale mode. */
+// Navegação por Abas
+const tabButtons         = document.querySelectorAll('.tab-nav-btn');
+const tabContents        = document.querySelectorAll('.tab-content');
+
+// Controles da Aba 1 (Microfone)
+const btnMicStart        = document.getElementById('btnMicStart');
+const btnMicStartIcon    = document.getElementById('btnMicStartIcon');
+const btnMicStartText    = document.getElementById('btnMicStartText');
+const scaleBtns          = document.querySelectorAll('#scaleControl .segment-btn');
+
+// Containers de Canvas e Visualização
+const timeCanvasContainer = document.getElementById('timeCanvasContainer');
+const freqCanvasContainer = document.getElementById('freqCanvasContainer');
+const timeCanvas         = document.getElementById('timeCanvas');
+const freqCanvas         = document.getElementById('freqCanvas');
+const btnToggleTrigger   = document.getElementById('btnToggleTrigger');
+const swapFocusBtns      = document.querySelectorAll('.btn-swap-focus');
+
+// HUD de Métricas e Status
+const hudPeakFreq        = document.getElementById('hudPeakFreq');
+const hudMusicalNote     = document.getElementById('hudMusicalNote');
+const hudRmsLevel        = document.getElementById('hudRmsLevel');
+const hudInspectorValue  = document.getElementById('hudInspectorValue');
+const hudStatusBadge     = document.getElementById('hudStatusBadge');
+
+// =============================================================================
+// 2. ESTADO GLOBAL DO SISTEMA DE ÁUDIO E ANÁLISE
+// =============================================================================
+
+let activeTabId        = 'tab-mic'; // 'tab-mic' | 'tab-waves' | 'tab-beats'
+let audioCtx           = null;
+let analyserNode       = null;
+let micStream          = null;
+let micSourceNode      = null;
+let animationId        = null;
+
+// Buffers de Áudio Float32 (Alta Precisão)
+let timeFloatData      = null;
+let freqFloatData      = null;
+let bufferLength       = 1024;
+
+// Estados de Operação e Layout
+let isCapturing        = false;
+let isFrozen           = false;
+let isLogScale         = true;
+let isTriggerActive    = true;
+let isTimeMain         = false; // false = FFT é o principal, true = Osciloscópio é o principal
+const visualGain       = 1.0;
+
+// Constantes Físicas e Musicais
+const MIN_FREQ   = 20;    // Hz
+const MAX_FREQ   = 20000; // Hz
+const NOTE_NAMES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+
+// =============================================================================
+// 3. FUNÇÕES UTILITÁRIAS DE CONVERSÃO E ESCALA
+// =============================================================================
+
+/** Converte frequência em Hz para nome da Nota Musical e desvio em cents */
+function freqToMusicalNote(freq) {
+    if (!freq || freq < 16 || freq > 20000) return '---';
+    const midi = 12 * Math.log2(freq / 440) + 69;
+    const roundedMidi = Math.round(midi);
+    const noteIndex = ((roundedMidi % 12) + 12) % 12;
+    const octave = Math.floor(roundedMidi / 12) - 1;
+    const cents = Math.round((midi - roundedMidi) * 100);
+    const centsSign = cents >= 0 ? `+${cents}` : `${cents}`;
+    return `${NOTE_NAMES[noteIndex]}${octave} (${centsSign}¢)`;
+}
+
+/** Mapeamento de posição x normalizada [0, 1] para frequência em Hz */
 function xNormToFreq(xNorm, maxFreq) {
     if (isLogScale) {
         const logMin = Math.log10(MIN_FREQ);
@@ -69,474 +91,556 @@ function xNormToFreq(xNorm, maxFreq) {
     return xNorm * maxFreq;
 }
 
-/** Map a frequency → normalised x position [0,1]. */
+/** Mapeamento de frequência em Hz para posição x normalizada [0, 1] */
 function freqToXNorm(freq, maxFreq) {
     if (isLogScale) {
         const logMin = Math.log10(MIN_FREQ);
         const logMax = Math.log10(maxFreq);
         return (Math.log10(Math.max(freq, MIN_FREQ)) - logMin) / (logMax - logMin);
     }
-    return freq / maxFreq;
-}
-
-/** Return the oscillator-bank index whose centre frequency is closest to `freq`. */
-function freqToOscIndex(freq) {
-    let best = 0;
-    let bestDist = Infinity;
-    for (let k = 0; k < NUM_OSCS; k++) {
-        const d = Math.abs(oscFrequencies[k] - freq);
-        if (d < bestDist) { bestDist = d; best = k; }
-    }
-    return best;
+    return Math.max(0, Math.min(1, freq / maxFreq));
 }
 
 // =============================================================================
-// 4. RENDERIZAÇÃO DE EIXOS E GRADES
+// 4. INICIALIZAÇÃO DO MICROFONE E WEB AUDIO API
 // =============================================================================
 
-function drawFreqAxes(ctx, maxFreq) {
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-
-    // Vertical ticks
-    ctx.fillStyle = '#aaa';
-    ctx.font = '12px Arial';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'top';
-
-    const xTicks = isLogScale
-        ? [20, 50, 100, 200, 500, 1000, 2000, 5000, 10000, 20000].filter(f => f <= maxFreq)
-        : [0, 4000, 8000, 12000, 16000, 20000].filter(f => f <= maxFreq);
-
-    xTicks.forEach(freq => {
-        const xPos = ML + freqToXNorm(freq, maxFreq) * DW;
-        ctx.moveTo(xPos, MT);
-        ctx.lineTo(xPos, MT + DH);
-        const label = freq >= 1000 ? (freq / 1000) + 'k' : freq + '';
-        ctx.fillText(label, xPos, MT + DH + 8);
-    });
-
-    // Horizontal ticks (dB)
-    ctx.textAlign = 'right';
-    ctx.textBaseline = 'middle';
-    ctx.fillStyle = '#aaa';
-    for (let dB = -100; dB <= 0; dB += 20) {
-        const yPos = MT + DH - ((dB + 100) / 100) * DH;
-        ctx.moveTo(ML, yPos);
-        ctx.lineTo(ML + DW, yPos);
-        ctx.fillText(dB + ' dB', ML - 8, yPos);
-    }
-    ctx.stroke();
-
-    // Axis titles
-    ctx.fillStyle = '#fff';
-    ctx.font = 'bold 12px Arial';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'top';
-    ctx.fillText('Frequência (Hz)', ML + DW / 2, HEIGHT - 16);
-
-    ctx.save();
-    ctx.translate(12, MT + DH / 2);
-    ctx.rotate(-Math.PI / 2);
-    ctx.textAlign = 'center';
-    ctx.fillText('Intensidade (dB)', 0, 0);
-    ctx.restore();
-}
-
-// =============================================================================
-// 5. INICIALIZAÇÃO DE MODOS (ANÁLISE E SINTETIZADOR)
-// =============================================================================
-
-async function initAnalysis() {
+async function initMicrophone() {
     try {
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        audioContext  = new (window.AudioContext || window.webkitAudioContext)();
-        analyser      = audioContext.createAnalyser();
-        analyser.fftSize = 2048;
-        bufferLength  = analyser.frequencyBinCount;
-        dataArray     = new Uint8Array(bufferLength);
+        if (!audioCtx) {
+            const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+            audioCtx = new AudioContextClass();
+        }
+        if (audioCtx.state === 'suspended') {
+            await audioCtx.resume();
+        }
 
-        const source = audioContext.createMediaStreamSource(stream);
-        source.connect(analyser);
+        if (!analyserNode) {
+            analyserNode = audioCtx.createAnalyser();
+            analyserNode.fftSize = 2048;
+            analyserNode.smoothingTimeConstant = 0.75;
+            analyserNode.minDecibels = -100;
+            analyserNode.maxDecibels = 0;
 
-        startVisualization();
-        startButton.disabled = true;
-        stopButton.disabled  = false;
+            bufferLength = analyserNode.frequencyBinCount;
+            timeFloatData = new Float32Array(analyserNode.fftSize);
+            freqFloatData = new Float32Array(bufferLength);
+        }
+
+        if (!micStream) {
+            micStream = await navigator.mediaDevices.getUserMedia({
+                audio: {
+                    echoCancellation: false,
+                    noiseSuppression: false,
+                    autoGainControl: false
+                }
+            });
+            micSourceNode = audioCtx.createMediaStreamSource(micStream);
+            // Conecta exclusivamente ao analisador (não envia aos alto-falantes para evitar microfonia)
+            micSourceNode.connect(analyserNode);
+        }
+
+        isCapturing = true;
+        isFrozen = false;
+        updateControlsState();
+        startAnimationLoop();
     } catch (err) {
         alert('Erro ao acessar o microfone: ' + err.message);
+        stopMicrophone(true);
     }
 }
 
-// ─── Generator mode ───────────────────────────────────────────────────────────
+function stopMicrophone(cleanBuffers = false) {
+    isCapturing = false;
+    isFrozen = false;
 
-function initGenerator() {
-    audioContext = new (window.AudioContext || window.webkitAudioContext)();
-    const maxFreq = audioContext.sampleRate / 2;
-
-    analyser         = audioContext.createAnalyser();
-    analyser.fftSize = 2048;
-    bufferLength     = analyser.frequencyBinCount;
-    dataArray        = new Uint8Array(bufferLength);
-
-    masterGain = audioContext.createGain();
-    masterGain.gain.value = 0.5;
-    masterGain.connect(analyser);
-    analyser.connect(audioContext.destination);
-
-    // Build logarithmically-spaced oscillator bank
-    oscFrequencies = [];
-    oscillators    = [];
-    oscGains       = [];
-    generatorSpectrum = new Float32Array(NUM_OSCS);
-
-    for (let k = 0; k < NUM_OSCS; k++) {
-        const t    = k / (NUM_OSCS - 1);
-        const freq = Math.pow(10, Math.log10(MIN_FREQ) + t * Math.log10(Math.min(maxFreq, MAX_FREQ) / MIN_FREQ));
-        oscFrequencies.push(freq);
-
-        const osc  = audioContext.createOscillator();
-        osc.type   = 'sine';
-        osc.frequency.value = freq;
-
-        const gain = audioContext.createGain();
-        gain.gain.value = 0; // silent by default
-
-        osc.connect(gain);
-        gain.connect(masterGain);
-        osc.start();
-
-        oscillators.push(osc);
-        oscGains.push(gain);
+    if (micStream) {
+        micStream.getTracks().forEach(track => track.stop());
+        micStream = null;
+    }
+    if (micSourceNode) {
+        try { micSourceNode.disconnect(); } catch (_) {}
+        micSourceNode = null;
     }
 
-    startVisualization();
-    startButton.disabled = true;
-    stopButton.disabled  = false;
-}
-
-function clearGeneratorSpectrum() {
-    generatorSpectrum.fill(0);
-    oscGains.forEach(g => g.gain.setTargetAtTime(0, audioContext.currentTime, 0.05));
-}
-
-// ─── Mode management ─────────────────────────────────────────────────────────
-
-function stopAll() {
-    cancelAnimationFrame(animationId);
-    animationId = null;
-
-    // Stop oscillators
-    oscillators.forEach(osc => { try { osc.stop(); } catch (_) {} });
-    oscillators = [];
-    oscGains    = [];
-
-    if (audioContext) {
-        audioContext.close();
-        audioContext = null;
+    if (cleanBuffers && timeFloatData && freqFloatData) {
+        timeFloatData.fill(0);
+        freqFloatData.fill(-100);
     }
 
-    startButton.disabled = false;
-    stopButton.disabled  = true;
+    updateControlsState();
+    renderFrame();
 }
 
-function setMode(mode) {
-    stopAll();
-    currentMode = mode;
+function toggleFreeze() {
+    if (!isCapturing && !isFrozen) return;
 
-    if (mode === 'analysis') {
-        modeButton.textContent  = '⚡ Modo: Análise';
-        startButton.textContent = '▶ Iniciar (microfone)';
-        clearGroup.style.display = 'none';
-        infoText.textContent = 'Modo Análise: clique em Iniciar para capturar o áudio do microfone e visualizar o espectro em tempo real.';
-        freqCanvas.style.cursor = 'default';
-        freqCanvas.classList.remove('generator-active');
+    isFrozen = !isFrozen;
+    updateControlsState();
+}
+
+function updateControlsState() {
+    if (isCapturing && !isFrozen) {
+        btnMicStart.className = 'sim-btn sim-btn--freeze';
+        btnMicStartIcon.textContent = '⏸';
+        btnMicStartText.textContent = 'Congelar Tela';
+
+        hudStatusBadge.className = 'hud-badge status-live';
+        hudStatusBadge.textContent = 'Ao Vivo';
+    } else if (isCapturing && isFrozen) {
+        btnMicStart.className = 'sim-btn sim-btn--primary';
+        btnMicStartIcon.textContent = '▶';
+        btnMicStartText.textContent = 'Retomar Captura';
+
+        hudStatusBadge.className = 'hud-badge status-frozen';
+        hudStatusBadge.textContent = 'Congelado';
     } else {
-        modeButton.textContent  = '🏙 Modo: Gerar Sinal';
-        startButton.textContent = '▶ Iniciar Gerador';
-        clearGroup.style.display = '';
-        infoText.textContent = 'Modo Gerador: clique em Iniciar e depois arraste no gráfico de frequências para desenhar e ouvir o sinal sintetizado.';
-        freqCanvas.style.cursor = 'crosshair';
-        freqCanvas.classList.add('generator-active');
+        btnMicStart.className = 'sim-btn sim-btn--primary';
+        btnMicStartIcon.textContent = '▶';
+        btnMicStartText.textContent = 'Iniciar Captura';
+
+        hudStatusBadge.className = 'hud-badge status-idle';
+        hudStatusBadge.textContent = 'Pronto';
     }
 }
 
 // =============================================================================
-// 6. VISUALIZAÇÃO E DESENHO DOS GRÁFICOS (TEMPO E FREQUÊNCIA)
+// 5. GESTÃO DO LAYOUT PIP E ALTERNÂNCIA DE FOCO
+// =============================================================================
+
+function swapFocus() {
+    isTimeMain = !isTimeMain;
+
+    if (isTimeMain) {
+        // Osciloscópio vira o principal, FFT vira a miniatura
+        timeCanvasContainer.className = 'audio-canvas-container canvas-main';
+        freqCanvasContainer.className = 'audio-canvas-container canvas-pip';
+    } else {
+        // FFT vira o principal, Osciloscópio vira a miniatura
+        freqCanvasContainer.className = 'audio-canvas-container canvas-main';
+        timeCanvasContainer.className = 'audio-canvas-container canvas-pip';
+    }
+
+    renderFrame();
+}
+
+// =============================================================================
+// 6. RENDERIZAÇÃO DO OSCILOSCÓPIO (DOMÍNIO DO TEMPO COM ZERO-CROSSING)
 // =============================================================================
 
 function drawTimeDomain() {
     const ctx = timeCanvas.getContext('2d');
-    ctx.clearRect(0, 0, WIDTH, HEIGHT);
+    const width = timeCanvas.width;
+    const height = timeCanvas.height;
+    ctx.clearRect(0, 0, width, height);
 
-    // Grid
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
+    const isPip = !isTimeMain;
+    const dpr = window.devicePixelRatio || 1;
+    const ML = isPip ? 8 * dpr : 50 * dpr;
+    const MR = isPip ? 8 * dpr : 20 * dpr;
+    const MT = isPip ? 14 * dpr : 15 * dpr;
+    const MB = isPip ? 14 * dpr : 30 * dpr;
+    const DW = width - ML - MR;
+    const DH = height - MT - MB;
+
+    // Grade de fundo
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
     ctx.lineWidth = 1;
     ctx.beginPath();
 
-    ctx.fillStyle = '#aaa';
-    ctx.font = '12px Arial';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'alphabetic';
-    for (let t = 0; t <= 1000; t += 200) {
-        const xPos = ML + (t / 1000) * DW;
-        ctx.moveTo(xPos, MT);
-        ctx.lineTo(xPos, MT + DH);
-        ctx.fillText(t + 'ms', xPos, HEIGHT - 22);
-    }
+    if (!isPip) {
+        // Linhas de amplitude [-1.0 a +1.0]
+        ctx.fillStyle = '#64748b';
+        ctx.font = `${11 * dpr}px monospace`;
+        ctx.textAlign = 'right';
+        ctx.textBaseline = 'middle';
 
-    ctx.textAlign = 'right';
-    ctx.textBaseline = 'middle';
-    const amplitudes = [-1, -0.5, 0, 0.5, 1];
-    amplitudes.forEach(amp => {
-        const yPos = MT + (1 - (amp + 1) / 2) * DH;
-        ctx.moveTo(ML, yPos);
-        ctx.lineTo(ML + DW, yPos);
-        ctx.fillText(amp.toFixed(1), ML - 8, yPos);
-    });
-    ctx.stroke();
+        const ampLevels = [1.0, 0.5, 0, -0.5, -1.0];
+        ampLevels.forEach(amp => {
+            const y = MT + (1 - (amp + 1) / 2) * DH;
+            ctx.moveTo(ML, y);
+            ctx.lineTo(ML + DW, y);
+            ctx.fillText(amp.toFixed(1), ML - (4 * dpr), y);
+        });
 
-    // Axis titles
-    ctx.fillStyle = '#fff';
-    ctx.font = 'bold 12px Arial';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'alphabetic';
-    ctx.fillText('Tempo (ms)', ML + DW / 2, HEIGHT - 6);
+        // Escala de tempo (ms)
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'top';
+        const sampleRate = audioCtx ? audioCtx.sampleRate : 44100;
+        const totalTimeMs = (DW / sampleRate) * 1000 * 2;
 
-    ctx.save();
-    ctx.translate(12, MT + DH / 2);
-    ctx.rotate(-Math.PI / 2);
-    ctx.textAlign = 'center';
-    ctx.fillText('Amplitude', 0, 0);
-    ctx.restore();
-
-    // Waveform
-    if (!analyser) return;
-    analyser.getByteTimeDomainData(dataArray);
-
-    ctx.save();
-    ctx.beginPath();
-    ctx.rect(ML, MT, DW, DH);
-    ctx.clip();
-
-    ctx.lineWidth = 2;
-    ctx.strokeStyle = '#00ffcc';
-    ctx.shadowBlur  = 10;
-    ctx.shadowColor = '#00ffcc';
-    ctx.beginPath();
-
-    const sliceWidth = DW / bufferLength;
-    let xw = ML;
-    for (let i = 0; i < bufferLength; i++) {
-        const v = dataArray[i] / 128.0 - 1;
-        const y = MT + (1 - (v + 1) / 2) * DH;
-        i === 0 ? ctx.moveTo(xw, y) : ctx.lineTo(xw, y);
-        xw += sliceWidth;
-    }
-    ctx.stroke();
-    ctx.restore();
-}
-
-// ─── Draw: frequency spectrum ─────────────────────────────────────────────────
-
-function drawFrequency() {
-    const ctx = freqCanvas.getContext('2d');
-    ctx.clearRect(0, 0, WIDTH, HEIGHT);
-
-    if (!analyser) return;
-    const maxFreq = audioContext.sampleRate / 2;
-
-    // Grid + axes
-    drawFreqAxes(ctx, maxFreq);
-
-    ctx.save();
-    ctx.beginPath();
-    ctx.rect(ML, MT, DW, DH);
-    ctx.clip();
-
-    if (currentMode === 'analysis') {
-        // ── Analysis: draw FFT bars ──────────────────────────────────────────
-        analyser.getByteFrequencyData(dataArray);
-
-        for (let i = 0; i < bufferLength; i++) {
-            const f_low  = (i * maxFreq) / bufferLength;
-            const f_high = ((i + 1) * maxFreq) / bufferLength;
-
-            const xN  = freqToXNorm(f_low, maxFreq);
-            const xN2 = freqToXNorm(f_high, maxFreq);
-            const bx  = ML + xN  * DW;
-            const bw  = (xN2 - xN) * DW;
-
-            const barHeight = (dataArray[i] / 255) * DH;
-
-            if (bx < ML + DW && bw > 0 && barHeight > 0) {
-                const grad = ctx.createLinearGradient(0, MT + DH - barHeight, 0, MT + DH);
-                grad.addColorStop(0, `hsla(${i * 2}, 100%, 60%, 1)`);
-                grad.addColorStop(1, `hsla(${i * 2}, 100%, 30%, 0.3)`);
-                ctx.fillStyle = grad;
-                ctx.fillRect(bx, MT + DH - barHeight, Math.max(Math.ceil(bw), 1), barHeight);
-            }
+        for (let s = 0; s <= 5; s++) {
+            const x = ML + (s / 5) * DW;
+            ctx.moveTo(x, MT);
+            ctx.lineTo(x, MT + DH);
+            const tVal = ((s / 5) * totalTimeMs).toFixed(1);
+            ctx.fillText(`${tVal}ms`, x, MT + DH + (4 * dpr));
         }
     } else {
-        // ── Generator: draw painted spectrum bars + live analyser overlay ────
-
-        // Painted bars (white)
-        for (let k = 0; k < NUM_OSCS; k++) {
-            const amp = generatorSpectrum[k];
-            if (amp <= 0) continue;
-
-            const freq = oscFrequencies[k];
-            const xN   = freqToXNorm(freq, maxFreq);
-
-            // Bar width spans to next oscillator
-            let bw;
-            if (k < NUM_OSCS - 1) {
-                const xN2 = freqToXNorm(oscFrequencies[k + 1], maxFreq);
-                bw = (xN2 - xN) * DW;
-            } else {
-                bw = DW * 0.02;
-            }
-
-            const bx        = ML + xN * DW;
-            const barHeight = amp * DH;
-
-            const hue = 180 + k * (180 / NUM_OSCS);
-            const grad = ctx.createLinearGradient(0, MT + DH - barHeight, 0, MT + DH);
-            grad.addColorStop(0, `hsla(${hue}, 90%, 65%, 0.95)`);
-            grad.addColorStop(1, `hsla(${hue}, 90%, 35%, 0.3)`);
-            ctx.fillStyle = grad;
-            ctx.fillRect(bx, MT + DH - barHeight, Math.max(Math.ceil(bw), 1), barHeight);
-        }
-
-        // Live FFT overlay (thin cyan line)
-        analyser.getByteFrequencyData(dataArray);
-        ctx.beginPath();
-        ctx.strokeStyle = 'rgba(0, 255, 200, 0.6)';
-        ctx.lineWidth = 1.5;
-        let started = false;
-        for (let i = 0; i < bufferLength; i++) {
-            const f   = (i * maxFreq) / bufferLength;
-            const xN  = freqToXNorm(f, maxFreq);
-            const bx  = ML + xN * DW;
-            const y   = MT + DH - (dataArray[i] / 255) * DH;
-            if (!started) { ctx.moveTo(bx, y); started = true; }
-            else ctx.lineTo(bx, y);
-        }
-        ctx.stroke();
+        // Grade sutil centralizada para miniatura PIP
+        ctx.moveTo(ML, MT + DH / 2);
+        ctx.lineTo(ML + DW, MT + DH / 2);
+        ctx.moveTo(ML, MT);
+        ctx.lineTo(ML + DW, MT);
+        ctx.moveTo(ML, MT + DH);
+        ctx.lineTo(ML + DW, MT + DH);
     }
+    ctx.stroke();
+
+    if (!timeFloatData) return;
+
+    // Se estiver ao vivo, atualiza os dados do analisador
+    if (isCapturing && !isFrozen && analyserNode) {
+        analyserNode.getFloatTimeDomainData(timeFloatData);
+    }
+
+    // Algoritmo de Trigger de Passagem por Zero (Zero-Crossing)
+    let startIndex = 0;
+    if (isTriggerActive) {
+        const searchLimit = Math.min(timeFloatData.length - DW, 1024);
+        for (let i = 1; i < searchLimit; i++) {
+            if (timeFloatData[i - 1] < 0 && timeFloatData[i] >= 0) {
+                startIndex = i;
+                break;
+            }
+        }
+    }
+
+    // Desenho da Onda
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(ML, MT - (6 * dpr), DW, DH + (12 * dpr));
+    ctx.clip();
+
+    ctx.strokeStyle = isFrozen ? '#38bdf8' : '#00f0ff';
+    ctx.lineWidth = isPip ? 1.6 * dpr : 2 * dpr;
+    ctx.shadowBlur = isFrozen ? 4 : 8;
+    ctx.shadowColor = '#0284c7';
+    ctx.beginPath();
+
+    const pointsToDraw = Math.min(DW, timeFloatData.length - startIndex);
+    for (let x = 0; x < pointsToDraw; x++) {
+        const rawSample = timeFloatData[startIndex + x];
+        const sample = Math.max(-1, Math.min(1, rawSample * visualGain));
+        const y = MT + (1 - (sample + 1) / 2) * DH;
+        if (x === 0) ctx.moveTo(ML + x, y);
+        else ctx.lineTo(ML + x, y);
+    }
+    ctx.stroke();
+    ctx.restore();
+}
+
+// =============================================================================
+// 7. RENDERIZAÇÃO DO ESPECTRO DE FREQUÊNCIA (FFT COM PICOS)
+// =============================================================================
+
+function drawFrequencySpectrum() {
+    const ctx = freqCanvas.getContext('2d');
+    const width = freqCanvas.width;
+    const height = freqCanvas.height;
+    ctx.clearRect(0, 0, width, height);
+
+    const isPip = isTimeMain;
+    const dpr = window.devicePixelRatio || 1;
+    const ML = isPip ? 10 * dpr : 55 * dpr;
+    const MR = isPip ? 10 * dpr : 20 * dpr;
+    const MT = isPip ? 10 * dpr : 15 * dpr;
+    const MB = isPip ? 10 * dpr : 35 * dpr;
+    const DW = width - ML - MR;
+    const DH = height - MT - MB;
+    const maxFreq = audioCtx ? audioCtx.sampleRate / 2 : 22050;
+
+    // Eixos e Grade
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+
+    if (!isPip) {
+        // Ticks de Frequência
+        ctx.fillStyle = '#64748b';
+        ctx.font = `${11 * dpr}px monospace`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'top';
+
+        const fullTicks = isLogScale
+            ? [20, 50, 100, 250, 500, 1000, 2500, 5000, 10000, 20000].filter(f => f <= maxFreq)
+            : [0, 4000, 8000, 12000, 16000, 20000].filter(f => f <= maxFreq);
+
+        fullTicks.forEach(freq => {
+            const xPos = ML + freqToXNorm(freq, maxFreq) * DW;
+            ctx.moveTo(xPos, MT);
+            ctx.lineTo(xPos, MT + DH);
+            const label = freq >= 1000 ? `${(freq / 1000).toFixed(freq % 1000 === 0 ? 0 : 1)}k` : `${freq}`;
+            ctx.fillText(label, xPos, MT + DH + (4 * dpr));
+        });
+
+        // Ticks de Intensidade [-100 dB a 0 dB]
+        ctx.textAlign = 'right';
+        ctx.textBaseline = 'middle';
+        for (let dB = -100; dB <= 0; dB += 20) {
+            const yPos = MT + DH - ((dB + 100) / 100) * DH;
+            ctx.moveTo(ML, yPos);
+            ctx.lineTo(ML + DW, yPos);
+            ctx.fillText(`${dB}dB`, ML - (4 * dpr), yPos);
+        }
+
+        // Rótulo do Eixo
+        ctx.fillStyle = '#94a3b8';
+        ctx.font = `bold ${11 * dpr}px sans-serif`;
+        ctx.textAlign = 'center';
+        ctx.fillText('Frequência (Hz)', ML + DW / 2, height - (12 * dpr));
+    } else {
+        // Grade sutil para miniatura PIP
+        for (let i = 1; i <= 3; i++) {
+            const y = MT + (i / 4) * DH;
+            ctx.moveTo(ML, y);
+            ctx.lineTo(ML + DW, y);
+        }
+    }
+    ctx.stroke();
+
+    if (!freqFloatData) return;
+
+    // Se estiver ao vivo, atualiza os dados do FFT
+    if (isCapturing && !isFrozen && analyserNode) {
+        analyserNode.getFloatFrequencyData(freqFloatData);
+    }
+
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(ML, MT, DW, DH);
+    ctx.clip();
+
+    // Curva FFT
+    ctx.beginPath();
+    let first = true;
+    for (let i = 0; i < bufferLength; i++) {
+        const freq = (i * maxFreq) / bufferLength;
+        if (freq < MIN_FREQ && isLogScale) continue;
+        const xN = freqToXNorm(freq, maxFreq);
+        const bx = ML + xN * DW;
+        const dB = Math.max(-100, Math.min(0, freqFloatData[i]));
+        const y = MT + DH - ((dB + 100) / 100) * DH;
+
+        if (first) { ctx.moveTo(bx, y); first = false; }
+        else ctx.lineTo(bx, y);
+    }
+
+    ctx.strokeStyle = isFrozen ? '#38bdf8' : '#00f0ff';
+    ctx.lineWidth = isPip ? 1.4 * dpr : 1.8 * dpr;
+    ctx.stroke();
+
+    // Preenchimento gradiente suave
+    ctx.lineTo(ML + DW, MT + DH);
+    ctx.lineTo(ML, MT + DH);
+    ctx.closePath();
+    const fillGrad = ctx.createLinearGradient(0, MT, 0, MT + DH);
+    fillGrad.addColorStop(0, isFrozen ? 'rgba(56, 189, 248, 0.25)' : 'rgba(0, 240, 255, 0.3)');
+    fillGrad.addColorStop(1, 'rgba(56, 189, 248, 0.0)');
+    ctx.fillStyle = fillGrad;
+    ctx.fill();
 
     ctx.restore();
 }
 
-// ─── Animation loop ───────────────────────────────────────────────────────────
+// =============================================================================
+// 8. CÁLCULO DE MÉTRICAS DO HUD
+// =============================================================================
 
-function animate() {
-    drawTimeDomain();
-    drawFrequency();
-    animationId = requestAnimationFrame(animate);
+function updateMetricsHud() {
+    if (!freqFloatData || !timeFloatData || (!isCapturing && !isFrozen)) {
+        if (!isFrozen) {
+            hudPeakFreq.textContent = '--- Hz';
+            hudMusicalNote.textContent = '---';
+            hudRmsLevel.textContent = '-∞ dBFS';
+        }
+        return;
+    }
+
+    // 1. Frequência de Pico com Interpolação Parabólica Sub-Bin
+    let maxVal = -Infinity;
+    let peakBin = -1;
+    for (let i = 1; i < bufferLength - 1; i++) {
+        if (freqFloatData[i] > maxVal) {
+            maxVal = freqFloatData[i];
+            peakBin = i;
+        }
+    }
+
+    const maxFreq = audioCtx ? audioCtx.sampleRate / 2 : 22050;
+    if (maxVal > -75 && peakBin > 0) {
+        const alpha = freqFloatData[peakBin - 1];
+        const beta = freqFloatData[peakBin];
+        const gamma = freqFloatData[peakBin + 1];
+        const denom = 2 * (alpha - 2 * beta + gamma);
+        const delta = denom !== 0 ? (alpha - gamma) / denom : 0;
+        const preciseFreq = (peakBin + delta) * (maxFreq / bufferLength);
+
+        hudPeakFreq.textContent = `${preciseFreq.toFixed(1)} Hz`;
+        hudMusicalNote.textContent = freqToMusicalNote(preciseFreq);
+    } else {
+        hudPeakFreq.textContent = '--- Hz';
+        hudMusicalNote.textContent = '---';
+    }
+
+    // 2. RMS e dBFS
+    let sumSq = 0;
+    for (let i = 0; i < timeFloatData.length; i++) {
+        sumSq += timeFloatData[i] * timeFloatData[i];
+    }
+    const rms = Math.sqrt(sumSq / timeFloatData.length);
+    const dbfs = 20 * Math.log10(Math.max(rms, 1e-5));
+    hudRmsLevel.textContent = dbfs > -85 ? `${dbfs.toFixed(1)} dBFS` : '-∞ dBFS';
 }
 
-function startVisualization() {
-    animate();
-}
+// =============================================================================
+// 9. LOOP DE ANIMAÇÃO E RENDERIZAÇÃO
+// =============================================================================
 
-function stopVisualization() {
-    stopAll();
-    // Clear canvases
-    ['timeCanvas', 'freqCanvas'].forEach(id => {
-        const c = document.getElementById(id);
-        c.getContext('2d').clearRect(0, 0, c.width, c.height);
+function resizeCanvases() {
+    const dpr = window.devicePixelRatio || 1;
+    [timeCanvas, freqCanvas].forEach(c => {
+        const rect = c.getBoundingClientRect();
+        if (rect.width > 0 && rect.height > 0) {
+            const width = Math.floor(rect.width * dpr);
+            const height = Math.floor(rect.height * dpr);
+            if (c.width !== width || c.height !== height) {
+                c.width = width;
+                c.height = height;
+            }
+        }
     });
 }
 
-// =============================================================================
-// 7. LOOP DE ANIMAÇÃO E INTERAÇÃO COM O USUÁRIO (EVENTOS)
-// =============================================================================
-
-function getCanvasPaintCoords(e) {
-    const rect   = freqCanvas.getBoundingClientRect();
-    const scaleX = WIDTH  / rect.width;
-    const scaleY = HEIGHT / rect.height;
-    const cx = (e.clientX - rect.left) * scaleX;
-    const cy = (e.clientY - rect.top)  * scaleY;
-    return { cx, cy };
+function renderFrame() {
+    resizeCanvases();
+    drawTimeDomain();
+    drawFrequencySpectrum();
+    updateMetricsHud();
 }
 
-function paintAtCoords(cx, cy) {
-    if (!audioContext || currentMode !== 'generator') return;
-    if (cx < ML || cx > ML + DW || cy < MT || cy > MT + DH) return;
+function startAnimationLoop() {
+    if (animationId) cancelAnimationFrame(animationId);
 
-    const maxFreq = audioContext.sampleRate / 2;
-    const xNorm   = (cx - ML) / DW;
-    const yNorm   = 1 - (cy - MT) / DH;   // 0 = silent, 1 = max
-    const amp     = Math.max(0, Math.min(1, yNorm));
-
-    const targetFreq = xNormToFreq(xNorm, maxFreq);
-    const idx        = freqToOscIndex(targetFreq);
-
-    generatorSpectrum[idx] = amp;
-    oscGains[idx].gain.setTargetAtTime(amp * 0.4, audioContext.currentTime, 0.02);
+    function loop() {
+        renderFrame();
+        if (isCapturing || isFrozen) {
+            animationId = requestAnimationFrame(loop);
+        }
+    }
+    animationId = requestAnimationFrame(loop);
 }
 
-freqCanvas.addEventListener('mousedown', e => {
-    if (currentMode !== 'generator') return;
-    isDrawing = true;
-    const { cx, cy } = getCanvasPaintCoords(e);
-    paintAtCoords(cx, cy);
+// =============================================================================
+// 10. GESTÃO DE ABAS E EVENTOS DE INTERFACE
+// =============================================================================
+
+function switchTab(targetTabId) {
+    if (activeTabId === targetTabId) return;
+
+    // Se estiver capturando microfone e mudar para outra aba, pausa com segurança
+    if (activeTabId === 'tab-mic') {
+        stopMicrophone(false);
+    }
+
+    activeTabId = targetTabId;
+
+    // Atualiza botões
+    tabButtons.forEach(btn => {
+        btn.classList.toggle('active', btn.getAttribute('data-tab') === targetTabId);
+    });
+
+    // Atualiza conteúdos
+    tabContents.forEach(content => {
+        const isActive = (content.id === targetTabId);
+        content.classList.toggle('active', isActive);
+        content.style.display = isActive ? 'flex' : 'none';
+    });
+
+    renderFrame();
+}
+
+tabButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+        const tab = btn.getAttribute('data-tab');
+        switchTab(tab);
+    });
 });
 
+// Chave de 2 posições para escala de frequência (Logarítmica / Linear)
+scaleBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+        const scale = btn.getAttribute('data-scale');
+        isLogScale = (scale === 'log');
+        scaleBtns.forEach(b => b.classList.toggle('active', b === btn));
+        renderFrame();
+    });
+});
+
+// Eventos da Aba 1 (Microfone - Botão Único)
+btnMicStart.addEventListener('click', () => {
+    if (!isCapturing) {
+        initMicrophone();
+    } else {
+        toggleFreeze();
+    }
+});
+
+// Botão Trigger do Osciloscópio
+btnToggleTrigger.addEventListener('click', (e) => {
+    e.stopPropagation();
+    isTriggerActive = !isTriggerActive;
+    btnToggleTrigger.classList.toggle('active', isTriggerActive);
+    btnToggleTrigger.textContent = `Trigger: ${isTriggerActive ? 'Zero-Cross' : 'Livre'}`;
+    renderFrame();
+});
+
+// Botões de Alternância de Foco PIP (exclusivos da miniatura)
+swapFocusBtns.forEach(btn => {
+    btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        swapFocus();
+    });
+});
+
+// Inspetor sob o Cursor no Gráfico de Frequência
 freqCanvas.addEventListener('mousemove', e => {
-    if (!isDrawing) return;
-    const { cx, cy } = getCanvasPaintCoords(e);
-    paintAtCoords(cx, cy);
+    const rect = freqCanvas.getBoundingClientRect();
+    const dpr = window.devicePixelRatio || 1;
+    const cx = (e.clientX - rect.left) * dpr;
+    const cy = (e.clientY - rect.top) * dpr;
+
+    const isPip = isTimeMain;
+    const ML = isPip ? 35 * dpr : 55 * dpr;
+    const MR = isPip ? 10 * dpr : 20 * dpr;
+    const MT = isPip ? 10 * dpr : 15 * dpr;
+    const MB = isPip ? 22 * dpr : 35 * dpr;
+    const DW = freqCanvas.width - ML - MR;
+    const DH = freqCanvas.height - MT - MB;
+    const maxFreq = audioCtx ? audioCtx.sampleRate / 2 : 22050;
+
+    if (cx >= ML && cx <= ML + DW && cy >= MT && cy <= MT + DH) {
+        const xNorm = (cx - ML) / DW;
+        const freq = xNormToFreq(xNorm, maxFreq);
+        const yNorm = 1 - (cy - MT) / DH;
+        const dB = (yNorm * 100 - 100).toFixed(0);
+        hudInspectorValue.textContent = `${freq.toFixed(0)} Hz | ${dB} dB (${freqToMusicalNote(freq)})`;
+    } else {
+        hudInspectorValue.textContent = 'Passe o mouse no gráfico';
+    }
 });
 
-freqCanvas.addEventListener('mouseup',    () => { isDrawing = false; });
-freqCanvas.addEventListener('mouseleave', () => { isDrawing = false; });
-
-// Touch support
-freqCanvas.addEventListener('touchstart', e => {
-    e.preventDefault();
-    if (currentMode !== 'generator') return;
-    isDrawing = true;
-    const touch = e.touches[0];
-    const { cx, cy } = getCanvasPaintCoords(touch);
-    paintAtCoords(cx, cy);
-}, { passive: false });
-
-freqCanvas.addEventListener('touchmove', e => {
-    e.preventDefault();
-    if (!isDrawing) return;
-    const touch = e.touches[0];
-    const { cx, cy } = getCanvasPaintCoords(touch);
-    paintAtCoords(cx, cy);
-}, { passive: false });
-
-freqCanvas.addEventListener('touchend', () => { isDrawing = false; });
-
-// ─── Button wiring ────────────────────────────────────────────────────────────
-
-startButton.addEventListener('click', () => {
-    if (currentMode === 'analysis') initAnalysis();
-    else initGenerator();
+freqCanvas.addEventListener('mouseleave', () => {
+    hudInspectorValue.textContent = 'Passe o mouse no gráfico';
 });
 
-stopButton.addEventListener('click', stopVisualization);
-stopButton.disabled = true;
-
-modeButton.addEventListener('click', () => {
-    const next = currentMode === 'analysis' ? 'generator' : 'analysis';
-    setMode(next);
+// Redimensionamento de janela
+window.addEventListener('resize', () => {
+    renderFrame();
 });
 
-clearButton.addEventListener('click', () => {
-    if (currentMode === 'generator') clearGeneratorSpectrum();
-});
-
-scaleButton.addEventListener('click', () => {
-    isLogScale = !isLogScale;
-    scaleButton.textContent = `Escala: ${isLogScale ? 'Logarítmica' : 'Linear'}`;
-});
-
-// Initialise UI text
-setMode('analysis');
+// =============================================================================
+// 11. INICIALIZAÇÃO DA PÁGINA
+// =============================================================================
+updateControlsState();
+renderFrame();

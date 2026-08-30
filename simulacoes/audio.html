@@ -5,12 +5,12 @@
     <!-- Metadados da Página -->
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Análise de Áudio e Sintetizador Espectral</title>
+    <title>Laboratório de Áudio e Análise Espectral</title>
 
     <meta name="description"
-        content="Simulação e análise de sinal de áudio em tempo real via Web Audio API. Visualização espectral FFT, forma de onda no tempo e sintetizador aditivo interativo.">
+        content="Laboratório interativo de física acústica: captura de som via microfone, osciloscópio no tempo, espectro FFT com congelamento de tela para análise didática.">
     <meta name="keywords"
-        content="análise de áudio, FFT, transformada de Fourier, Web Audio API, espectrograma, sintetizador, frequência, osciloscópio, simulação">
+        content="áudio, osciloscópio, FFT, microfone, física acústica, transformada de fourier, espectrograma, som, frequência">
     <meta name="author" content="Nicolas Heringer">
 
     <!-- Favicon -->
@@ -23,8 +23,7 @@
     <!-- Suporte a LaTeX com KaTeX -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
     <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
-    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"
-        onload="renderMathInElement(document.body, {
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" onload="renderMathInElement(document.body, {
             delimiters: [
                 {left: '$$', right: '$$', display: true},
                 {left: '$', right: '$', display: false},
@@ -39,43 +38,132 @@
     <!-- Cabeçalho da Simulação -->
     <header class="sim-header">
         <a href="../index.html#secao-simulacoes" class="btn-back">← Voltar ao Hub</a>
-        <span class="sim-title">Análise de Áudio em Tempo Real</span>
+        <span class="sim-title">Laboratório de Áudio: Análise Espectral & Ondas</span>
     </header>
 
     <!-- Conteúdo Principal -->
     <main class="sim-layout">
-        <!-- Área de Visualização (Canvases do Domínio do Tempo e Frequência) -->
+        <!-- Área de Visualização (Canvas Principal em Destaque + Miniatura PIP Alternável) -->
         <div class="canvas-area">
-            <div class="audio-canvas-container" id="canvasContainer1">
-                <canvas id="timeCanvas"></canvas>
+            <!-- HUD de Métricas Físicas e Inspeção (Oculto temporariamente) -->
+            <div id="audioMetricsHud" class="audio-hud" style="display: none;">
+                <div class="hud-item">
+                    <span class="hud-label">Pico / Fundamental</span>
+                    <span class="hud-value" id="hudPeakFreq">--- Hz</span>
+                </div>
+                <div class="hud-item">
+                    <span class="hud-label">Nota Musical</span>
+                    <span class="hud-value" id="hudMusicalNote">---</span>
+                </div>
+                <div class="hud-item">
+                    <span class="hud-label">Nível RMS</span>
+                    <span class="hud-value" id="hudRmsLevel">-∞ dBFS</span>
+                </div>
+                <div class="hud-item" id="hudInspectorItem">
+                    <span class="hud-label">Cursor no Gráfico</span>
+                    <span class="hud-value" id="hudInspectorValue">Passe o mouse no gráfico</span>
+                </div>
+                <div class="hud-item hud-item--status">
+                    <span class="hud-label">Status</span>
+                    <span class="hud-badge status-idle" id="hudStatusBadge">Pronto</span>
+                </div>
             </div>
 
-            <div class="audio-canvas-container" id="canvasContainer2">
-                <canvas id="freqCanvas"></canvas>
+            <!-- Palco de Visualização dos Canvases -->
+            <div class="canvas-stage" id="canvasStage">
+                <!-- Container 1: Osciloscópio (Tempo) -->
+                <div class="audio-canvas-container canvas-pip" id="timeCanvasContainer">
+                    <div class="canvas-header-bar">
+                        <span class="canvas-header-title" id="timeCanvasTitle">Osciloscópio — Tempo $x(t)$</span>
+                        <div class="canvas-header-controls">
+                            <button type="button" id="btnToggleTrigger" class="badge-btn active"
+                                title="Ativar/Desativar estabilização do osciloscópio">Trigger</button>
+                            <button type="button" class="badge-btn btn-swap-focus"
+                                title="Alternar foco com o gráfico principal">🔄 Alternar</button>
+                        </div>
+                    </div>
+                    <canvas id="timeCanvas"></canvas>
+                </div>
+
+                <!-- Container 2: Espectro FFT (Frequência) -->
+                <div class="audio-canvas-container canvas-main" id="freqCanvasContainer">
+                    <div class="canvas-header-bar">
+                        <span class="canvas-header-title" id="freqCanvasTitle">Espectro de Frequência — $|X(f)|$
+                            (FFT)</span>
+                        <div class="canvas-header-controls">
+                            <button type="button" class="badge-btn btn-swap-focus"
+                                title="Alternar foco com a miniatura">🔄 Alternar</button>
+                        </div>
+                    </div>
+                    <canvas id="freqCanvas"></canvas>
+                </div>
             </div>
         </div>
 
-        <!-- Painel de Controles -->
+        <!-- Painel de Controles com Navegação por Abas -->
         <aside class="controls-panel">
-            <div class="control-group">
-                <button id="modeButton" class="sim-btn sim-btn--accent">⚡ Modo: Análise</button>
-            </div>
-            <div class="control-group">
-                <button id="startButton" class="sim-btn">▶ Iniciar</button>
-            </div>
-            <div class="control-group">
-                <button id="stopButton" class="sim-btn" disabled>⏹ Parar</button>
-            </div>
-            <div class="control-group" id="clearGroup">
-                <button id="clearButton" class="sim-btn">🗑 Limpar Sinal</button>
-            </div>
-            <div class="control-group">
-                <button id="scaleButton" class="sim-btn">Escala: Linear</button>
-            </div>
-            <div class="info-section">
-                <p id="infoText">Nesta simulação é possível visualizar um som capturado pelo microfone e seu respectivo espectro de
-                    frequências usando a Transformada de Fourier.</p>
-            </div>
+            <!-- Barra de Abas -->
+            <nav class="tabs-nav" aria-label="Abas da Simulação">
+                <button type="button" class="tab-nav-btn active" data-tab="tab-mic" id="tabBtnMic">
+                    <span class="tab-icon"></span>
+                    <span class="tab-text">MIC</span>
+                </button>
+                <button type="button" class="tab-nav-btn" data-tab="tab-waves" id="tabBtnWaves">
+                    <span class="tab-icon"></span>
+                    <span class="tab-text">ONDAS</span>
+                </button>
+                <button type="button" class="tab-nav-btn" data-tab="tab-beats" id="tabBtnBeats">
+                    <span class="tab-icon"></span>
+                    <span class="tab-text">BATIMENTO</span>
+                </button>
+            </nav>
+
+            <!-- CONTEÚDO DA ABA 1: MICROFONE & ANÁLISE AO VIVO -->
+            <section id="tab-mic" class="tab-content active">
+                <div class="tab-header">
+                    <h3>Captura e Análise de Microfone</h3>
+                    <p class="tab-description">
+                        Capture o som do ambiente em tempo real. Você pode <strong>congelar a captura</strong> a
+                        qualquer momento para analisar o sinal parado na tela.
+                    </p>
+                </div>
+
+                <!-- Botão Único de Ação da Aba 1 -->
+                <div class="control-group">
+                    <button type="button" id="btnMicStart" class="sim-btn sim-btn--primary" style="width: 100%;">
+                        <span id="btnMicStartIcon">▶</span> <span id="btnMicStartText">Iniciar Captura</span>
+                    </button>
+                </div>
+
+                <!-- Chave de 2 posições para Escala de Frequência -->
+                <div class="control-group">
+                    <label>Escala de Frequência:</label>
+                    <div class="segmented-control" id="scaleControl">
+                        <button type="button" class="segment-btn active" data-scale="log">Logarítmica</button>
+                        <button type="button" class="segment-btn" data-scale="linear">Linear</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- CONTEÚDO DA ABA 2: ONDAS (EM PREPARAÇÃO) -->
+            <section id="tab-waves" class="tab-content" style="display: none;">
+                <div class="tab-header">
+                    <h3>Fontes de Onda & Decomposição</h3>
+                </div>
+                <div class="placeholder-card">
+                    <span>Esta etapa será ativada em breve.</span>
+                </div>
+            </section>
+
+            <!-- CONTEÚDO DA ABA 3: BATIMENTO ACÚSTICO (EM PREPARAÇÃO) -->
+            <section id="tab-beats" class="tab-content" style="display: none;">
+                <div class="tab-header">
+                    <h3>Batimento Acústico</h3>
+                </div>
+                <div class="placeholder-card">
+                    <span>Esta etapa será ativada em breve.</span>
+                </div>
+            </section>
         </aside>
     </main>
 
