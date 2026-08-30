@@ -23,8 +23,7 @@
     <!-- Suporte a LaTeX com KaTeX -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
     <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
-    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"
-        onload="renderMathInElement(document.body, {
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" onload="renderMathInElement(document.body, {
             delimiters: [
                 {left: '$$', right: '$$', display: true},
                 {left: '$', right: '$', display: false},
@@ -55,14 +54,33 @@
                 <p>Simulação do modelo clássico de condução elétrica (Modelo de Drude).</p>
             </div>
 
+            <!-- SENTIDO DO CAMPO ELÉTRICO -->
             <div class="control-group">
-                <label for="campoEletrico">Campo Elétrico (E): <span id="valCampo">0.1</span></label>
-                <input type="range" id="campoEletrico" class="sim-input" min="-0.5" max="0.5" step="0.01" value="0.0">
+                <label>Sentido do Campo Elétrico ($\vec{E}$):</label>
+                <div class="segmented-control" id="dirCampoControl">
+                    <button type="button" class="segment-btn" data-dir="-1"
+                        title="Campo para a Esquerda">$\leftarrow$</button>
+                    <button type="button" class="segment-btn active" data-dir="0" title="Campo Desligado">$0$</button>
+                    <button type="button" class="segment-btn" data-dir="1"
+                        title="Campo para a Direita">$\rightarrow$</button>
+                </div>
             </div>
 
+            <!-- INTENSIDADE DO CAMPO -->
             <div class="control-group">
-                <label for="temperatura">Temperatura (Agitação): <span id="valTemp">50</span></label>
-                <input type="range" id="temperatura" class="sim-input" min="0" max="100" step="1" value="0">
+                <label for="intensidadeCampo">
+                    Intensidade do Campo ($|E|$): <strong><span id="valIntensidadeCampo">0.20</span></strong>
+                </label>
+                <input type="range" id="intensidadeCampo" class="sim-slider" min="0.05" max="1.00" step="0.05"
+                    value="0.20">
+            </div>
+
+            <!-- TEMPERATURA / AGITAÇÃO TÉRMICA -->
+            <div class="control-group">
+                <label for="temperatura">
+                    Temperatura (Agitação Térmica): <strong><span id="valTemp">0</span></strong>
+                </label>
+                <input type="range" id="temperatura" class="sim-slider" min="0" max="100" step="1" value="0">
             </div>
 
             <div class="control-group">

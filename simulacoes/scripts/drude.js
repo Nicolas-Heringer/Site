@@ -15,18 +15,35 @@ canvas.width = 800;
 canvas.height = 600;
 
 // Elementos da UI
-const inputCampo = document.getElementById('campoEletrico');
-const valCampo = document.getElementById('valCampo');
+const dirCampoBtns = document.querySelectorAll('#dirCampoControl .segment-btn');
+const inputIntensidade = document.getElementById('intensidadeCampo');
+const valIntensidadeCampo = document.getElementById('valIntensidadeCampo');
 const inputTemp = document.getElementById('temperatura');
 const valTemp = document.getElementById('valTemp');
 const selectRede = document.getElementById('tipoRede');
-let campoEletrico = parseFloat(inputCampo.value);
+
+let direcaoCampo = 0; // -1 = Esquerda, 0 = Desligado, 1 = Direita
+let intensidadeCampo = parseFloat(inputIntensidade.value);
+let campoEletrico = direcaoCampo * intensidadeCampo;
 let temperatura = parseFloat(inputTemp.value);
 let tipoRede = selectRede.value;
 
-inputCampo.addEventListener('input', (e) => {
-    campoEletrico = parseFloat(e.target.value);
-    valCampo.innerText = campoEletrico.toFixed(2);
+function atualizarCampo() {
+    campoEletrico = direcaoCampo * intensidadeCampo;
+}
+
+dirCampoBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+        direcaoCampo = parseInt(btn.getAttribute('data-dir'), 10);
+        dirCampoBtns.forEach(b => b.classList.toggle('active', b === btn));
+        atualizarCampo();
+    });
+});
+
+inputIntensidade.addEventListener('input', (e) => {
+    intensidadeCampo = parseFloat(e.target.value);
+    valIntensidadeCampo.innerText = intensidadeCampo.toFixed(2);
+    atualizarCampo();
 });
 
 inputTemp.addEventListener('input', (e) => {

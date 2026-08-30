@@ -10,3 +10,18 @@
   width: 100%;
   margin-top: 10px;
 }
+
+/* Botões de Sentido do Campo Elétrico com símbolos KaTeX ampliados */
+#dirCampoControl .segment-btn {
+  font-size: 1.25rem;
+  padding: 6px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 38px;
+}
+
+#dirCampoControl .segment-btn .katex {
+  font-size: 1.3em;
+  line-height: 1;
+}
