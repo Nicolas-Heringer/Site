@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <!-- Metadados da Página -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tesselação de Voronoi & Relaxamento de Lloyd — Discretização na Esfera</title>
+
+    <meta name="description"
+        content="Simulação educacional progressiva de Tesselação de Voronoi Esférica e Relaxamento de Lloyd (Centroidal Voronoi Tessellation - SCVT). Explore a matemática dos domínios esféricos e conecte-a com a geografia da Terra e a astronomia celeste.">
+    <meta name="keywords"
+        content="tesselação de voronoi, diagrama de voronoi, algoritmo de lloyd, esfera, característica de euler, mapa da terra, constelações do zodiaco, astronomia, física computacional, three.js">
+    <meta name="author" content="Nicolas Heringer">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="../favicon.svg">
+
+    <!-- Estilos CSS -->
+    <link rel="stylesheet" href="css/base.css">
+    <link rel="stylesheet" href="css/clima.css">
+
+    <!-- Suporte a LaTeX com KaTeX -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"
+        onload="renderMathInElement(document.body, {
+            delimiters: [
+                {left: '$$', right: '$$', display: true},
+                {left: '$', right: '$', display: false},
+                {left: '\\(', right: '\\)', display: false},
+                {left: '\\[', right: '\\]', display: true}
+            ],
+            throwOnError: false
+        });"></script>
+
+    <!-- Three.js via importmap (ES Modules) -->
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://cdn.jsdelivr.net/npm/three@0.165.0/build/three.module.js",
+            "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.165.0/examples/jsm/"
+        }
+    }
+    </script>
+</head>
+
+<body>
+
+    <!-- Cabeçalho da Simulação -->
+    <header class="sim-header">
+        <a href="../index.html#secao-simulacoes" class="btn-back">← Voltar ao Hub</a>
+        <span class="sim-title">Tesselação de Voronoi & Relaxamento de Lloyd na Esfera (SCVT)</span>
+    </header>
+
+    <!-- Layout Principal -->
+    <main class="sim-layout">
+
+        <!-- Área do Canvas 3D -->
+        <div class="canvas-area">
+            <div id="three-container"></div>
+
+            <!-- Tooltip Flutuante de Inspeção de Célula (Hover) -->
+            <div id="cell-tooltip" class="cell-tooltip"></div>
+
+            <!-- HUD de Diagnósticos Topológicos em Tempo Real -->
+            <div class="climate-hud" id="hud-mesh-stats">
+                <div class="hud-item">
+                    <span class="hud-label">Iteração de Lloyd:</span>
+                    <span class="hud-val" id="stat-lloyd-iter">0</span>
+                </div>
+                <div class="hud-item">
+                    <span class="hud-label">Deslocamento Médio (Δx):</span>
+                    <span class="hud-val" id="stat-lloyd-shift">0.00e+0</span>
+                </div>
+                <div class="hud-item">
+                    <span class="hud-label">Pentágonos (F₅):</span>
+                    <span class="hud-val" id="stat-pentagons" style="color: #facc15;">-</span>
+                </div>
+                <div class="hud-item">
+                    <span class="hud-label">Hexágonos (F₆):</span>
+                    <span class="hud-val" id="stat-hexagons" style="color: #38bdf8;">-</span>
+                </div>
+                <div class="hud-item">
+                    <span class="hud-label">Heptágonos / Outros:</span>
+                    <span class="hud-val" id="stat-heptagons" style="color: #ec4899;">-</span>
+                </div>
+                <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.1); margin: 3px 0;">
+                <div class="hud-item">
+                    <span class="hud-label">Espessura Visual:</span>
+                    <span class="hud-val" id="stat-visual-thickness" style="color: #38bdf8;">-</span>
+                </div>
+                <div class="hud-item">
+                    <span class="hud-label">Exagero Vertical:</span>
+                    <span class="hud-val" id="stat-exaggeration" style="color: #a855f7;">-</span>
+                </div>
+            </div>
+
+            <!-- Dica Interativa -->
+            <div class="interactive-hint">
+                💡 Arraste para girar a esfera e passe o mouse sobre uma célula para inspecioná-la.
+            </div>
+        </div>
+
+        <!-- Painel Lateral de Controles -->
+        <aside class="controls-panel">
+
+            <!-- Navegação por Abas Progressivas (1 a 4) -->
+            <div class="tab-nav">
+                <button class="tab-btn active" id="btn-tab-math">1. Matemática</button>
+                <button class="tab-btn" id="btn-tab-science">2. Ciência & Terra</button>
+                <button class="tab-btn disabled" id="btn-tab-seasons" title="Disponível na próxima etapa">3. Estações</button>
+                <button class="tab-btn disabled" id="btn-tab-atmosphere" title="Disponível na próxima etapa">4. Atmosfera</button>
+            </div>
+
+            <!-- ============================================================= -->
+            <!-- ABA 1: APRESENTAÇÃO MATEMÁTICA (VORONOI & LLOYD PURO)         -->
+            <!-- ============================================================= -->
+            <div id="panel-tab-math">
+                <div class="climate-badge">
+                    <span class="climate-title" id="span-badge-title">Malha Inicial (Pontos Aleatórios)</span>
+                    <span class="climate-status" id="span-topology-status">Aba 1: Geometria Esférica Pura</span>
+                </div>
+
+                <!-- Grupo 1: Resolução & Sorteio -->
+                <div class="control-group" style="margin-top: 12px;">
+                    <label>Resolução da Malha</label>
+                    <div class="slider-container">
+                        <div class="slider-header">
+                            <span>Número de Geradores (N)</span>
+                            <span id="val-num-cells" class="slider-val">500</span>
+                        </div>
+                        <input type="range" id="slider-num-cells" min="50" max="1200" step="50" value="500">
+                    </div>
+
+                    <button id="btn-random-mesh" class="btn-preset" style="width: 100%; margin-top: 8px; font-weight: 600;">🎲 Sortear Novos Pontos Aleatórios</button>
+                </div>
+
+                <!-- Grupo 2: Algoritmo de Lloyd -->
+                <div class="control-group">
+                    <label>Relaxamento de Lloyd (SCVT)</label>
+                    <div class="control-grid-2x2">
+                        <button id="btn-auto-lloyd" class="btn-preset" style="background: rgba(34, 197, 94, 0.2); border-color: #22c55e;">▶ Relaxar (Lloyd Automático)</button>
+                        <button id="btn-step-lloyd" class="btn-preset">⏩ Passo Único (1x)</button>
+                    </div>
+
+                    <div class="slider-container" style="margin-top: 10px;">
+                        <div class="slider-header">
+                            <span>Velocidade de Relaxamento</span>
+                            <span id="val-speed" class="slider-val">10 passos/s</span>
+                        </div>
+                        <input type="range" id="slider-speed" min="1" max="30" step="1" value="10">
+                    </div>
+
+                    <!-- Legenda de Cores de Topologia -->
+                    <div class="topology-legend">
+                        <span class="topo-tag"><span class="topo-dot" style="background: #facc15;"></span> Pentágonos (5 lados)</span>
+                        <span class="topo-tag"><span class="topo-dot" style="background: #38bdf8;"></span> Hexágonos (6 lados)</span>
+                        <span class="topo-tag"><span class="topo-dot" style="background: #ec4899;"></span> Heptágonos (7 lados)</span>
+                        <span class="topo-tag"><span class="topo-dot" style="background: #ef4444;"></span> Outros (&le;4 ou &ge;8)</span>
+                    </div>
+                </div>
+
+                <!-- Grupo 3: Visualização Básica -->
+                <div class="control-group">
+                    <label>Visualização Geométrica</label>
+                    <div class="toggle-row">
+                        <label for="toggle-generators">Pontos Geradores (Centros)</label>
+                        <input type="checkbox" id="toggle-generators" checked>
+                    </div>
+                    <div class="toggle-row">
+                        <label for="toggle-wireframe">Linhas das Células (Wireframe)</label>
+                        <input type="checkbox" id="toggle-wireframe" checked>
+                    </div>
+                    <div class="toggle-row">
+                        <label for="toggle-graticule">Equador & Linhas de Grade</label>
+                        <input type="checkbox" id="toggle-graticule" checked>
+                    </div>
+                    <div class="toggle-row">
+                        <label for="toggle-autorotate">Rotação Automática da Câmera</label>
+                        <input type="checkbox" id="toggle-autorotate">
+                    </div>
+                </div>
+
+                <!-- Card Teórico da Aba 1 -->
+                <div class="theory-card">
+                    <h4>📐 O Teorema de Euler e a Malha de Voronoi</h4>
+                    <p>
+                        Para qualquer divisão poligonal fechada da esfera $S^2$, a topologia impõe:
+                    </p>
+                    $$\chi = V - E + F = 2 \implies \sum (6 - n) F_n = 12$$
+                    <p>
+                        À medida que o <strong>Algoritmo de Lloyd</strong> move os pontos para os baricentros das células, os polígonos irregulares relaxam até emergir um mosaico regular com <strong>exatamente 12 pentágonos dourados</strong>, igual a uma bola de futebol clássica!
+                    </p>
+                    <p style="margin-top: 6px; font-size: 0.76rem; color: #38bdf8;">
+                        🔍 <em>Passe o cursor sobre as células para inspecionar os ângulos $(\theta, \phi)$ e a área de cada domínio.</em>
+                    </p>
+                </div>
+            </div>
+
+            <!-- ============================================================= -->
+            <!-- ABA 2: CONECTANDO A MATEMÁTICA COM A CIÊNCIA (TERRA & ESPAÇO) -->
+            <!-- ============================================================= -->
+            <div id="panel-tab-science" style="display: none;">
+                <div class="climate-badge">
+                    <span class="climate-title">O Planeta Terra & A Atmosfera</span>
+                    <span class="climate-status">Aba 2: Geografia e Escala Planetária</span>
+                </div>
+
+                <!-- Grupo 1: Escala Planetária & Atmosfera -->
+                <div class="control-group" style="margin-top: 12px;">
+                    <label>Escala Planetária & Atmosfera</label>
+
+                    <div class="slider-container">
+                        <div class="slider-header">
+                            <span>Raio do Planeta Sólido</span>
+                            <span id="val-core-radius" class="slider-val">R_solo = 0.93 (7.0%)</span>
+                        </div>
+                        <input type="range" id="slider-core-radius" min="0.80" max="0.95" step="0.01" value="0.93">
+                    </div>
+
+                    <div class="slider-container">
+                        <div class="slider-header">
+                            <span>Opacidade da Camada de Ar</span>
+                            <span id="val-shell-opacity" class="slider-val">85%</span>
+                        </div>
+                        <input type="range" id="slider-shell-opacity" min="0.30" max="1.00" step="0.05" value="0.85">
+                    </div>
+                </div>
+
+                <!-- Grupo 2: Cenário Astronômico & Texturas -->
+                <div class="control-group">
+                    <label>Cenário Astronômico & Texturas</label>
+                    <div class="toggle-row">
+                        <label for="toggle-earth-texture">Textura da Terra (NASA Blue Marble)</label>
+                        <input type="checkbox" id="toggle-earth-texture" checked>
+                    </div>
+                    <div class="toggle-row">
+                        <label for="toggle-stars">Fundo Estelar (Deep Space - 2.000 Estrelas)</label>
+                        <input type="checkbox" id="toggle-stars" checked>
+                    </div>
+                    <div class="toggle-row">
+                        <label for="toggle-constellations">Constelações do Zodíaco & Órion/Crux</label>
+                        <input type="checkbox" id="toggle-constellations" checked>
+                    </div>
+                </div>
+
+                <!-- Card Didático da Aba 2 -->
+                <div class="theory-card">
+                    <h4>🌍 A Atmosfera Terrestre e a "Casca da Maçã"</h4>
+                    <p>
+                        O raio médio da Terra é de aproximadamente $6.371\text{ km}$, enquanto a camada onde ocorrem quase todos os fenômenos meteorológicos (a <strong>Troposfera</strong>) tem apenas cerca de $12\text{ km}$ de espessura:
+                    </p>
+                    $$\frac{H_{\text{atmosfera}}}{R_{\text{Terra}}} \approx \frac{12\text{ km}}{6371\text{ km}} \approx 0{,}19\%$$
+                    <p>
+                        Se a Terra tivesse o tamanho de uma maçã, a atmosfera habitável seria <strong>mais fina do que a casca da fruta</strong>! Na simulação, utilizamos um controle de <em>exagero vertical</em> para tornar a camada visível e intuitiva aos olhos.
+                    </p>
+                    <p style="margin-top: 6px; font-size: 0.76rem; color: #38bdf8;">
+                        🔍 <em>Passe o cursor sobre as células para inspecionar as coordenadas reais de Latitude, Longitude, área em $\text{km}^2$ e o continente/oceano correspondente!</em>
+                    </p>
+                </div>
+            </div>
+
+        </aside>
+
+    </main>
+
+    <!-- Script Principal -->
+    <script type="module" src="scripts/clima.js"></script>
+</body>
+
+</html>
