@@ -1607,11 +1607,11 @@ function updateHUDStats(payload) {
 
     if (badgeTitle && state.activeTab === 'tab-math') {
         if (payload.iteration === 0) {
-            badgeTitle.textContent = 'Malha Inicial (Pontos Aleatórios)';
+            badgeTitle.textContent = 'Malha Inicial';
         } else if (payload.pentagons === 12 && (payload.heptagons + (payload.others || 0)) === 0) {
-            badgeTitle.textContent = 'Malha Relaxada Estabilizada (SCVT)';
+            badgeTitle.textContent = 'Malha Relaxada';
         } else {
-            badgeTitle.textContent = `Relaxamento de Lloyd (Passo ${payload.iteration})`;
+            badgeTitle.textContent = `Iteração ${payload.iteration}`;
         }
     }
 
@@ -1758,7 +1758,9 @@ function setupUIListeners() {
     if (btnAuto) {
         btnAuto.addEventListener('click', () => {
             state.isAutoLloyd = !state.isAutoLloyd;
-            btnAuto.textContent = state.isAutoLloyd ? '⏸ Pausar Relaxamento' : '▶ Relaxar (Lloyd Automático)';
+            btnAuto.innerHTML = state.isAutoLloyd
+                ? '<img src="../assets/icons/pause.svg" class="icon-svg" alt="Pause"> Pausar Relaxamento'
+                : '<img src="../assets/icons/play.svg" class="icon-svg" alt="Play"> Iniciar Relaxamento';
             btnAuto.classList.toggle('active', state.isAutoLloyd);
         });
     }
@@ -1766,7 +1768,7 @@ function setupUIListeners() {
     function stopAutoLloyd() {
         state.isAutoLloyd = false;
         if (btnAuto) {
-            btnAuto.textContent = '▶ Relaxar (Lloyd Automático)';
+            btnAuto.innerHTML = '<img src="../assets/icons/play.svg" class="icon-svg" alt="Play"> Relaxar (Lloyd Automático)';
             btnAuto.classList.remove('active');
         }
     }
@@ -1871,7 +1873,9 @@ function setupUIListeners() {
     if (btnPlayOrbit) {
         btnPlayOrbit.addEventListener('click', () => {
             state.isPlayingOrbit = !state.isPlayingOrbit;
-            btnPlayOrbit.textContent = state.isPlayingOrbit ? '⏸ Pausar Órbita' : '▶ Translação Anual';
+            btnPlayOrbit.innerHTML = state.isPlayingOrbit
+                ? '<img src="../assets/icons/pause.svg" class="icon-svg" alt="Pause"> Pausar Órbita'
+                : '<img src="../assets/icons/play.svg" class="icon-svg" alt="Play"> Translação Anual';
             btnPlayOrbit.classList.toggle('active', state.isPlayingOrbit);
         });
     }
@@ -1880,7 +1884,9 @@ function setupUIListeners() {
     if (btnPlayDiurnal) {
         btnPlayDiurnal.addEventListener('click', () => {
             state.isPlayingDiurnal = !state.isPlayingDiurnal;
-            btnPlayDiurnal.textContent = state.isPlayingDiurnal ? '⏸ Pausar Rotação' : '🔄 Rotação Contínua';
+            btnPlayDiurnal.innerHTML = state.isPlayingDiurnal
+                ? '<img src="../assets/icons/pause.svg" class="icon-svg" alt="Pause"> Pausar Rotação'
+                : '<img src="../assets/icons/rotate.svg" class="icon-svg" alt="Rotação"> Rotação Contínua';
             btnPlayDiurnal.classList.toggle('active', state.isPlayingDiurnal);
         });
     }

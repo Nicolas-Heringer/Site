@@ -23,8 +23,7 @@
     <!-- Suporte a LaTeX com KaTeX -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
     <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
-    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"
-        onload="renderMathInElement(document.body, {
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" onload="renderMathInElement(document.body, {
             delimiters: [
                 {left: '$$', right: '$$', display: true},
                 {left: '$', right: '$', display: false},
@@ -128,13 +127,14 @@
 
             <!-- Botão Flutuante de Rotação Automática da Terra -->
             <button id="btn-quick-autorotate" class="canvas-btn-autorotate" title="Alternar Rotação Axial da Terra">
-                <span class="icon-spin">🔄</span>
+                <img src="../assets/icons/rotate.svg" class="icon-svg icon-spin" alt="Rotação">
                 <span id="label-quick-autorotate">Rotação da Terra</span>
             </button>
 
             <!-- Dica Interativa -->
             <div class="interactive-hint" id="canvas-interactive-hint">
-                💡 Arraste para girar a esfera e passe o mouse sobre uma célula para inspecioná-la.
+                <img src="../assets/icons/lightbulb.svg" class="icon-svg" alt="Dica"> Arraste para girar a esfera e
+                passe o mouse sobre uma célula para inspecioná-la.
             </div>
         </div>
 
@@ -169,15 +169,22 @@
                         <input type="range" id="slider-num-cells" min="50" max="1200" step="50" value="500">
                     </div>
 
-                    <button id="btn-random-mesh" class="btn-preset" style="width: 100%; margin-top: 8px; font-weight: 600;">🎲 Sortear Novos Pontos Aleatórios</button>
+                    <button id="btn-random-mesh" class="btn-preset" style="width: 100%; margin-top: 8px;">
+                        <img src="../assets/icons/dice.svg" class="icon-svg" alt="Dado"> Sortear Novos Pontos
+                    </button>
                 </div>
 
                 <!-- Grupo 2: Algoritmo de Lloyd -->
                 <div class="control-group">
                     <label>Relaxamento de Lloyd (SCVT)</label>
                     <div class="control-grid-2x2">
-                        <button id="btn-auto-lloyd" class="btn-preset" style="background: rgba(34, 197, 94, 0.2); border-color: #22c55e;">▶ Relaxar (Lloyd Automático)</button>
-                        <button id="btn-step-lloyd" class="btn-preset">⏩ Passo Único (1x)</button>
+                        <button id="btn-auto-lloyd" class="btn-preset"
+                            style="background: rgba(34, 197, 94, 0.2); border-color: #22c55e;">
+                            <img src="../assets/icons/play.svg" class="icon-svg" alt="Play"> Iniciar Relaxamento
+                        </button>
+                        <button id="btn-step-lloyd" class="btn-preset">
+                            <img src="../assets/icons/step.svg" class="icon-svg" alt="Passo"> Passo Único (1x)
+                        </button>
                     </div>
 
                     <div class="slider-container" style="margin-top: 10px;">
@@ -190,10 +197,14 @@
 
                     <!-- Legenda de Cores de Topologia -->
                     <div class="topology-legend">
-                        <span class="topo-tag"><span class="topo-dot" style="background: #facc15;"></span> Pentágonos (5 lados)</span>
-                        <span class="topo-tag"><span class="topo-dot" style="background: #38bdf8;"></span> Hexágonos (6 lados)</span>
-                        <span class="topo-tag"><span class="topo-dot" style="background: #ec4899;"></span> Heptágonos (7 lados)</span>
-                        <span class="topo-tag"><span class="topo-dot" style="background: #ef4444;"></span> Outros (&le;4 ou &ge;8)</span>
+                        <span class="topo-tag"><span class="topo-dot" style="background: #facc15;"></span> Pentágonos (5
+                            lados)</span>
+                        <span class="topo-tag"><span class="topo-dot" style="background: #38bdf8;"></span> Hexágonos (6
+                            lados)</span>
+                        <span class="topo-tag"><span class="topo-dot" style="background: #ec4899;"></span> Heptágonos (7
+                            lados)</span>
+                        <span class="topo-tag"><span class="topo-dot" style="background: #ef4444;"></span> Outros (&le;4
+                            ou &ge;8)</span>
                     </div>
                 </div>
 
@@ -216,16 +227,20 @@
 
                 <!-- Card Teórico da Aba 1 -->
                 <div class="theory-card">
-                    <h4>📐 O Teorema de Euler e a Malha de Voronoi</h4>
+                    <h4><img src="../assets/icons/compass.svg" class="icon-svg" alt="Compasso"> O Teorema de Euler e a
+                        Malha de Voronoi</h4>
                     <p>
                         Para qualquer divisão poligonal fechada da esfera $S^2$, a topologia impõe:
                     </p>
                     $$\chi = V - E + F = 2 \implies \sum (6 - n) F_n = 12$$
                     <p>
-                        À medida que o <strong>Algoritmo de Lloyd</strong> move os pontos para os baricentros das células, os polígonos irregulares relaxam até emergir um mosaico regular com <strong>exatamente 12 pentágonos dourados</strong>, igual a uma bola de futebol clássica!
+                        À medida que o <strong>Algoritmo de Lloyd</strong> move os pontos para os baricentros das
+                        células, os polígonos irregulares relaxam até emergir um mosaico regular com <strong>exatamente
+                            12 pentágonos dourados</strong>, igual a uma bola de futebol clássica!
                     </p>
                     <p style="margin-top: 6px; font-size: 0.76rem; color: #38bdf8;">
-                        🔍 <em>Passe o cursor sobre as células para inspecionar os ângulos $(\theta, \phi)$ e a área de cada domínio.</em>
+                        🔍 <em>Passe o cursor sobre as células para inspecionar os ângulos $(\theta, \phi)$ e a área de
+                            cada domínio.</em>
                     </p>
                 </div>
             </div>
@@ -279,16 +294,23 @@
 
                 <!-- Card Didático da Aba 2 -->
                 <div class="theory-card">
-                    <h4>🌍 A Atmosfera Terrestre e a "Casca da Maçã"</h4>
+                    <h4><img src="../assets/icons/globe.svg" class="icon-svg" alt="Globo"> A Atmosfera Terrestre e a
+                        "Casca da Maçã"</h4>
                     <p>
-                        O raio médio da Terra é de aproximadamente $6.371\text{ km}$, enquanto a camada onde ocorrem quase todos os fenômenos meteorológicos (a <strong>Troposfera</strong>) tem apenas cerca de $12\text{ km}$ de espessura:
+                        O raio médio da Terra é de aproximadamente $6.371\text{ km}$, enquanto a camada onde ocorrem
+                        quase todos os fenômenos meteorológicos (a <strong>Troposfera</strong>) tem apenas cerca de
+                        $12\text{ km}$ de espessura:
                     </p>
-                    $$\frac{H_{\text{atmosfera}}}{R_{\text{Terra}}} \approx \frac{12\text{ km}}{6371\text{ km}} \approx 0{,}19\%$$
+                    $$\frac{H_{\text{atmosfera}}}{R_{\text{Terra}}} \approx \frac{12\text{ km}}{6371\text{ km}} \approx
+                    0{,}19\%$$
                     <p>
-                        Se a Terra tivesse o tamanho de uma maçã, a atmosfera habitável seria <strong>mais fina do que a casca da fruta</strong>! Na simulação, utilizamos um controle de <em>exagero vertical</em> para tornar a camada visível e intuitiva aos olhos.
+                        Se a Terra tivesse o tamanho de uma maçã, a atmosfera habitável seria <strong>mais fina do que a
+                            casca da fruta</strong>! Na simulação, utilizamos um controle de <em>exagero vertical</em>
+                        para tornar a camada visível e intuitiva aos olhos.
                     </p>
                     <p style="margin-top: 6px; font-size: 0.76rem; color: #38bdf8;">
-                        🔍 <em>Passe o cursor sobre as células para inspecionar as coordenadas reais de Latitude, Longitude, área em $\text{km}^2$ e o continente/oceano correspondente!</em>
+                        🔍 <em>Passe o cursor sobre as células para inspecionar as coordenadas reais de Latitude,
+                            Longitude, área em $\text{km}^2$ e o continente/oceano correspondente!</em>
                     </p>
                 </div>
             </div>
@@ -310,7 +332,8 @@
                     </div>
                     <canvas id="canvas-mini-orrery" width="280" height="180"></canvas>
                     <div class="mini-orrery-caption">
-                        O Sol é projetado contra a <strong>Constelação de Gêmeos</strong>. À meia-noite, a Terra olha para <strong>Sagitário</strong>.
+                        O Sol é projetado contra a <strong>Constelação de Gêmeos</strong>. À meia-noite, a Terra olha
+                        para <strong>Sagitário</strong>.
                     </div>
                 </div>
 
@@ -338,8 +361,13 @@
 
                     <!-- Botões de Animação Automática -->
                     <div class="control-grid-2x2" style="margin-top: 8px;">
-                        <button id="btn-play-orbit" class="btn-preset" style="background: rgba(56, 189, 248, 0.15); border-color: #38bdf8;">▶ Translação Anual</button>
-                        <button id="btn-play-diurnal" class="btn-preset">🔄 Rotação Contínua</button>
+                        <button id="btn-play-orbit" class="btn-preset"
+                            style="background: rgba(56, 189, 248, 0.15); border-color: #38bdf8;">
+                            <img src="../assets/icons/play.svg" class="icon-svg" alt="Play"> Translação Anual
+                        </button>
+                        <button id="btn-play-diurnal" class="btn-preset">
+                            <img src="../assets/icons/rotate.svg" class="icon-svg" alt="Rotação"> Rotação Contínua
+                        </button>
                     </div>
                 </div>
 
@@ -347,10 +375,18 @@
                 <div class="control-group">
                     <label>Estações Cardeais (Solstícios & Equinócios)</label>
                     <div class="control-grid-2x2">
-                        <button id="btn-season-jun" class="btn-preset active" title="21 de Junho">☀️ Solstício Junho</button>
-                        <button id="btn-season-sep" class="btn-preset" title="22 de Setembro">🍂 Equinócio Set</button>
-                        <button id="btn-season-dec" class="btn-preset" title="21 de Dezembro">❄️ Solstício Dez</button>
-                        <button id="btn-season-mar" class="btn-preset" title="20 de Março">🌸 Equinócio Mar</button>
+                        <button id="btn-season-jun" class="btn-preset active" title="21 de Junho">
+                            <img src="../assets/icons/sun.svg" class="icon-svg" alt="Sol"> Solstício Junho
+                        </button>
+                        <button id="btn-season-sep" class="btn-preset" title="22 de Setembro">
+                            <img src="../assets/icons/leaf.svg" class="icon-svg" alt="Outono"> Equinócio Set
+                        </button>
+                        <button id="btn-season-dec" class="btn-preset" title="21 de Dezembro">
+                            <img src="../assets/icons/snowflake.svg" class="icon-svg" alt="Neve"> Solstício Dez
+                        </button>
+                        <button id="btn-season-mar" class="btn-preset" title="20 de Março">
+                            <img src="../assets/icons/flower.svg" class="icon-svg" alt="Primavera"> Equinócio Mar
+                        </button>
                     </div>
                 </div>
 
@@ -377,14 +413,22 @@
 
                 <!-- Card Didático da Aba 3 -->
                 <div class="theory-card">
-                    <h4>☀️ Por que Existem as Estações do Ano?</h4>
+                    <h4><img src="../assets/icons/sun.svg" class="icon-svg" alt="Sol"> Por que Existem as Estações do
+                        Ano?</h4>
                     <p>
-                        A causa das estações <strong>NÃO é a distância da Terra ao Sol</strong>, mas sim a <strong>inclinação fixa de $23{,}44^\circ$ do eixo de rotação da Terra</strong> em relação à perpendicular do plano orbital (o plano da Eclíptica):
+                        A causa das estações <strong>NÃO é a distância da Terra ao Sol</strong>, mas sim a
+                        <strong>inclinação fixa de $23{,}44^\circ$ do eixo de rotação da Terra</strong> em relação à
+                        perpendicular do plano orbital (o plano da Eclíptica):
                     </p>
                     <ul>
-                        <li><strong>Solstício de Junho</strong>: O Polo Norte aponta para o Sol ($\delta_\odot = +23{,}44^\circ$). Ocorre o <em>Verão no Hemisfério Norte</em> e o <em>Inverno no Hemisfério Sul</em>.</li>
-                        <li><strong>Solstício de Dezembro</strong>: O Polo Sul aponta para o Sol ($\delta_\odot = -23{,}44^\circ$). <em>Verão no Sul</em> e <em>Inverno no Norte</em>.</li>
-                        <li><strong>Equinócios (Março e Setembro)</strong>: A luz solar incide perpendicularmente sobre o Equador ($\delta_\odot = 0^\circ$). O dia e a noite duram exatamente 12 horas em todo o planeta!</li>
+                        <li><strong>Solstício de Junho</strong>: O Polo Norte aponta para o Sol ($\delta_\odot =
+                            +23{,}44^\circ$). Ocorre o <em>Verão no Hemisfério Norte</em> e o <em>Inverno no Hemisfério
+                                Sul</em>.</li>
+                        <li><strong>Solstício de Dezembro</strong>: O Polo Sul aponta para o Sol ($\delta_\odot =
+                            -23{,}44^\circ$). <em>Verão no Sul</em> e <em>Inverno no Norte</em>.</li>
+                        <li><strong>Equinócios (Março e Setembro)</strong>: A luz solar incide perpendicularmente sobre
+                            o Equador ($\delta_\odot = 0^\circ$). O dia e a noite duram exatamente 12 horas em todo o
+                            planeta!</li>
                     </ul>
                 </div>
             </div>
@@ -402,9 +446,15 @@
                 <div class="control-group" style="margin-top: 12px;">
                     <label>Campo Escalar da Atmosfera</label>
                     <div class="field-selector-grid">
-                        <button class="field-btn active" id="btn-field-temp">🌡️ Temp (T)</button>
-                        <button class="field-btn" id="btn-field-pressure">🌀 Pressão (P)</button>
-                        <button class="field-btn" id="btn-field-wind">💨 Vento (|v|)</button>
+                        <button class="field-btn active" id="btn-field-temp">
+                            <img src="../assets/icons/thermometer.svg" class="icon-svg" alt="Temp"> Temp (T)
+                        </button>
+                        <button class="field-btn" id="btn-field-pressure">
+                            <img src="../assets/icons/cyclone.svg" class="icon-svg" alt="Pressão"> Pressão (P)
+                        </button>
+                        <button class="field-btn" id="btn-field-wind">
+                            <img src="../assets/icons/wind.svg" class="icon-svg" alt="Vento"> Vento (|v|)
+                        </button>
                     </div>
 
                     <!-- Barra de Gradiente de Cores com Escala -->
@@ -472,30 +522,46 @@
                 <div class="control-group">
                     <label>Laboratório Interativo de Ciclones</label>
                     <div class="control-grid-2x2">
-                        <button id="btn-tool-cyclone" class="btn-preset" title="Clique no globo para semear uma Baixa Pressão">🌪️ Criar Ciclone</button>
-                        <button id="btn-tool-anticyclone" class="btn-preset" title="Clique no globo para semear uma Alta Pressão">💨 Anticiclone</button>
+                        <button id="btn-tool-cyclone" class="btn-preset"
+                            title="Clique no globo para semear uma Baixa Pressão">
+                            <img src="../assets/icons/cyclone.svg" class="icon-svg" alt="Ciclone"> Criar Ciclone
+                        </button>
+                        <button id="btn-tool-anticyclone" class="btn-preset"
+                            title="Clique no globo para semear uma Alta Pressão">
+                            <img src="../assets/icons/wind.svg" class="icon-svg" alt="Anticiclone"> Anticiclone
+                        </button>
                     </div>
-                    <button id="btn-reset-atmosphere" class="btn-preset" style="width: 100%; margin-top: 6px;">🔄 Resetar Perturbações</button>
+                    <button id="btn-reset-atmosphere" class="btn-preset" style="width: 100%; margin-top: 6px;">
+                        <img src="../assets/icons/refresh.svg" class="icon-svg" alt="Reset"> Resetar Perturbações
+                    </button>
                     <div style="font-size: 0.72rem; color: var(--text-secondary); margin-top: 4px; text-align: center;">
-                        💡 <em>Clique em qualquer oceano ou continente no globo para semear um vórtice!</em>
+                        <img src="../assets/icons/lightbulb.svg" class="icon-svg" alt="Dica"> <em>Clique em qualquer
+                            oceano ou continente no globo para semear um vórtice!</em>
                     </div>
                 </div>
 
                 <!-- Card Didático Teórico da Aba 4 -->
                 <div class="theory-card">
-                    <h4>🌀 A Circulação Geral da Atmosfera e Coriolis</h4>
+                    <h4><img src="../assets/icons/cyclone.svg" class="icon-svg" alt="Ciclone"> A Circulação Geral da
+                        Atmosfera e Coriolis</h4>
                     <p>
-                        A diferença de radiação solar aquece o Equador e resfria os Polos. A rotação da Terra ($\mathbf{\Omega}$) gera a <strong>Aceleração de Coriolis</strong>:
+                        A diferença de radiação solar aquece o Equador e resfria os Polos. A rotação da Terra
+                        ($\mathbf{\Omega}$) gera a <strong>Aceleração de Coriolis</strong>:
                     </p>
                     $$\mathbf{a}_C = -2\mathbf{\Omega} \times \mathbf{v}$$
                     <ul>
-                        <li><strong>Hemisfério Norte</strong>: O ar é desviado para a <strong>direita</strong>. Ciclones espiralam em sentido <strong>anti-horário</strong>.</li>
-                        <li><strong>Hemisfério Sul</strong>: O ar é desviado para a <strong>esquerda</strong>. Ciclones espiralam em sentido <strong>horário</strong>.</li>
-                        <li><strong>Ventos Alísios</strong>: Convergem dos trópicos para o Equador (NE no Norte e SE no Sul).</li>
-                        <li><strong>Ventos de Oeste (*Westerlies*)</strong>: Sopram de Oeste para Leste nas latitudes médias ($30^\circ - 60^\circ$).</li>
+                        <li><strong>Hemisfério Norte</strong>: O ar é desviado para a <strong>direita</strong>. Ciclones
+                            espiralam em sentido <strong>anti-horário</strong>.</li>
+                        <li><strong>Hemisfério Sul</strong>: O ar é desviado para a <strong>esquerda</strong>. Ciclones
+                            espiralam em sentido <strong>horário</strong>.</li>
+                        <li><strong>Ventos Alísios</strong>: Convergem dos trópicos para o Equador (NE no Norte e SE no
+                            Sul).</li>
+                        <li><strong>Ventos de Oeste (*Westerlies*)</strong>: Sopram de Oeste para Leste nas latitudes
+                            médias ($30^\circ - 60^\circ$).</li>
                     </ul>
                     <p>
-                        <em>Experimente zerar o slider de Coriolis ($\Omega = 0$) para ver a atmosfera sem rotação (Célula única de Hadley)!</em>
+                        <em>Experimente zerar o slider de Coriolis ($\Omega = 0$) para ver a atmosfera sem rotação
+                            (Célula única de Hadley)!</em>
                     </p>
                 </div>
             </div>

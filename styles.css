@@ -740,7 +740,16 @@ p {
     box-shadow: 0 8px 25px rgba(250, 204, 21, 0.4);
 }
 
-
+/* Ícones Vetoriais SVG Nativos (Tema Escuro: Branco Puro) */
+.icon-svg {
+    width: 1.15em;
+    height: 1.15em;
+    display: inline-block;
+    vertical-align: -0.18em;
+    flex-shrink: 0;
+    transition: transform 0.2s ease, filter 0.2s ease;
+    filter: brightness(0) invert(1);
+}
 
 /* --- RODAPÉ --- */
 

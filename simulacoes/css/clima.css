@@ -299,6 +299,10 @@
     cursor: pointer;
     transition: all 0.2s ease;
     text-align: center;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
 }
 
 .btn-preset:hover {
@@ -336,6 +340,10 @@
     cursor: pointer;
     text-align: center;
     transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
 }
 
 .field-btn:hover {
