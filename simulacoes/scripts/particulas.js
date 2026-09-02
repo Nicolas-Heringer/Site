@@ -1,42 +1,50 @@
 // =============================================================================
 // Autor: Nicolas Heringer
-// Coautor / Revisor: Gemini 3.6 Flash
-// Simulação: Interação de Partículas por Ondas Retardadas (Campos & Lennard-Jones/Coulomb)
-// Descrição: Simulação de dinâmica molecular e interações mediadas por frentes de onda,
-//            propagação de campo retardado, controle de temperatura e potenciais efetivos.
+// Simulação: Interação de Partículas por Ondas Retardadas (Funções de Green & Dinâmica Molecular)
+// Descrição: Simulação de física molecular com interações mediadas por frentes de onda,
+//            potenciais de Lennard-Jones/Coulomb, termostato e telemetria gráfica.
+// Arquivo: scripts/particulas.js (ES Module com suporte ao Design System 2.0)
 // =============================================================================
 
+import {
+    initToggleButton,
+    syncDualSlider,
+    RealtimePlot,
+    initSidebarCollapse,
+    initBottomSheet,
+    initModal,
+    inlineSVGImages
+} from './sim-ui.js';
+
 // =============================================================================
-// 1. CONFIGURAÇÕES, DOM E VARIÁVEIS DA SIMULAÇÃO
+// 1. ESTADO GLOBAL E CONFIGURAÇÕES
 // =============================================================================
 const canvas = document.getElementById('myCanvas');
-const ctx = canvas.getContext('2d');
+const ctx = canvas ? canvas.getContext('2d') : null;
 
-// Seletores de elementos DOM
-const interactionSelector = document.getElementById('selector-de-interacao');
-const temperatureSelector = document.getElementById('selector-de-temperatura');
-const waveSpeedSelector = document.getElementById('selector-de-velocidade-onda');
-const temperatureAtenuation = document.getElementById('temperature-atenuation');
-const tiposDeInteracaoSelector = document.getElementById('selector-de-tipo-de-interacao');
-const positionTemplates = document.getElementById('seletor-de-template');
-const resetButton = document.getElementById('reset-button');
+let isRunning = false;     // Inicia pausada por padrão
+let simSpeed = 1.0;
+let simTime = 0.0;
+let tipoDeInteracao = 'coulomb';
+let interactionEnabled = true;
+let TEMP_LIMIT = 0.10;
+let c = 2.0;               // Velocidade de propagação da onda
+let attenuation = 0.09;    // Taxa de acoplamento do termostato
+let template = 'none';     // Inicia vazia (sem partículas)
+let epsilonCoulomb = 0.10; // Constante de acoplamento da interação coulombiana retardada
 
+let particles = [];
+let circulos = [];
+const waveCache = new Map();
 
-// Variáveis dinâmicas
-let resetState = false;
-let tipoDeInteracao = 'lennardJones';
-let interactionEnabled = false;
-let TEMP_LIMIT = 0.001;
-let numParticles = 1;
-let c = 1; // Velocidade da onda
-let attenuation = 0.09; // Fator de resfriamento para reduzir a velocidade das partículas
-let template = 'livre';
-let epsilonCoulomb = 0.1; // Constante de acoplamento da interação coulombiana retardada
+let playControl = null;
+let plotEnergia = null;
+let plotTemp = null;
+
 
 // =============================================================================
-// 2. ESTRATÉGIAS DE INTERAÇÃO E EVENTOS DOM
+// 2. ESTRATÉGIAS DE CÁLCULO DE INTERAÇÃO & FORÇAS
 // =============================================================================
-// Dicionário de estratégias de cálculo de interação
 const calculadoresDeInteracao = {
     lennardJones(particle, wave, dx, dy, distance, distSq, force) {
         const dist6 = distSq * distSq * distSq;
@@ -64,73 +72,12 @@ const calculadoresDeInteracao = {
         const fx = (factorCoulomb * (dx / distance) - 0.01 * (dx / dist6)) * force;
         const fy = (factorCoulomb * (dy / distance) - 0.01 * (dy / dist6)) * force;
         return { fx, fy };
-    }/* ,
-    general(particle, wave, dx, dy, distance, distSq, force, repulsionComponent = 0.01) {
-        const qProduct = particle.charge * wave.charge;
-        const dist6 = distSq * distSq * distSq;
-        const factorCoulomb = -qProduct * epsilonCoulomb;
-        const fx = (factorCoulomb * (dx / distance) - repulsionComponent * (dx / dist6)) * force;
-        const fy = (factorCoulomb * (dy / distance) - repulsionComponent * (dy / dist6)) * force;
-        return { fx, fy };
-    }*/
+    }
 };
 
-// Manipuladores de eventos
-interactionSelector.addEventListener('change', () => {
-    interactionEnabled = interactionSelector.value === 'ligada';
-    console.log(`Interação: ${interactionEnabled}`);
-    // Atualize a simulação aqui
-});
-
-temperatureSelector.addEventListener('change', () => {
-    TEMP_LIMIT = temperatureSelector.value;
-    console.log(`Temperatura: ${TEMP_LIMIT}`);
-    // Atualize a simulação aqui
-});
-
-waveSpeedSelector.addEventListener('change', () => {
-    c = parseFloat(waveSpeedSelector.value);
-    waveCache.clear();
-    console.log(`Velocidade da onda: ${c}`);
-    // Atualize a velocidade da onda na simulação aqui
-});
-
-tiposDeInteracaoSelector.addEventListener('change', () => {
-    tipoDeInteracao = `${tiposDeInteracaoSelector.value}`;
-    console.log(`Interação selecionada: ${tipoDeInteracao}`);
-});
-
-temperatureAtenuation.addEventListener('input', () => {
-    attenuation = parseFloat(temperatureAtenuation.value);
-    console.log(`Atenuação da temperatura: ${attenuation}`);
-    // Atualize a atenuação da temperatura na simulação
-});
-
-positionTemplates.addEventListener('input', () => {
-    template = positionTemplates.value;
-    console.log(`Template selecionado: ${template}`);
-    Particle.nextId = 0;
-    waveCache.clear();
-    particles = createParticles(canvas, template);
-});
-
-// Evento de clique no botão de reset
-resetButton.addEventListener('click', () => {
-    // Reseta listas e o template
-    circulos = [];
-    particles = [];
-    Particle.nextId = 0;
-    waveCache.clear();
-    positionTemplates.value = 'none';
-
-    // Opcional: Atualiza a interface ou chama uma função de renderização
-    console.log("Partículas e ondas resetadas");
-});
-
 // =============================================================================
-// 3. CLASSE PARTICLE E TEMPLATES DE POSICIONAMENTO
+// 3. CLASSE PARTICLE & GERADORES DE TEMPLATE
 // =============================================================================
-// Classe para representar uma partícula
 class Particle {
     static nextId = 0;
 
@@ -142,38 +89,37 @@ class Particle {
         this.color = color;
         this.mass = mass;
         this.charge = charge;
-        this.velocityX = velocityX; // Velocidade no eixo X
-        this.velocityY = velocityY; // Velocidade no eixo Y
-        this.waveTimer = 0; // Temporizador para emissão de ondas
+        this.velocityX = velocityX;
+        this.velocityY = velocityY;
+        this.waveTimer = 0;
         this.baseWaveInterval = 1;
-        this.waveInterval = 1; // Intervalo entre emissões de ondas (em frames)
+        this.waveInterval = 1;
         this.gamma = null;
     }
 
-    // Método para atualizar a posição da partícula
-    update(canvas, waves, interaction, interactionType) {
-        if (interaction == true) {
-            // Aplica forças das ondas (ignorando suas próprias ondas em O(1))
+    update(canvasEl, waves, interaction) {
+        if (interaction === true) {
+            // A força causal só atua no instante exato em que a crista da onda retardada atinge a partícula
+            const shellThickness = Math.max(c * simSpeed * 0.9, 3.5);
+
             waves.forEach(wave => {
-                // Verifica se a onda foi emitida por outra partícula
                 if (wave.emissorId !== this.id) {
-                    const dx = (wave.x - this.x) / 100; // Distância no eixo X
-                    const dy = (wave.y - this.y) / 100; // Distância no eixo Y
-                    const distSq = dx * dx + dy * dy; // Distância ao quadrado
+                    const dxPx = wave.x - this.x;
+                    const dyPx = wave.y - this.y;
+                    const distPx = Math.sqrt(dxPx * dxPx + dyPx * dyPx);
 
-                    // Limiares ao quadrado para filtrar sem usar Math.sqrt
-                    const minR = Math.max(0, wave.raio - 10);
-                    const maxR = wave.raio + 10;
-
-                    // Apenas calcula a raiz se a partícula estiver dentro do raio de influência
-                    if (distSq >= minR * minR && distSq <= maxR * maxR) {
-                        const distance = Math.sqrt(distSq); // Distância total
-                        const force = 0.05; // Intensidade da força base
+                    // Gatilho Causal: Ocorre somente quando o raio da onda se iguala à distância espacial
+                    if (Math.abs(distPx - wave.raio) <= shellThickness) {
+                        const distance = distPx / 100;
+                        const dx = dxPx / 100;
+                        const dy = dyPx / 100;
+                        const distSq = distance * distance;
+                        const force = 0.05;
                         const calcular = calculadoresDeInteracao[tipoDeInteracao];
                         if (calcular) {
                             const { fx, fy } = calcular(this, wave, dx, dy, distance, distSq, force);
-                            this.velocityX += fx / this.mass;
-                            this.velocityY += fy / this.mass;
+                            this.velocityX += (fx / this.mass) * simSpeed;
+                            this.velocityY += (fy / this.mass) * simSpeed;
                         }
                     }
                 }
@@ -181,194 +127,230 @@ class Particle {
         }
 
         // Atualiza posição
-        this.x += this.velocityX;
-        this.y += this.velocityY;
+        this.x += this.velocityX * simSpeed;
+        this.y += this.velocityY * simSpeed;
 
-        // Verifica colisões com as bordas do canvas
-        if (this.x - this.radius < 0 || this.x + this.radius > canvas.width) {
-            this.velocityX *= -1; // Inverte a direção no eixo X
-        }
-        if (this.y - this.radius < 0 || this.y + this.radius > canvas.height) {
-            this.velocityY *= -1; // Inverte a direção no eixo Y
+        // Colisão elástica com as bordas
+        if (this.x - this.radius < 0) {
+            this.x = this.radius;
+            this.velocityX *= -1;
+        } else if (this.x + this.radius > canvasEl.width) {
+            this.x = canvasEl.width - this.radius;
+            this.velocityX *= -1;
         }
 
-        // Atualiza temporizador de emissão de ondas
-        this.waveTimer++;
+        if (this.y - this.radius < 0) {
+            this.y = this.radius;
+            this.velocityY *= -1;
+        } else if (this.y + this.radius > canvasEl.height) {
+            this.y = canvasEl.height - this.radius;
+            this.velocityY *= -1;
+        }
+
+        // Temporizador de emissão de ondas esféricas
+        this.waveTimer += simSpeed;
         if (this.waveTimer >= this.waveInterval) {
             this.waveTimer = 0;
-            // Adiciona uma nova onda informando carga e o ID da partícula emissora
             const novaOnda = new Circulo(this.x, this.y, this.charge, this.id);
             waves.push(novaOnda);
         }
     }
 
-    // Método para desenhar a partícula
-    draw(ctx) {
-        ctx.beginPath();
-        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
-        ctx.fillStyle = this.color;
-        ctx.fill();
-        ctx.closePath();
+    draw(ctx2d) {
+        ctx2d.beginPath();
+        ctx2d.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+        ctx2d.fillStyle = this.color;
+        ctx2d.shadowColor = this.color;
+        ctx2d.shadowBlur = 6;
+        ctx2d.fill();
+        ctx2d.shadowBlur = 0;
+        ctx2d.closePath();
     }
 
-    // Método para reduzir a velocidade das partículas (resfriamento)
-    reduceSpeed(attenuation) {
-        this.velocityX *= (1 - attenuation);
-        this.velocityY *= (1 - attenuation);
+    reduceSpeed(factor) {
+        this.velocityX *= (1 - factor);
+        this.velocityY *= (1 - factor);
     }
 
-    increaseSpeed() {
-        this.velocityX *= (1 + attenuation);
-        this.velocityY *= (1 + attenuation);
-    }
-
-    loretzFactor(c) {
-        this.gamma = null;
-        const v = Math.sqrt(this.velocityY ** 2 + this.velocityX ** 2);
-        this.gamma = 1 / (Math.sqrt(1 - (v / (10 * c)) ** 2));
-        this.waveInterval = this.baseWaveInterval / this.gamma;
+    increaseSpeed(factor) {
+        this.velocityX *= (1 + factor);
+        this.velocityY *= (1 + factor);
     }
 }
 
-// Geradores de templates
 const positionGenerators = {
-    livre: {
-        num: () => 1, // Apenas uma partícula
-        generate(canvas, index) {
-            const x = canvas.width / 2;
-            const y = canvas.height / 2;
-            return { x, y };
+    singleStatic: {
+        num: () => 1,
+        generate(cEl) {
+            return { x: cEl.width / 2, y: cEl.height / 2 };
         },
-        velocity: () => ({ x: 1, y: 1.2 }),
-        radius: () => 5,
-        color: () => `rgba(255, 255, 255, 1)`,
+        velocity: () => ({ x: 0, y: 0 }),
+        radius: () => 6,
+        color: () => '#facc15',
+        mass: () => 1,
+        charge: () => 0,
+    },
+    singleMoving: {
+        num: () => 1,
+        generate(cEl) {
+            return { x: cEl.width / 2, y: cEl.height / 2 };
+        },
+        velocity: () => {
+            const angle = Math.random() * 2 * Math.PI;
+            const speed = 1.3;
+            return { x: Math.cos(angle) * speed, y: Math.sin(angle) * speed };
+        },
+        radius: () => 6,
+        color: () => '#facc15',
+        mass: () => 1,
+        charge: () => 0,
+    },
+    livre: {
+        num: () => 1,
+        generate(cEl) {
+            return { x: cEl.width / 2, y: cEl.height / 2 };
+        },
+        velocity: () => ({ x: 0, y: 0 }),
+        radius: () => 6,
+        color: () => '#facc15',
         mass: () => 1,
         charge: () => 0,
     },
     double: {
-        num: () => 2, // Duas partículas
-        generate(canvas, index) {
-            const dist = canvas.width / 5;
-            const x = canvas.width / 2 + dist * index - dist / 2;
-            const y = canvas.height / 2;
+        num: () => 2,
+        generate(cEl, index) {
+            const dist = cEl.width / 4;
+            const x = cEl.width / 2 + (index === 0 ? -dist : dist);
+            const y = cEl.height / 2;
             return { x, y };
         },
-        velocity: (index) => ({ x: 0, y: 1 - (2 * index) }),
-        radius: () => 5,
-        color: () => `rgba(255, 255, 255, 1)`,
+        velocity: () => ({ x: 0, y: 0 }),
+        radius: () => 6,
+        color: (type, index) => index === 0 ? '#fb923c' : '#38bdf8',
         mass: () => 1,
-        charge: () => 0,
+        charge: (type, index) => index === 0 ? 1 : -1,
+    },
+    doubleMoving: {
+        num: () => 2,
+        generate(cEl, index) {
+            const dist = cEl.width / 12; // Posicionamento mais próximo para rápida interação e dinâmica orbital
+            const x = cEl.width / 2 + (index === 0 ? -dist : dist);
+            const y = cEl.height / 2;
+            return { x, y };
+        },
+        // Esquerda (index 0) move para baixo (+y), Direita (index 1) move para cima (-y)
+        velocity: (index) => ({ x: 0, y: index === 0 ? 1.0 : -1.0 }),
+        radius: () => 6,
+        color: (type, index) => index === 0 ? '#fb923c' : '#38bdf8',
+        mass: () => 1,
+        charge: (type, index) => index === 0 ? 1 : -1,
     },
     many: {
         num: () => 3,
-        generate(canvas, index) {
-
-            const dist = canvas.width / 2;
-            const x = canvas.width / 2 - dist / 2 + dist * index / 3;
-            const y = canvas.height / 2;
+        generate(cEl, index) {
+            const dist = cEl.width / 3;
+            const x = cEl.width / 2 - dist + dist * index;
+            const y = cEl.height / 2;
             return { x, y };
         },
-        velocity: (index) => ({ x: 0, y: (1 - 2 * index / 3) }),
+        velocity: () => ({ x: 0, y: 0 }),
         radius: () => 5,
-        color: () => `rgba(255, 255, 255, 1)`,
+        color: (type, index) => ['#facc15', '#38bdf8', '#22c55e'][index % 3],
         mass: () => 1,
-        charge: () => 0,
+        charge: (type, index) => index === 1 ? -1 : 1,
     },
     circular: {
-        num: () => 12, // Número fixo de partículas
-        generate(canvas, index, total) {
-            const centerX = canvas.width / 2;
-            const centerY = canvas.height / 2;
-            const radius = Math.min(canvas.width, canvas.height) / 4;
-            const angle = (index / total) * 2 * Math.PI; // Distribuição uniforme
+        num: () => 12,
+        generate(cEl, index, total) {
+            const centerX = cEl.width / 2;
+            const centerY = cEl.height / 2;
+            const radius = Math.min(cEl.width, cEl.height) / 3.2;
+            const angle = (index / total) * 2 * Math.PI;
             return {
                 x: centerX + radius * Math.cos(angle),
                 y: centerY + radius * Math.sin(angle),
             };
         },
         velocity: () => ({ x: 0, y: 0 }),
-        radius: () => 3,
-        color: () => `rgba(255, 255, 255, 1)`,
+        radius: () => 4,
+        color: () => '#38bdf8',
         mass: () => 1,
         charge: () => 0,
     },
     grid: {
-        num: () => 36, // Grid com 36 partículas
-        generate(canvas, index, total) {
+        num: () => 36,
+        generate(cEl, index, total) {
             const cols = Math.ceil(Math.sqrt(total));
             const rows = Math.ceil(total / cols);
             const gridX = index % cols;
             const gridY = Math.floor(index / cols);
-            const spacingX = canvas.width / cols;
-            const spacingY = canvas.height / rows;
+            const spacingX = cEl.width / (cols + 1);
+            const spacingY = cEl.height / (rows + 1);
             return {
-                x: gridX * spacingX + spacingX / 2,
-                y: gridY * spacingY + spacingY / 2,
+                x: (gridX + 1) * spacingX,
+                y: (gridY + 1) * spacingY,
             };
         },
-        velocity: () => ({ x: 0, y: 0 }),
-        radius: () => 3,
-        color: () => `rgba(255, 255, 255, 1)`,
+        velocity: () => ({ x: (Math.random() - 0.5) * 0.4, y: (Math.random() - 0.5) * 0.4 }),
+        radius: () => 4,
+        color: () => '#22c55e',
         mass: () => 2,
         charge: () => 0,
     },
     NaCl: {
-        num: () => 64, // Total de partículas (ajuste conforme necessário)
-        generate(canvas, index, total) {
-            const cols = Math.ceil(Math.sqrt(total));
-            const rows = Math.ceil(total / cols);
+        num: () => 64,
+        generate(cEl, index, total) {
+            const cols = 8;
+            const rows = 8;
             const gridX = index % cols;
             const gridY = Math.floor(index / cols);
-            const spacingX = canvas.width / cols;
-            const spacingY = canvas.height / rows;
-
+            const spacingX = cEl.width / (cols + 1);
+            const spacingY = cEl.height / (rows + 1);
             return {
-                x: gridX * spacingX + spacingX / 2,
-                y: gridY * spacingY + spacingY / 2,
-                type: (gridX + gridY) % 2 == 0 ? 'Na' : 'Cl', // Alterna entre 'Na' e 'Cl'
+                x: (gridX + 1) * spacingX,
+                y: (gridY + 1) * spacingY,
+                type: (gridX + gridY) % 2 === 0 ? 'Na' : 'Cl',
             };
         },
-        velocity: () => ({ x: 0, y: 0 }),
-        radius: (type) => (type === 'Na' ? 3 : 6), // Raio maior para Cl
-        color: (type) => (type === 'Na' ? 'orange' : 'cyan'), // Laranjado para Na, ciano para Cl
-        mass: (type) => (type === 'Na' ? 2 : 4), // Massa maior para Cl
-        charge: (type) => (type === 'Na' ? 1 : -1), // Carga para Na (+1) e Cl (-1)
+        velocity: () => ({ x: (Math.random() - 0.5) * 0.2, y: (Math.random() - 0.5) * 0.2 }),
+        radius: (type) => (type === 'Na' ? 3.5 : 6),
+        color: (type) => (type === 'Na' ? '#fb923c' : '#38bdf8'), // Laranja Na+, Ciano Cl-
+        mass: (type) => (type === 'Na' ? 2 : 4),
+        charge: (type) => (type === 'Na' ? 1 : -1),
     },
     none: {
         num: () => 0,
-    },
+        generate: () => ({ x: 0, y: 0 }),
+        velocity: () => ({ x: 0, y: 0 }),
+        radius: () => 0,
+        color: () => '',
+        mass: () => 1,
+        charge: () => 0
+    }
 };
 
-// Função para criar partículas
-function createParticles(canvas, template = "livre") {
-    const generator = positionGenerators[template];
-
-    if (!generator) {
-        throw new Error(`Template "${template}" não é suportado.`);
-    }
-
+function createParticles(canvasEl, templateName = 'NaCl') {
+    const generator = positionGenerators[templateName] || positionGenerators.NaCl;
     const particleCount = generator.num();
-    const particles = Array.from({ length: particleCount }, (_, i) => {
-        const { x, y, type } = generator.generate(canvas, i, particleCount);
+    Particle.nextId = 0;
+
+    return Array.from({ length: particleCount }, (_, i) => {
+        const { x, y, type } = generator.generate(canvasEl, i, particleCount);
         const { x: vx, y: vy } = generator.velocity(i);
-        const mass = generator.mass ? generator.mass(type) : 1;
-        const charge = generator.charge ? generator.charge(type) : 0;
-        return new Particle(x, y, generator.radius(type), generator.color(type), vx, vy, charge, mass);
+        const mass = generator.mass ? generator.mass(type, i) : 1;
+        const charge = generator.charge ? generator.charge(type, i) : 0;
+        const radius = generator.radius ? generator.radius(type, i) : 4;
+        const color = generator.color ? generator.color(type, i) : '#facc15';
+        return new Particle(x, y, radius, color, vx, vy, charge, mass);
     });
-
-    return particles;
 }
-
 
 // =============================================================================
 // 4. CACHE DE SPRITES E CLASSE CIRCULO (PROPAGAÇÃO DE ONDAS)
 // =============================================================================
-// Cache de Sprites em Offscreen Canvas sob demanda (memoização por raio e carga)
-const waveCache = new Map();
-
 function criarWaveSpritePorRaio(charge, raio) {
     const r = Math.max(1, Math.round(raio));
-    const padding = 2; // Margem para a linha de 1px não cortar
+    const padding = 2;
     const size = (r + padding) * 2;
     const offCanvas = document.createElement('canvas');
     offCanvas.width = size;
@@ -376,8 +358,8 @@ function criarWaveSpritePorRaio(charge, raio) {
     const offCtx = offCanvas.getContext('2d');
 
     const center = size / 2;
-    const innerRadius = Math.max(0, r - r * 0.3);
-    const outerRadius = r + r * 0.3;
+    const innerRadius = Math.max(0, r - r * 0.25);
+    const outerRadius = r + r * 0.25;
 
     const grad = offCtx.createRadialGradient(
         center, center, innerRadius,
@@ -386,19 +368,19 @@ function criarWaveSpritePorRaio(charge, raio) {
 
     let rgb;
     if (charge > 0) {
-        rgb = '255, 140, 0'; // Laranja (Na+)
+        rgb = '251, 146, 60';   // Laranja (Na+)
     } else if (charge < 0) {
-        rgb = '0, 200, 255'; // Ciano (Cl-)
+        rgb = '56, 189, 248';   // Ciano (Cl-)
     } else {
-        rgb = '0, 200, 180'; // Verde-água (Neutro)
+        rgb = '250, 204, 21';   // Amarelo solar
     }
 
-    grad.addColorStop(0, `rgba(${rgb}, 1)`);
+    grad.addColorStop(0, `rgba(${rgb}, 0.8)`);
     grad.addColorStop(1, `rgba(${rgb}, 0)`);
 
     offCtx.beginPath();
     offCtx.arc(center, center, r, 0, Math.PI * 2);
-    offCtx.lineWidth = 1; // Espessura de linha fixa de 1px!
+    offCtx.lineWidth = 1;
     offCtx.strokeStyle = grad;
     offCtx.stroke();
     offCtx.closePath();
@@ -417,129 +399,478 @@ function getWaveSprite(charge, raio) {
     return sprite;
 }
 
-// Classe para criar as ondas
 class Circulo {
     constructor(x, y, charge = 0, emissorId = null) {
-        this.x = x; // Posição x do centro da onda
-        this.y = y; // Posição y do centro da onda
-        this.charge = charge; // Carga associada à onda gerada
-        this.emissorId = emissorId; // ID da partícula que gerou a onda
-        this.raio = 0; // Raio inicial da onda
-        this.aSerRemovido = false; // Condição de remoção
+        this.x = x;
+        this.y = y;
+        this.charge = charge;
+        this.emissorId = emissorId;
+        this.raio = 0;
+        this.aSerRemovido = false;
     }
 
-    // Atualiza o estado do círculo
-    propagaCampo(c) {
-        this.raio += c; // Propaga radialmente
-        if (this.raio > canvas.width * 1.41) {
-            this.aSerRemovido = true; // Marca para remoção quando sair da tela
+    propagaCampo(speedC) {
+        this.raio += speedC * simSpeed;
+        if (canvas && this.raio > Math.hypot(canvas.width, canvas.height)) {
+            this.aSerRemovido = true;
         }
     }
 
-    // Função de controle (brilho/intensidade)
-    static intensidade(x) {
-        return Math.min(1, Math.exp(-(x ** 2) / 2e4)); // Exemplo com decaimento exponencial
+    static intensidade(r) {
+        // Lei do inverso do quadrado para a intensidade da frente de onda: I(r) = 1 / (1 + (r / r0)^2)
+        const r0 = 85; // Escala característica de decaimento em pixels
+        return 1.0 / (1.0 + (r / r0) ** 2);
     }
 
-    // Desenha o círculo no canvas usando o sprite pré-renderizado no raio exato (1:1 sem distorção)
-    mostra(ctx) {
+    mostra(ctx2d) {
         if (this.raio <= 0) return;
+        const intens = Circulo.intensidade(this.raio);
+        if (intens <= 0.005) return;
 
-        const intensidade = Circulo.intensidade(this.raio);
-        if (intensidade <= 0.001) return; // Ignora ondas praticamente invisíveis
+        let rgb;
+        if (this.charge > 0) {
+            rgb = '251, 146, 60';   // Laranja (Na+)
+        } else if (this.charge < 0) {
+            rgb = '56, 189, 248';   // Ciano (Cl-)
+        } else {
+            rgb = '250, 204, 21';   // Amarelo solar
+        }
 
-        const sprite = getWaveSprite(this.charge, this.raio);
-        const halfSize = sprite.width / 2;
-
-        ctx.save();
-        ctx.globalAlpha = Math.min(1, Math.max(0, intensidade * 2));
-        ctx.drawImage(
-            sprite,
-            this.x - halfSize,
-            this.y - halfSize
-        );
-        ctx.restore();
+        ctx2d.save();
+        ctx2d.beginPath();
+        ctx2d.arc(this.x, this.y, this.raio, 0, Math.PI * 2);
+        ctx2d.lineWidth = 1.3;
+        ctx2d.strokeStyle = `rgba(${rgb}, ${intens})`;
+        ctx2d.stroke();
+        ctx2d.closePath();
+        ctx2d.restore();
     }
 }
 
 // =============================================================================
-// 5. CÁLCULOS TERMODINÂMICOS E LOOP PRINCIPAL
+// 5. CÁLCULOS TERMODINÂMICOS & CONTROLES DE TELA
 // =============================================================================
-// Lista de partículas e ondas
-let circulos = [];
-let particles = createParticles(canvas, template); // Cria 10 partículas
-
-// Função para calcular a energia cinética total do sistema (sem Math.sqrt)
-function calcularEnergiaCinetica(particles) {
+function calcularEnergiaCinetica(particulasList) {
     let energiaTotal = 0;
+    particulasList.forEach(p => {
+        const vSq = p.velocityX * p.velocityX + p.velocityY * p.velocityY;
+        energiaTotal += 0.5 * p.mass * vSq;
+    });
+    return energiaTotal;
+}
 
-    particles.forEach(particle => {
-        const vSq = particle.velocityX * particle.velocityX + particle.velocityY * particle.velocityY;
-        energiaTotal += 0.5 * particle.mass * vSq; // Ek = 0.5 * m * v^2
+function calcularTemperatura(particulasList) {
+    if (particulasList.length === 0) return 0;
+    const energiaCineticaTotal = calcularEnergiaCinetica(particulasList);
+    return (2 * energiaCineticaTotal) / (3 * particulasList.length);
+}
+
+function calcularVrms(particulasList) {
+    if (particulasList.length === 0) return 0;
+    let sumVSq = 0;
+    particulasList.forEach(p => {
+        sumVSq += p.velocityX * p.velocityX + p.velocityY * p.velocityY;
+    });
+    return Math.sqrt(sumVSq / particulasList.length);
+}
+
+function resizeCanvas() {
+    if (!canvas) return;
+    const area = canvas.parentElement;
+    if (!area) return;
+    const w = area.clientWidth;
+    const h = area.clientHeight;
+    if (w === 0 || h === 0) return;
+
+    if (canvas.width !== w || canvas.height !== h) {
+        canvas.width = w;
+        canvas.height = h;
+    }
+}
+
+function updateStatusBadges() {
+    const headerBadge = document.getElementById('header-status-badge');
+    const footerBadge = document.getElementById('footer-status-badge');
+    const footerText = document.getElementById('footer-status-text');
+
+    if (particles.length === 0) {
+        if (headerBadge) headerBadge.innerHTML = '<span class="status-dot"></span><span>Aguardando Preset</span>';
+        if (footerText) footerText.textContent = 'Aguardando Preset';
+        if (footerBadge) footerBadge.classList.remove('badge-accent');
+    } else if (isRunning) {
+        if (headerBadge) headerBadge.innerHTML = '<span class="status-dot"></span><span>Executando</span>';
+        if (footerText) footerText.textContent = 'Simulação Ativa';
+        if (footerBadge) footerBadge.classList.add('badge-accent');
+    } else {
+        if (headerBadge) headerBadge.innerHTML = '<span class="status-dot"></span><span>Pausado (Pronto)</span>';
+        if (footerText) footerText.textContent = 'Pronto para Executar';
+        if (footerBadge) footerBadge.classList.add('badge-accent');
+    }
+}
+
+function reiniciarSistema(novoTemplate = 'none') {
+    circulos = [];
+    particles = [];
+    Particle.nextId = 0;
+    waveCache.clear();
+    template = novoTemplate;
+    simTime = 0.0;
+
+    if (canvas && template !== 'none') {
+        particles = createParticles(canvas, template);
+    }
+
+    const footerTimer = document.getElementById('footer-sim-timer');
+    if (footerTimer) footerTimer.textContent = 't = 0.00s';
+
+    updateStatusBadges();
+}
+
+// =============================================================================
+// 6. SETUP DE CONTROLADORES & EVENTOS (DESIGN SYSTEM 2.0)
+// =============================================================================
+function setupEventListeners() {
+    // --- MODO FOCO (DESKTOP) ---
+    initSidebarCollapse({
+        layoutSelector: '.sim-layout',
+        collapseBtnSelector: '#btn-collapse-sidebar',
+        expandBtnSelector: '#btn-expand-sidebar',
+        onResize: () => {
+            resizeCanvas();
+            if (plotEnergia) plotEnergia.resize();
+            if (plotTemp) plotTemp.resize();
+        }
     });
 
-    return energiaTotal; // Retorna a energia cinética total
+    // --- BOTTOM SHEET MOBILE (<= 900PX) ---
+    initBottomSheet({
+        panelSelector: '.controls-panel',
+        handleSelector: '#sheet-drag-handle',
+        tabNavSelector: '.tab-nav',
+        collapseBtnSelector: '#btn-collapse-sidebar',
+        defaultState: 'peek'
+    });
+
+    // --- NAVEGAÇÃO ENTRE ABAS ---
+    const tabs = [
+        { btnId: 'tab-btn-params', panelId: 'panel-tab-params' },
+        { btnId: 'tab-btn-telemetry', panelId: 'panel-tab-telemetry' },
+        { btnId: 'tab-btn-theory', panelId: 'panel-tab-theory' }
+    ];
+
+    tabs.forEach(({ btnId, panelId }) => {
+        const btn = document.getElementById(btnId);
+        const panel = document.getElementById(panelId);
+        if (!btn || !panel) return;
+
+        btn.addEventListener('click', () => {
+            tabs.forEach(t => {
+                const b = document.getElementById(t.btnId);
+                const p = document.getElementById(t.panelId);
+                if (b) b.classList.remove('active');
+                if (p) p.style.display = 'none';
+            });
+            btn.classList.add('active');
+            panel.style.display = 'block';
+
+            if (panelId === 'panel-tab-telemetry') {
+                setTimeout(() => {
+                    if (plotEnergia) plotEnergia.resize();
+                    if (plotTemp) plotTemp.resize();
+                }, 50);
+            }
+        });
+    });
+
+    // --- BARRA DE TRANSPORTE ---
+    playControl = initToggleButton('#btn-play-sim', (active) => {
+        if (particles.length === 0 && active) {
+            const defaultBtn = document.getElementById('preset-single-static');
+            if (defaultBtn) {
+                document.querySelectorAll('.control-grid-2x2 .btn-preset').forEach(b => b.classList.remove('active'));
+                defaultBtn.classList.add('active');
+            }
+            reiniciarSistema('singleStatic');
+        }
+
+        isRunning = active;
+        updateStatusBadges();
+    });
+
+    // Botão Passo Temporal (Δt)
+    const btnStep = document.getElementById('btn-step-sim');
+    if (btnStep) {
+        btnStep.addEventListener('click', () => {
+            if (particles.length === 0) {
+                reiniciarSistema('singleStatic');
+                const defaultBtn = document.getElementById('preset-single-static');
+                if (defaultBtn) defaultBtn.classList.add('active');
+            }
+            if (isRunning && playControl) playControl.setState(0);
+            isRunning = false;
+            simTime += 0.05 * simSpeed;
+            passoSimulacao();
+            updateStatusBadges();
+        });
+    }
+
+    // Botões de Reset: Reiniciam o preset ativo para o estado inicial sem perder a seleção
+    const resetAction = () => {
+        if (isRunning && playControl) playControl.setState(0);
+        isRunning = false;
+        if (template && template !== 'none') {
+            reiniciarSistema(template);
+        } else {
+            reiniciarSistema('none');
+        }
+    };
+
+    const btnReset = document.getElementById('btn-reset-sim');
+    const btnQuickReset = document.getElementById('btn-quick-reset');
+    if (btnReset) btnReset.addEventListener('click', resetAction);
+    if (btnQuickReset) btnQuickReset.addEventListener('click', resetAction);
+
+    // Seletor de Velocidade Temporal
+    document.querySelectorAll('#sim-speed-pills .speed-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('#sim-speed-pills .speed-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            simSpeed = parseFloat(btn.dataset.speed || '1.0');
+        });
+    });
+
+    // --- PRESETS DE CONFIGURAÇÃO DE PARTÍCULAS ---
+    const presetBtns = document.querySelectorAll('.control-grid-2x2 .btn-preset');
+
+    presetBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            presetBtns.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            const tmpl = btn.dataset.template;
+            if (tmpl) {
+                reiniciarSistema(tmpl);
+            }
+        });
+    });
+
+
+    // --- SWITCH DE INTERAÇÃO & TIPO DE POTENCIAL ---
+    const switchInteracao = document.getElementById('switch-interacao');
+    if (switchInteracao) {
+        switchInteracao.addEventListener('change', (e) => {
+            interactionEnabled = e.target.checked;
+        });
+    }
+
+    const selectPotencial = document.getElementById('selector-de-tipo-de-interacao');
+    if (selectPotencial) {
+        selectPotencial.addEventListener('change', (e) => {
+            tipoDeInteracao = e.target.value;
+        });
+    }
+
+    // --- SLIDERS SINCRONIZADOS (DUAL-INPUT) ---
+    syncDualSlider('#slider-temp', '#num-temp', (val) => {
+        TEMP_LIMIT = val;
+    });
+
+    syncDualSlider('#slider-wave-speed', '#num-wave-speed', (val) => {
+        c = val;
+        waveCache.clear();
+    });
+
+    syncDualSlider('#slider-attenuation', '#num-attenuation', (val) => {
+        attenuation = val;
+    });
+
+    syncDualSlider('#slider-epsilon', '#num-epsilon', (val) => {
+        epsilonCoulomb = val;
+    });
+
+    // --- MODAL DE TEORIA ---
+    const theoryModal = initModal('#modal-theory-particulas');
+    const btnOpenTheory = document.getElementById('btn-abrir-modal-teoria');
+    if (btnOpenTheory && theoryModal) {
+        btnOpenTheory.addEventListener('click', () => {
+            theoryModal.open();
+        });
+    }
+
+    // --- INTERAÇÃO COM O CANVAS (IMPULSO VIA CLIQUE / ARRASTE) ---
+    if (canvas) {
+        let isMouseDown = false;
+        canvas.addEventListener('mousedown', (e) => {
+            isMouseDown = true;
+            aplicarImpulsoCursor(e);
+        });
+
+        window.addEventListener('mouseup', () => {
+            isMouseDown = false;
+        });
+
+        canvas.addEventListener('mousemove', (e) => {
+            if (isMouseDown) aplicarImpulsoCursor(e);
+        });
+    }
 }
 
-// Função para calcular a "temperatura" do sistema
-function calcularTemperatura(particles) {
-    const energiaCineticaTotal = calcularEnergiaCinetica(particles);
-    const temperatura = (2 * energiaCineticaTotal) / (3 * particles.length); // Aproximadamente T = (2/3) * Energia / n
-    return temperatura;
+function aplicarImpulsoCursor(e) {
+    if (!canvas) return;
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    const mx = (e.clientX - rect.left) * scaleX;
+    const my = (e.clientY - rect.top) * scaleY;
+
+    particles.forEach(p => {
+        const dx = p.x - mx;
+        const dy = p.y - my;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist < 120 && dist > 1) {
+            const force = (120 - dist) / 120 * 0.8;
+            p.velocityX += (dx / dist) * force;
+            p.velocityY += (dy / dist) * force;
+        }
+    });
 }
 
-// Animação principal
-function anima() {
-    ctx.beginPath();
-    ctx.fillStyle = 'rgba(20,20,20,1)';
-    ctx.fillRect(0, 0, canvas.width, canvas.height); // Limpa o canvas
-    ctx.closePath();
+function passoSimulacao() {
+    if (!canvas) return;
 
-    // Atualiza e desenha ondas
     for (let i = circulos.length - 1; i >= 0; i--) {
         const circulo = circulos[i];
         circulo.propagaCampo(c);
-        circulo.mostra(ctx);
-
-        // Remove ondas fora do canvas em O(1) via Swap-and-Pop
         if (circulo.aSerRemovido) {
             circulos[i] = circulos[circulos.length - 1];
             circulos.pop();
         }
     }
 
-    // Atualiza e desenha partículas
     particles.forEach(particle => {
-        particle.update(canvas, circulos, interactionEnabled, tipoDeInteracao);
-        //particle.loretzFactor(c);
-        particle.draw(ctx);
-        //console.log(`Lorentz gamma = ${particle.gamma}`)
+        particle.update(canvas, circulos, interactionEnabled);
     });
 
-    // Calculando a energia cinética total e temperatura
-    const energiaCineticaTotal = calcularEnergiaCinetica(particles);
     const temperatura = calcularTemperatura(particles);
-
-    //console.log(`Energia cinética total: ${energiaCineticaTotal}`);
-    //console.log(`Temperatura do sistema: ${temperatura}`);
-
-    // Se a temperatura ultrapassar o limite, resfria as partículas
     if (temperatura > TEMP_LIMIT) {
-        particles.forEach(particle => particle.reduceSpeed(attenuation));
-        //console.log("Temperatura excedeu o limite! Resfriando...");
-    } else if (temperatura < TEMP_LIMIT) {
-        particles.forEach(particle => particle.increaseSpeed(attenuation));
+        particles.forEach(p => p.reduceSpeed(attenuation));
+    } else if (temperatura < TEMP_LIMIT && temperatura > 0) {
+        particles.forEach(p => p.increaseSpeed(attenuation));
     }
-
-    requestAnimationFrame(anima); // Loop contínuo
 }
 
-// Inicia a animação
-anima();
+// =============================================================================
+// 7. LOOP DE ANIMAÇÃO PRINCIPAL
+// =============================================================================
+function anima() {
+    requestAnimationFrame(anima);
+    if (!ctx || !canvas) return;
 
-// -----------------------------------------------------------------------------
-// PRÓXIMO PASSO:
-// Efeito Doppler Relativístico e Cone de Mach (Radiação de Cherenkov)
-// - Ativar o fator de Lorentz (gamma) para dilatação temporal da frequência de emissão.
-// - Formação de ondas de choque quando v > c.
-// -----------------------------------------------------------------------------
+    if (isRunning) {
+        simTime += 0.016 * simSpeed;
+        passoSimulacao();
+    }
+
+    // Fundo Dark Theme de Alto Contraste
+    ctx.fillStyle = '#070b16';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Renderiza frentes de onda esféricas
+    circulos.forEach(circulo => circulo.mostra(ctx));
+
+    // Renderiza partículas
+    particles.forEach(particle => particle.draw(ctx));
+
+    // Telemetria e Grandezas Físicas
+    const energiaTotal = calcularEnergiaCinetica(particles);
+    const temperatura = calcularTemperatura(particles);
+    const vrms = calcularVrms(particles);
+
+    // 1. Atualiza HUD no Canvas
+    const hudPart = document.getElementById('hud-particles-count');
+    const hudWaves = document.getElementById('hud-waves-count');
+    const hudK = document.getElementById('hud-kinetic-energy');
+    const hudT = document.getElementById('hud-temperature');
+
+    if (hudPart) hudPart.textContent = `${particles.length}`;
+    if (hudWaves) hudWaves.textContent = `${circulos.length}`;
+    if (hudK) hudK.textContent = `${energiaTotal.toFixed(2)} J`;
+    if (hudT) hudT.textContent = temperatura.toFixed(3);
+
+    // 2. Atualiza Rodapé
+    const footerTimer = document.getElementById('footer-sim-timer');
+    if (footerTimer) footerTimer.textContent = `t = ${simTime.toFixed(2)}s`;
+
+    // 3. Alimenta Mini-Gráficos de Telemetria
+    if (plotEnergia) {
+        plotEnergia.push(energiaTotal);
+        const valK = document.getElementById('plot-val-k');
+        if (valK) valK.textContent = `${energiaTotal.toFixed(2)} J`;
+    }
+
+    if (plotTemp) {
+        plotTemp.push(temperatura);
+        const valT = document.getElementById('plot-val-t');
+        if (valT) valT.textContent = temperatura.toFixed(3);
+    }
+
+    // 4. Painel de Balanço Termodinâmico
+    const telVrms = document.getElementById('telemetry-vrms');
+    const telStatus = document.getElementById('telemetry-thermostat-status');
+    const telWaves = document.getElementById('telemetry-waves-alive');
+
+    if (telVrms) telVrms.textContent = `${vrms.toFixed(2)} px/f`;
+    if (telWaves) telWaves.textContent = `${circulos.length}`;
+    if (telStatus) {
+        const diff = temperatura - TEMP_LIMIT;
+        if (Math.abs(diff) < 0.02) {
+            telStatus.textContent = 'Equilíbrio';
+            telStatus.style.color = 'var(--color-emerald, #22c55e)';
+        } else if (diff > 0) {
+            telStatus.textContent = 'Resfriando';
+            telStatus.style.color = 'var(--color-cyan, #38bdf8)';
+        } else {
+            telStatus.textContent = 'Aquecendo';
+            telStatus.style.color = 'var(--color-yellow, #facc15)';
+        }
+    }
+}
+
+// =============================================================================
+// 8. INICIALIZAÇÃO
+// =============================================================================
+window.addEventListener('DOMContentLoaded', async () => {
+    resizeCanvas();
+    setupEventListeners();
+    reiniciarSistema('none');
+
+    // Inicializa os Mini-Gráficos de Telemetria
+    const canvasPlotK = document.getElementById('canvas-plot-k');
+    if (canvasPlotK) {
+        plotEnergia = new RealtimePlot(canvasPlotK, {
+            maxPoints: 80,
+            minVal: 0.0,
+            maxVal: 20.0
+        });
+    }
+
+    const canvasPlotT = document.getElementById('canvas-plot-t');
+    if (canvasPlotT) {
+        plotTemp = new RealtimePlot(canvasPlotT, {
+            maxPoints: 80,
+            minVal: 0.0,
+            maxVal: 2.0
+        });
+    }
+
+    anima();
+    await inlineSVGImages();
+
+    if (window.renderMathInElement) {
+        window.renderMathInElement(document.body, {
+            delimiters: [
+                { left: '$$', right: '$$', display: true },
+                { left: '$', right: '$', display: false }
+            ]
+        });
+    }
+});

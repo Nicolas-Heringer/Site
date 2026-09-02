@@ -4,134 +4,499 @@
 <head>
     <!-- Metadados da Página -->
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Simulação de Partículas — Interações e Campos Retardados</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interações Moleculares & Campos Retardados — Design System 2.0</title>
 
     <meta name="description"
-        content="Simulação de dinâmica molecular de partículas interagindo via potenciais de Lennard-Jones, Coulomb e forças mediadas por frentes de onda retardadas com controle termodinâmico.">
+        content="Simulação de dinâmica molecular de partículas interagindo via potenciais de Lennard-Jones, Coulomb e forças mediadas por frentes de onda retardadas (Funções de Green) com controle termodinâmico.">
     <meta name="keywords"
-        content="simulação de partículas, dinâmica molecular, lennard-jones, coulomb, campos retardados, frentes de onda, temperatura, termodinâmica">
+        content="simulação de partículas, dinâmica molecular, lennard-jones, coulomb, campos retardados, função de green, frentes de onda, temperatura, termodinâmica">
     <meta name="author" content="Nicolas Heringer">
 
     <!-- Favicon -->
     <link rel="icon" type="image/svg+xml" href="../favicon.svg">
 
-    <!-- Estilos CSS -->
-    <link rel="stylesheet" href="css/base.css">
+    <!-- Design System Unificado e Estilos Específicos -->
+    <link rel="stylesheet" href="css/design-system.css">
     <link rel="stylesheet" href="css/particulas.css">
 
     <!-- Suporte a LaTeX com KaTeX -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
     <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
-    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"
-        onload="renderMathInElement(document.body, {
-            delimiters: [
-                {left: '$$', right: '$$', display: true},
-                {left: '$', right: '$', display: false},
-                {left: '\\(', right: '\\)', display: false},
-                {left: '\\[', right: '\\]', display: true}
-            ],
-            throwOnError: false
-        });"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
 </head>
 
 <body>
-
     <!-- Cabeçalho da Simulação -->
     <header class="sim-header">
-        <a href="../index.html#secao-simulacoes" class="btn-back">← Voltar ao Hub</a>
-        <span class="sim-title">Simulação de partículas</span>
+        <a href="../index.html#secao-simulacoes" class="btn-back">
+            <svg class="icon-svg" viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+            Voltar ao Hub
+        </a>
+        <h1 class="sim-title">Dinâmica Molecular & Campos Retardados</h1>
     </header>
 
-    <!-- Conteúdo Principal -->
+    <!-- Layout Grid Principal -->
     <main class="sim-layout">
-        <!-- Área de Visualização (Canvas) -->
+
+        <!-- 1. Área do Canvas Interativo 2D -->
         <div class="canvas-area">
-            <canvas id="myCanvas" width="900" height="675"></canvas>
+            <canvas id="myCanvas"></canvas>
+
+            <!-- Grupo de Ações Flutuantes no Topo Direito -->
+            <div class="canvas-top-actions">
+                <button id="btn-quick-reset" class="canvas-btn-floating" title="Reiniciar sistema de partículas">
+                    <img src="../assets/icons/refresh.svg" class="icon-svg" alt="Reset">
+                    <span class="btn-label-text">Reiniciar</span>
+                </button>
+                <button id="btn-expand-sidebar" class="canvas-btn-expand-sidebar" title="Expandir Painel de Controles (F)">
+                    <img src="../assets/icons/expand.svg" class="icon-svg" alt="Expandir">
+                    <span class="btn-label-text">Controles</span>
+                </button>
+            </div>
+
+            <!-- HUD de Telemetria e Diagnóstico no Canvas -->
+            <div class="sim-hud" id="sim-hud">
+                <div class="hud-item">
+                    <span class="hud-label">Partículas ($N$):</span>
+                    <span class="hud-val" id="hud-particles-count" style="color: var(--accent-hud, var(--accent-color));">0</span>
+                </div>
+                <div class="hud-item">
+                    <span class="hud-label">Ondas Ativas:</span>
+                    <span class="hud-val" id="hud-waves-count" style="color: var(--color-cyan, #38bdf8);">0</span>
+                </div>
+                <div class="hud-item">
+                    <span class="hud-label">Energia Cinética ($K$):</span>
+                    <span class="hud-val" id="hud-kinetic-energy" style="color: var(--color-emerald, #22c55e);">0.00 J</span>
+                </div>
+                <div class="hud-item">
+                    <span class="hud-label">Temperatura ($T$):</span>
+                    <span class="hud-val" id="hud-temperature" style="color: var(--color-yellow, #facc15);">0.000</span>
+                </div>
+            </div>
+
+            <!-- Dica Interativa Flutuante -->
+            <div class="interactive-hint">
+                <img src="../assets/icons/lightbulb.svg" class="icon-svg icon-accent" alt="Dica">
+                Selecione um preset abaixo para carregar as partículas e clique em <strong>Executar</strong> para iniciar a dinâmica temporal.
+            </div>
         </div>
 
-        <!-- Painel de Controles -->
+        <!-- 2. Painel Lateral de Controles (Layout Tripartido / Bottom Sheet no Mobile) -->
         <aside class="controls-panel">
 
-            <div class="control-group">
-                <label for="seletor-de-template">Template:</label>
-                <select id="seletor-de-template" class="sim-control">
-                    <option value="livre">Uma partícula</option>
-                    <option value="double">Duas partículas</option>
-                    <option value="many">Varias partículas (3)</option>
-                    <option value="circular">Circulo (12)</option>
-                    <option value="grid">Grid (6x6)</option>
-                    <option value="NaCl">Cloreto de sódio NaCl</option>
-                    <option value="none"> </option>
-                </select>
+            <!-- Alça de Arraste para Mobile / Tablet (Bottom Sheet) -->
+            <div class="sheet-drag-handle" id="sheet-drag-handle" title="Deslize ou toque para expandir/recolher">
+                <div class="sheet-drag-pill"></div>
             </div>
 
-            <div class="control-group">
-                <label for="selector-de-tipo-de-interacao">Tipo de interação:</label>
-                <select id="selector-de-tipo-de-interacao" class="sim-control">
-                    <option value="lennardJones">Lennard-Jones</option>
-                    <option value="atracao">Apenas atração</option>
-                    <option value="repulsao">Apenas repulsão</option>
-                    <option value="coulomb">Interação Coulombiana (Cargas)</option>
-                </select>
+            <!-- Topo: Barra de Abas Expansíveis -->
+            <div class="tab-nav">
+                <button class="tab-btn active" id="tab-btn-params" title="Parâmetros Físicos">
+                    <img src="../assets/icons/rotate.svg" class="icon-svg" alt="Parâmetros">
+                    <span class="tab-label">Parâmetros</span>
+                </button>
+                <button class="tab-btn" id="tab-btn-telemetry" title="Gráficos de Telemetria">
+                    <img src="../assets/icons/sparkles.svg" class="icon-svg" alt="Telemetria">
+                    <span class="tab-label">Telemetria</span>
+                </button>
+                <button class="tab-btn" id="tab-btn-theory" title="Fundamentação Teórica & Fórmulas">
+                    <img src="../assets/icons/compass.svg" class="icon-svg" alt="Teoria">
+                    <span class="tab-label">Teoria</span>
+                </button>
+                <button class="btn-collapse-sidebar" id="btn-collapse-sidebar" title="Modo Foco (F)">
+                    <img src="../assets/icons/collapse.svg" class="icon-svg" alt="Recolher">
+                </button>
             </div>
 
-            <div class="control-group">
-                <label for="selector-de-interacao">Interação:</label>
-                <select id="selector-de-interacao" class="sim-control">
-                    <option value="desligada">Desligada</option>
-                    <option value="ligada">Ligada</option>
-                </select>
+            <!-- Centro: Corpo Rolável de Conteúdo -->
+            <div class="panel-body">
+
+                <!-- ABA 1: PARÂMETROS E CONTROLES -->
+                <div id="panel-tab-params">
+                    <div class="tab-header">
+                        <div class="tab-header-row">
+                            <h3 class="tab-title">Dinâmica & Campos</h3>
+                            <div class="sim-badge" id="header-status-badge">
+                                <span class="status-dot"></span>
+                                <span>Aguardando Preset</span>
+                            </div>
+                        </div>
+                        <p class="tab-subtitle">Simulação de partículas com propagação causal retardada na velocidade $c$.</p>
+                    </div>
+
+                    <!-- 1. Barra de Reprodução Físico-Temporal -->
+                    <div class="sim-transport-bar">
+                        <div class="transport-controls-row">
+                            <button class="btn-primary btn-toggle transport-btn-play" id="btn-play-sim"
+                                    data-state="0"
+                                    data-text-idle="Executar"
+                                    data-text-active="Pausar"
+                                    data-icon-idle="play"
+                                    data-icon-active="pause">
+                                <img src="../assets/icons/play.svg" class="icon-svg" alt="Executar">
+                                <span class="btn-text">Executar</span>
+                            </button>
+                            <button class="btn-icon" id="btn-step-sim" title="Avançar 1 Passo Temporal (Δt)">
+                                <img src="../assets/icons/step.svg" class="icon-svg" alt="Passo">
+                            </button>
+                            <button class="btn-icon" id="btn-reset-sim" title="Limpar Tela / Reiniciar (t = 0)">
+                                <img src="../assets/icons/refresh.svg" class="icon-svg" alt="Reset">
+                            </button>
+                        </div>
+
+                        <div class="transport-speed-row">
+                            <span class="transport-speed-label">
+                                <img src="../assets/icons/rotate.svg" class="icon-svg" style="width: 14px; height: 14px;" alt="Velocidade">
+                                Velocidade:
+                            </span>
+                            <div class="transport-speed-pills" id="sim-speed-pills">
+                                <button class="speed-btn" data-speed="0.5">0.5×</button>
+                                <button class="speed-btn active" data-speed="1.0">1.0×</button>
+                                <button class="speed-btn" data-speed="2.0">2.0×</button>
+                                <button class="speed-btn" data-speed="5.0">5.0×</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="sim-divider-label"><span>Seletores de Presets</span></div>
+
+                    <!-- Grade Completa de Presets de Configuração -->
+                    <div class="control-group">
+                        <div class="control-grid-2x2">
+                            <button class="btn-preset" id="preset-single-static" data-template="singleStatic">
+                                <img src="../assets/icons/sun.svg" class="icon-svg" alt="1 Parada"> 1 Partícula (Parada)
+                            </button>
+                            <button class="btn-preset" id="preset-single-moving" data-template="singleMoving">
+                                <img src="../assets/icons/wind.svg" class="icon-svg" alt="1 Móvel"> 1 Partícula (Móvel)
+                            </button>
+                            <button class="btn-preset" id="preset-double-static" data-template="double">
+                                <img src="../assets/icons/sparkles.svg" class="icon-svg" alt="2 Paradas"> 2 Partículas (Paradas)
+                            </button>
+                            <button class="btn-preset" id="preset-double-moving" data-template="doubleMoving">
+                                <img src="../assets/icons/rotate.svg" class="icon-svg" alt="2 Opostas"> 2 Partículas (Opostas)
+                            </button>
+                            <button class="btn-preset" id="preset-many" data-template="many">
+                                <img src="../assets/icons/sparkles.svg" class="icon-svg" alt="3 Corpos"> 3 Corpos (3)
+                            </button>
+                            <button class="btn-preset" id="preset-circular" data-template="circular">
+                                <img src="../assets/icons/rotate.svg" class="icon-svg" alt="Anel"> Anel Circular (12)
+                            </button>
+                            <button class="btn-preset" id="preset-grid" data-template="grid">
+                                <img src="../assets/icons/globe.svg" class="icon-svg" alt="Grade"> Grade $6\times 6$ (36)
+                            </button>
+                            <button class="btn-preset" id="preset-nacl" data-template="NaCl">
+                                <img src="../assets/icons/sun.svg" class="icon-svg" alt="NaCl"> Sal $\text{NaCl}$ (64)
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="sim-divider-label"><span>Potencial de Interação</span></div>
+
+                    <!-- Switch: Interação Ligada / Desligada -->
+                    <div class="control-group">
+                        <div class="switch-container">
+                            <span class="switch-label">Interação Mediada por Campos</span>
+                            <label class="sim-switch">
+                                <input type="checkbox" id="switch-interacao" checked>
+                                <span class="slider-round"></span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Seletor de Tipo de Potencial -->
+                    <div class="control-group">
+                        <label for="selector-de-tipo-de-interacao">Modelo de Força / Potencial:</label>
+                        <select id="selector-de-tipo-de-interacao" class="sim-control">
+                            <option value="coulomb" selected>Interação Coulombiana Retardada (Cargas ±q)</option>
+                            <option value="lennardJones">Potencial de Lennard-Jones 12-6</option>
+                            <option value="atracao">Apenas Atração ($F \propto 1/r$)</option>
+                            <option value="repulsao">Apenas Repulsão ($F \propto -1/r$)</option>
+                        </select>
+                    </div>
+
+                    <div class="sim-divider-label"><span>Parâmetros Termodinâmicos & de Onda</span></div>
+
+                    <!-- Slider 1: Temperatura Alvo / Limite -->
+                    <div class="control-group">
+                        <div class="slider-container sim-dual-slider">
+                            <div class="slider-header">
+                                <label for="slider-temp" class="slider-label">Temperatura Alvo ($T_{\text{target}}$)</label>
+                                <div class="dual-input-wrapper">
+                                    <input type="number" class="dual-input-number" id="num-temp"
+                                           min="0.001" max="10.0" step="0.01" value="0.10">
+                                    <span class="dual-input-unit">a.u.</span>
+                                </div>
+                            </div>
+                            <input type="range" class="sim-slider" id="slider-temp"
+                                   min="0.001" max="10.0" step="0.01" value="0.10">
+                        </div>
+                    </div>
+
+                    <!-- Slider 2: Velocidade de Propagação da Onda (c) -->
+                    <div class="control-group">
+                        <div class="slider-container sim-dual-slider">
+                            <div class="slider-header">
+                                <label for="slider-wave-speed" class="slider-label">Velocidade da Onda ($c$)</label>
+                                <div class="dual-input-wrapper">
+                                    <input type="number" class="dual-input-number" id="num-wave-speed"
+                                           min="1.0" max="10.0" step="0.5" value="2.0">
+                                    <span class="dual-input-unit">px/f</span>
+                                </div>
+                            </div>
+                            <input type="range" class="sim-slider" id="slider-wave-speed"
+                                   min="1.0" max="10.0" step="0.5" value="2.0">
+                        </div>
+                    </div>
+
+                    <!-- Slider 3: Taxa de Atenuação Térmica -->
+                    <div class="control-group">
+                        <div class="slider-container sim-dual-slider">
+                            <div class="slider-header">
+                                <label for="slider-attenuation" class="slider-label">Atenuação do Termostato ($\gamma$)</label>
+                                <div class="dual-input-wrapper">
+                                    <input type="number" class="dual-input-number" id="num-attenuation"
+                                           min="0.01" max="0.50" step="0.01" value="0.09">
+                                    <span class="dual-input-unit">taxa</span>
+                                </div>
+                            </div>
+                            <input type="range" class="sim-slider" id="slider-attenuation"
+                                   min="0.01" max="0.50" step="0.01" value="0.09">
+                        </div>
+                    </div>
+
+                    <!-- Slider 4: Acoplamento Coulombiano -->
+                    <div class="control-group">
+                        <div class="slider-container sim-dual-slider">
+                            <div class="slider-header">
+                                <label for="slider-epsilon" class="slider-label">Acoplamento de Cargas ($\varepsilon_C$)</label>
+                                <div class="dual-input-wrapper">
+                                    <input type="number" class="dual-input-number" id="num-epsilon"
+                                           min="0.01" max="1.00" step="0.01" value="0.10">
+                                    <span class="dual-input-unit">a.u.</span>
+                                </div>
+                            </div>
+                            <input type="range" class="sim-slider" id="slider-epsilon"
+                                   min="0.01" max="1.00" step="0.01" value="0.10">
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- ABA 2: TELEMETRIA EM TEMPO REAL -->
+                <div id="panel-tab-telemetry" style="display: none;">
+                    <div class="tab-header">
+                        <div class="tab-header-row">
+                            <h3 class="tab-title">Telemetria em Tempo Real</h3>
+                            <div class="sim-badge"><span class="status-dot"></span><span>60 FPS</span></div>
+                        </div>
+                        <p class="tab-subtitle">Monitoramento contínuo de energia cinética, temperatura e equilíbrio estatístico.</p>
+                    </div>
+
+                    <!-- Gráfico 1: Energia Cinética Total K(t) -->
+                    <div class="control-group">
+                        <div class="sim-plot-card" id="card-plot-energia">
+                            <div class="plot-header">
+                                <div class="plot-title-group">
+                                    <span class="plot-dot" style="background: var(--color-emerald, #22c55e);"></span>
+                                    <span class="plot-title">Energia Cinética Total $K(t)$</span>
+                                </div>
+                                <div class="plot-stats">
+                                    <span class="plot-stat-label">Atual:</span>
+                                    <span class="plot-stat-val" id="plot-val-k">0.00 J</span>
+                                </div>
+                            </div>
+                            <div class="plot-canvas-wrapper">
+                                <canvas class="sim-plot-canvas" id="canvas-plot-k"></canvas>
+                                <span class="plot-axis-label plot-axis-max" id="axis-k-max">+10.0</span>
+                                <span class="plot-axis-label plot-axis-min">0.0</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Gráfico 2: Temperatura Instantânea T(t) -->
+                    <div class="control-group">
+                        <div class="sim-plot-card" id="card-plot-temp">
+                            <div class="plot-header">
+                                <div class="plot-title-group">
+                                    <span class="plot-dot" style="background: var(--color-yellow, #facc15);"></span>
+                                    <span class="plot-title">Temperatura Instantânea $T(t)$</span>
+                                </div>
+                                <div class="plot-stats">
+                                    <span class="plot-stat-label">Atual:</span>
+                                    <span class="plot-stat-val" id="plot-val-t">0.000</span>
+                                </div>
+                            </div>
+                            <div class="plot-canvas-wrapper">
+                                <canvas class="sim-plot-canvas" id="canvas-plot-t"></canvas>
+                                <span class="plot-axis-label plot-axis-max" id="axis-t-max">+1.0</span>
+                                <span class="plot-axis-label plot-axis-min">0.0</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="sim-divider-label"><span>Balanço Termodinâmico</span></div>
+
+                    <div class="control-group">
+                        <div class="theory-card" style="padding: 12px 14px;">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+                                <span style="color: var(--text-secondary); font-size: 0.85rem;">Velocidade Quadrática Média $v_{\text{rms}}$:</span>
+                                <strong id="telemetry-vrms" style="font-family: var(--font-mono); color: var(--accent-color);">0.00 px/f</strong>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+                                <span style="color: var(--text-secondary); font-size: 0.85rem;">Status do Termostato:</span>
+                                <strong id="telemetry-thermostat-status" style="font-family: var(--font-mono); color: var(--color-emerald, #22c55e);">Equilíbrio</strong>
+                            </div>
+                            <div style="display: flex; justify-content: space-between;">
+                                <span style="color: var(--text-secondary); font-size: 0.85rem;">Frentes de Onda Vivas:</span>
+                                <strong id="telemetry-waves-alive" style="font-family: var(--font-mono); color: var(--color-cyan, #38bdf8);">0</strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ABA 3: TEORIA E FUNDAMENTAÇÃO MATEMÁTICA -->
+                <div id="panel-tab-theory" style="display: none;">
+                    <div class="tab-header">
+                        <div class="tab-header-row">
+                            <h3 class="tab-title">Fundamentação Teórica</h3>
+                            <div class="sim-badge"><span class="status-dot"></span><span>$\KaTeX$</span></div>
+                        </div>
+                        <p class="tab-subtitle">Equações de onda, funções de Green retardadas e potenciais intermoleculares.</p>
+                    </div>
+
+                    <!-- Card Didático 1: Função de Green Retardada -->
+                    <div class="control-group">
+                        <div class="theory-card">
+                            <h4><img src="../assets/icons/compass.svg" class="icon-svg icon-accent" alt="Green"> Campos Retardados & Funções de Green</h4>
+                            <p>
+                                A informação de força não se propaga instantaneamente ($c < \infty$). A equação de onda d'Alembertiana governante:
+                            </p>
+                            $$\left( \nabla^2 - \frac{1}{c^2}\frac{\partial^2}{\partial t^2} \right) \Phi(\mathbf{r}, t) = -\frac{\rho(\mathbf{r}, t)}{\varepsilon_0}$$
+                            <p>
+                                Possui solução exata via a **Função de Green Retardada Causal**:
+                            </p>
+                            $$G_{\text{ret}}(\mathbf{r}, t; \mathbf{r}', t') = \frac{\delta\left( t - t' - \frac{|\mathbf{r} - \mathbf{r}'|}{c} \right)}{4\pi |\mathbf{r} - \mathbf{r}'|}$$
+                            <p>
+                                O campo em $\mathbf{r}$ no instante $t$ depende unicamente do estado da partícula emissora no instante retardado $t_{\text{ret}} = t - |\mathbf{r} - \mathbf{r}'|/c$.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Card Didático 2: Potenciais Efetivos -->
+                    <div class="control-group">
+                        <div class="theory-card">
+                            <h4><img src="../assets/icons/sparkles.svg" class="icon-svg icon-accent" alt="Lennard-Jones"> Potencial de Lennard-Jones & Coulomb</h4>
+                            <p>
+                                Potencial 12-6 de equilíbrio intermolecular:
+                            </p>
+                            $$V_{\text{LJ}}(r) = 4\varepsilon \left[ \left(\frac{\sigma}{r}\right)^{12} - \left(\frac{\sigma}{r}\right)^6 \right]$$
+                            <p>
+                                Para o cristal iônico de $\text{NaCl}$, a força coulombiana combinada com a repulsão de caroço de Pauli ($r^{-6}$) gera a estabilização da rede cristalina:
+                            </p>
+                            $$\mathbf{F}_{ij}(t) = \left( -\frac{q_i q_j \varepsilon_C}{r^2} - \frac{A}{r^6} \right) \hat{\mathbf{r}}_{ij}$$
+                        </div>
+                    </div>
+
+                    <!-- Card Didático 3: Termostato e Equipartição -->
+                    <div class="control-group">
+                        <div class="theory-card">
+                            <h4><img src="../assets/icons/thermometer.svg" class="icon-svg icon-accent" alt="Termo"> Termostato & Equipartição</h4>
+                            <p>
+                                Pelo Teorema da Equipartição em 2D com $N$ partículas ($2N$ graus de liberdade translacionais):
+                            </p>
+                            $$K = \sum_{i=1}^N \frac{1}{2}m_i v_i^2 = N k_B T \quad \implies \quad T = \frac{K}{N k_B}$$
+                            
+                            <button class="btn-secondary" id="btn-abrir-modal-teoria" style="width: 100%; margin-top: 12px;">
+                                <img src="../assets/icons/compass.svg" class="icon-svg" alt="Teoria">
+                                Ver Dedução Matemática Completa (Modal)
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
             </div>
 
-            <div class="control-group">
-                <label for="selector-de-temperatura">Temperatura:</label>
-                <select id="selector-de-temperatura" class="sim-control">
-                    <option value="0.001">0.001</option>
-                    <option value="0.01">0.01</option>
-                    <option value="0.1">0.1</option>
-                    <option value="1">1</option>
-                    <option value="10">10</option>
-                </select>
-            </div>
-
-            <div class="control-group">
-                <label for="selector-de-velocidade-onda">Vel. da Onda:</label>
-                <select id="selector-de-velocidade-onda" class="sim-control">
-                    <option value="1">1</option>
-                    <option value="2">2</option>
-                    <option value="3">3</option>
-                    <option value="4">4</option>
-                    <option value="5">5</option>
-                    <option value="10">10</option>
-                </select>
-            </div>
-
-            <div class="control-group">
-                <label for="temperature-atenuation">Atenuação:</label>
-                <input type="number" id="temperature-atenuation" class="sim-input" min="0" max="1" step="0.01"
-                    value="0.09">
-            </div>
-
-            <button id='reset-button' class="sim-btn">Resetar</button>
-
-            <div class="info-section">
-                <p>O objetivo desta simulação é ilustrar como um sistema de muitas partículas interagentes pode se
-                    tornar crescentemente complexo. Pode ser benéfica ao apresentar alguns tópicos distintos:</p>
-                <ul>
-                    <li> Efeito doppler.</li>
-                    <li> Ondas.</li>
-                    <li> Campos eletromasgnéticos.</li>
-                    <li> Transporte de informação.</li>
-                </ul>
+            <!-- Base: Rodapé Fixo de Telemetria -->
+            <div class="panel-footer">
+                <div class="sim-badge" id="footer-status-badge">
+                    <span class="status-dot"></span>
+                    <span id="footer-status-text">Aguardando Preset</span>
+                </div>
+                <span class="footer-meta" id="footer-sim-timer">t = 0.00s</span>
             </div>
 
         </aside>
 
     </main>
 
-    <!-- Script da Simulação -->
-    <script src="scripts/particulas.js"></script>
+    <!-- Modal Didático de Teoria e Fórmulas Matemáticas -->
+    <div id="modal-theory-particulas" class="sim-modal-overlay hidden" aria-hidden="true" role="dialog">
+        <div class="sim-modal-container">
+            <div class="sim-modal-header">
+                <div class="sim-modal-title">
+                    <img src="../assets/icons/compass.svg" class="icon-svg icon-accent" alt="Teoria">
+                    <span>Modelagem Teórica: Funções de Green Retardadas & Dinâmica Molecular</span>
+                </div>
+                <button class="sim-modal-close" data-modal-close title="Fechar Modal (Esc)">✕</button>
+            </div>
+
+            <div class="sim-modal-body">
+                <div class="theory-section">
+                    <h4>1. Propagação Causal & Função de Green Retardada</h4>
+                    <p>
+                        Em teorias de campo clássicas e eletrodinâmica relativística, nenhuma interação pode se propagar mais rápido que a velocidade da luz no meio ($c$). A equação diferencial que rege o potencial escalar ou eletromagnético $\Phi$ gerado por uma densidade de carga/fonte pontual $\rho(\mathbf{r}, t) = q \delta(\mathbf{r} - \mathbf{r}_0(t))$ é a equação de onda inomogênea:
+                    </p>
+                    $$\Box \Phi(\mathbf{r}, t) \equiv \left( \nabla^2 - \frac{1}{c^2} \frac{\partial^2}{\partial t^2} \right) \Phi(\mathbf{r}, t) = -\frac{\rho(\mathbf{r}, t)}{\varepsilon_0}$$
+                    <p>
+                        A resposta a uma fonte impulsiva pontual no espaço-tempo $(\mathbf{r}', t')$ é obtida através da <strong>Função de Green Retardada</strong>:
+                    </p>
+                    $$G_{\text{ret}}(\mathbf{r}, t; \mathbf{r}', t') = \frac{1}{4\pi |\mathbf{r} - \mathbf{r}'|} \delta\left( t - t' - \frac{|\mathbf{r} - \mathbf{r}'|}{c} \right) \Theta(t - t')$$
+                    <p>
+                        Onde $\Theta(t - t')$ é a função degrau de Heaviside que impõe estritamente o princípio da <em>causalidade física</em> (efeitos não precedem suas causas). A integração no espaço-tempo resulta nos célebres <strong>Potenciais Retardados de Liénard-Wiechert</strong>:
+                    </p>
+                    $$\Phi(\mathbf{r}, t) = \frac{1}{4\pi\varepsilon_0} \int \frac{\rho(\mathbf{r}', t_{\text{ret}})}{|\mathbf{r} - \mathbf{r}'|} d^3 r', \quad \text{onde} \quad t_{\text{ret}} = t - \frac{|\mathbf{r} - \mathbf{r}'|}{c}$$
+                </div>
+
+                <div class="theory-callout">
+                    <strong>💡 Correspondência com a Simulação:</strong>
+                    <ul>
+                        <li>Cada círculo emitido por uma partícula no Canvas representa a crista de uma <strong>frente de onda esférica $\delta\left(t - t' - R/c\right)$</strong>.</li>
+                        <li>A partícula receptora $j$ só experimenta a força devida à partícula $i$ no momento exato em que a frente de onda correspondente atinge sua posição atual.</li>
+                        <li>Isso reproduz naturalmente o <strong>Efeito Doppler</strong> e deformações anisotrópicas no campo de forças quando as partículas estão em movimento.</li>
+                    </ul>
+                </div>
+
+                <div class="theory-section">
+                    <h4>2. Potenciais de Lennard-Jones e Interação Coulombiana Iônica</h4>
+                    <p>
+                        O modelo de <strong>Lennard-Jones (12-6)</strong> descreve a interação entre átomos neutros considerando atração por forças dispersivas de van der Waals ($\propto r^{-6}$) e repulsão quântica de curto alcance por sobreposição de orbitais e Princípio de Exclusão de Pauli ($\propto r^{-12}$):
+                    </p>
+                    $$V_{\text{LJ}}(r) = 4\varepsilon \left[ \left(\frac{\sigma}{r}\right)^{12} - \left(\frac{\sigma}{r}\right)^6 \right]$$
+                    <p>
+                        No cristal de $\text{NaCl}$, as partículas carregam cargas líquidas $q_{\text{Na}} = +1$ e $q_{\text{Cl}} = -1$. O potencial efetivo acopla a atração/repulsão eletrostática mediada por ondas com o termo repulsivo de Pauli:
+                    </p>
+                    $$F_{\text{eff}}(r) = -\frac{q_i q_j \varepsilon_C}{r^2} - \frac{A}{r^6}$$
+                </div>
+
+                <div class="theory-section">
+                    <h4>3. Termostato de Velocidades e Teorema de Equipartição</h4>
+                    <p>
+                        Para manter a estabilidade térmica ou simular processos isotérmicos a uma temperatura $T_{\text{target}}$, aplica-se um algoritmo de reescalonamento contínuo das velocidades (análogo ao termostato de Berendsen):
+                    </p>
+                    $$\lambda = \sqrt{1 + \gamma \left( \frac{T_{\text{target}}}{T_{\text{instantâneo}}} - 1 \right)}, \quad \mathbf{v}_i \leftarrow \lambda \mathbf{v}_i$$
+                </div>
+            </div>
+
+            <div class="sim-modal-footer">
+                <span class="sim-modal-hint">Pressione <kbd>Esc</kbd> para fechar</span>
+                <button class="btn-primary" data-modal-close style="min-width: 100px;">Entendido</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Script Principal da Simulação (ES Module com Cache-Buster) -->
+    <script type="module" src="scripts/particulas.js?v=2.0"></script>
 </body>
 
 </html>

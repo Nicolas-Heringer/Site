@@ -1,6 +1,16 @@
-/* Estilos específicos para a simulação da Lei de Snell */
+/* =============================================================================
+   Estilos específicos para a simulação da Lei de Snell & Ray Tracing Contínuo
+   ============================================================================= */
 
-/* Indicador de carregamento (Worker computando) */
+/* Canvas da Simulação */
+#simulationCanvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+    cursor: crosshair;
+}
+
+/* Indicador de carregamento / Cálculo do Web Worker */
 #loadingIndicator {
     position: absolute;
     inset: 0;
@@ -8,234 +18,28 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    background: rgba(15, 23, 42, 0.75);
-    backdrop-filter: blur(4px);
-    z-index: 10;
-    border-radius: inherit;
-    gap: 14px;
-    color: var(--text-secondary);
+    background: rgba(15, 23, 42, 0.82);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    z-index: 20;
+    gap: 16px;
+    color: var(--text-secondary, #94a3b8);
     font-size: 0.95rem;
-}
-
-.spinner {
-    width: 36px;
-    height: 36px;
-    border: 3px solid rgba(250, 204, 21, 0.2);
-    border-top-color: var(--accent-color);
-    border-radius: 50%;
-    animation: spin 0.8s linear infinite;
-}
-
-@keyframes spin {
-    to {
-        transform: rotate(360deg);
-    }
-}
-
-/* Toggle de dispersão */
-.toggle-row {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    cursor: pointer;
-    color: var(--text-secondary);
-    font-size: 0.9rem;
     font-weight: 500;
     user-select: none;
 }
 
-.toggle-row input[type="checkbox"] {
-    appearance: none;
-    width: 36px;
-    height: 20px;
-    border-radius: 10px;
-    background: rgba(255, 255, 255, 0.1);
-    border: 1px solid var(--border-color);
-    cursor: pointer;
-    position: relative;
-    transition: background 0.3s;
-    flex-shrink: 0;
-}
-
-.toggle-row input[type="checkbox"]::before {
-    content: '';
-    position: absolute;
-    width: 14px;
-    height: 14px;
+.spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid rgba(250, 204, 21, 0.15);
+    border-top-color: var(--accent-color, #facc15);
     border-radius: 50%;
-    background: var(--text-secondary);
-    top: 2px;
-    left: 2px;
-    transition: left 0.3s, background 0.3s;
+    animation: sim-spin 0.8s linear infinite;
 }
 
-.toggle-row input[type="checkbox"]:checked {
-    background: rgba(250, 204, 21, 0.25);
-    border-color: var(--accent-color);
-}
-
-.toggle-row input[type="checkbox"]:checked::before {
-    left: 18px;
-    background: var(--accent-color);
-}
-
-.controls-divider {
-    height: 1px;
-    background: var(--border-color);
-    margin: 4px 0;
-}
-
-.equation {
-    font-style: italic;
-    text-align: center;
-    color: var(--accent-color);
-    font-size: 0.85rem;
-    margin: 6px 0;
-}
-
-#wavelengthControl {
-    display: none;
-}
-
-/* HUD do Índice de Refração sob o mouse e Orientação */
-.index-hud {
-    position: absolute;
-    top: 16px;
-    left: 16px;
-    background: rgba(15, 23, 42, 0.88);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    padding: 10px 14px;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    pointer-events: none;
-    z-index: 5;
-    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.35);
-    transition: opacity 0.2s ease, transform 0.2s ease;
-    min-width: 170px;
-}
-
-.index-hud .hud-section {
-    display: flex;
-    flex-direction: column;
-    gap: 3px;
-}
-
-.index-hud .hud-divider {
-    height: 1px;
-    background: var(--border-color);
-    margin: 1px 0;
-}
-
-.index-hud .hud-label {
-    font-size: 0.7rem;
-    text-transform: uppercase;
-    letter-spacing: 0.8px;
-    color: var(--text-secondary);
-    font-weight: 600;
-}
-
-.index-hud .hud-values {
-    display: flex;
-    align-items: baseline;
-    gap: 8px;
-}
-
-.index-hud .hud-main strong,
-.index-hud .hud-angle strong {
-    font-size: 1.05rem;
-    color: var(--accent-color);
-    font-family: monospace;
-    font-weight: 700;
-}
-
-.index-hud .hud-coords,
-.index-hud .hud-tip {
-    font-size: 0.75rem;
-    color: var(--text-secondary);
-    font-family: monospace;
-}
-
-/* Controle Segmentado (Pills para Modo de Emissão) */
-.segmented-control {
-    display: flex;
-    background: rgba(15, 23, 42, 0.6);
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    padding: 3px;
-    gap: 3px;
-}
-
-.segment-btn {
-    flex: 1;
-    background: transparent;
-    border: none;
-    color: var(--text-secondary);
-    font-family: inherit;
-    font-size: 0.85rem;
-    font-weight: 500;
-    padding: 8px 10px;
-    border-radius: 6px;
-    cursor: pointer;
-    transition: all 0.25s ease;
-    text-align: center;
-}
-
-.segment-btn:hover {
-    color: var(--text-primary);
-    background: rgba(255, 255, 255, 0.05);
-}
-
-.segment-btn.active {
-    background: var(--accent-color);
-    color: var(--bg-main);
-    font-weight: 600;
-    box-shadow: 0 2px 8px rgba(250, 204, 21, 0.25);
-}
-
-/* Grupo de Ações (Play/Pause e Limpar) */
-.actions-group {
-    display: grid;
-    grid-template-columns: 1.2fr 1fr;
-    gap: 10px;
-}
-
-.actions-group .sim-btn {
-    width: 100%;
-    padding: 10px 12px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-    font-size: 0.85rem;
-    letter-spacing: 0.5px;
-}
-
-.actions-group .btn-primary.paused {
-    background-color: rgba(250, 204, 21, 0.15);
-    border-color: var(--accent-color);
-    color: var(--accent-color);
-}
-
-/* Referência Bibliográfica */
-.biblio-ref {
-    margin-top: 10px;
-    padding-top: 8px;
-    border-top: 1px dashed var(--border-color);
-    font-size: 0.8rem !important;
-}
-
-.biblio-ref a {
-    color: var(--accent-color);
-    text-decoration: none;
-    font-weight: 500;
-    transition: color 0.2s, text-decoration 0.2s;
-}
-
-.biblio-ref a:hover {
-    color: var(--accent-color-hover);
-    text-decoration: underline;
+@keyframes sim-spin {
+    to {
+        transform: rotate(360deg);
+    }
 }
