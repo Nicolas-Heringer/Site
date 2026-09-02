@@ -5,18 +5,51 @@
 
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import {
+    getSVGContent,
+    setElementIcon,
+    inlineSVGImages,
+    setGlobalAccent,
+    initToggleButton,
+    syncDualSlider,
+    RealtimePlot,
+    initModal,
+    initSidebarCollapse,
+    initBottomSheet
+} from './sim-ui.js';
+
+// Re-exporta para retrocompatibilidade
+export {
+    initToggleButton,
+    syncDualSlider,
+    RealtimePlot,
+    initModal,
+    initSidebarCollapse,
+    initBottomSheet,
+    inlineSVGImages,
+    setElementIcon,
+    setGlobalAccent
+};
 
 const ICONS_LIST = [
     'dice', 'play', 'pause', 'step', 'rotate', 'refresh',
     'globe', 'sun', 'snowflake', 'leaf', 'flower',
-    'thermometer', 'cyclone', 'wind', 'compass', 'sparkles', 'lightbulb'
+    'thermometer', 'cyclone', 'wind', 'compass', 'sparkles', 'lightbulb',
+    'collapse', 'expand'
 ];
 
 let clickCount = 0;
 let scene, camera, renderer, controls;
 let currentMesh = null, wireMesh = null, pointsMesh = null;
 let testLight = null;
-let autoRotateActive = true; // Inicia ativo condizente com o botão na tela
+let autoRotateActive = true;
+
+// Relógio da Simulação e Variáveis de Controle
+let simTime = 0.0;
+let isSimRunning = false;
+let simTimeScale = 1.0;
+let plotInstance = null;
+let playControl = null;
 
 const container = document.getElementById('three-container');
 
@@ -27,12 +60,10 @@ function initThreeScene() {
     const height = container.clientHeight;
 
     scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x070b16);
-
     camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 100);
-    camera.position.set(0, 1.5, 3.0);
+    camera.position.set(0, 0, 3.8);
 
-    renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: 'high-performance' });
     renderer.setSize(width, height);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     container.appendChild(renderer.domElement);
@@ -41,64 +72,61 @@ function initThreeScene() {
     controls.enableDamping = true;
     controls.dampingFactor = 0.05;
 
-    const ambLight = new THREE.AmbientLight(0xffffff, 1.2);
-    scene.add(ambLight);
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
+    scene.add(ambientLight);
 
-    testLight = new THREE.DirectionalLight(0xfacc15, 1.5);
-    testLight.position.set(4, 5, 3);
+    testLight = new THREE.DirectionalLight(0xfacc15, 2.5);
+    testLight.position.set(5, 5, 5);
     scene.add(testLight);
 
     buildMeshGeometry('sphere', 1.0, 16);
 
     window.addEventListener('resize', onWindowResize);
-    if (window.ResizeObserver) {
-        new ResizeObserver(onWindowResize).observe(container);
-    }
 }
 
-function buildMeshGeometry(type = 'sphere', radius = 1.0, segments = 16) {
+function buildMeshGeometry(type, radius, steps) {
     if (currentMesh) scene.remove(currentMesh);
     if (wireMesh) scene.remove(wireMesh);
     if (pointsMesh) scene.remove(pointsMesh);
 
-    let geo;
-    if (type === 'cube') {
-        geo = new THREE.BoxGeometry(radius * 1.4, radius * 1.4, radius * 1.4, Math.max(1, Math.floor(segments / 4)), Math.max(1, Math.floor(segments / 4)), Math.max(1, Math.floor(segments / 4)));
+    let geom;
+    if (type === 'sphere') {
+        geom = new THREE.SphereGeometry(radius, steps, steps);
+    } else if (type === 'cube') {
+        geom = new THREE.BoxGeometry(radius * 1.5, radius * 1.5, radius * 1.5, steps, steps, steps);
     } else if (type === 'torus') {
-        geo = new THREE.TorusGeometry(radius * 0.8, radius * 0.35, segments, segments * 2);
+        geom = new THREE.TorusGeometry(radius, radius * 0.35, steps, steps);
+    } else if (type === 'cylinder') {
+        geom = new THREE.CylinderGeometry(radius, radius, radius * 1.8, steps);
     } else {
-        geo = new THREE.SphereGeometry(radius, segments * 2, segments);
+        geom = new THREE.IcosahedronGeometry(radius, Math.min(steps, 4));
     }
 
-    const mat = new THREE.MeshStandardMaterial({
+    const material = new THREE.MeshStandardMaterial({
         color: 0x1e293b,
-        roughness: 0.4,
-        metalness: 0.1,
-        flatShading: true
+        roughness: 0.35,
+        metalness: 0.2,
     });
-    currentMesh = new THREE.Mesh(geo, mat);
+    currentMesh = new THREE.Mesh(geom, material);
     scene.add(currentMesh);
 
-    const wireMat = new THREE.MeshBasicMaterial({
-        color: 0x38bdf8,
-        wireframe: true,
-        transparent: true,
-        opacity: 0.4
-    });
-    wireMesh = new THREE.Mesh(geo, wireMat);
+    const wireMat = new THREE.MeshBasicMaterial({ color: 0x64748b, wireframe: true });
+    wireMesh = new THREE.Mesh(geom, wireMat);
     scene.add(wireMesh);
 
-    const ptsMat = new THREE.PointsMaterial({
-        color: 0xfacc15,
-        size: 0.03
-    });
-    pointsMesh = new THREE.Points(geo, ptsMat);
+    const accentHex = getComputedStyle(document.documentElement).getPropertyValue('--accent-color').trim() || '#facc15';
+    const ptsMat = new THREE.PointsMaterial({ color: accentHex, size: 0.035 });
+    pointsMesh = new THREE.Points(geom, ptsMat);
     scene.add(pointsMesh);
 
     const swWire = document.getElementById('switch-demo-wireframe');
-    const swPts = document.getElementById('switch-demo-points');
     if (swWire) wireMesh.visible = swWire.checked;
-    if (pointsMesh) pointsMesh.visible = swPts.checked;
+
+    const swPts = document.getElementById('switch-demo-points');
+    if (swPts) pointsMesh.visible = swPts.checked;
+
+    const swLight = document.getElementById('switch-demo-light');
+    if (swLight && testLight) testLight.visible = swLight.checked;
 }
 
 function onWindowResize() {
@@ -113,68 +141,325 @@ function onWindowResize() {
 
 function animate() {
     requestAnimationFrame(animate);
-    controls.update();
 
+    if (controls) controls.update();
+
+    // Rotação suave no eixo vertical Y (sem inclinar indevidamente no eixo X)
     if (autoRotateActive && currentMesh) {
-        currentMesh.rotation.y += 0.008;
-        if (wireMesh) wireMesh.rotation.y += 0.008;
-        if (pointsMesh) pointsMesh.rotation.y += 0.008;
+        currentMesh.rotation.y += 0.005 * simTimeScale;
+        if (wireMesh) wireMesh.rotation.y = currentMesh.rotation.y;
+        if (pointsMesh) pointsMesh.rotation.y = currentMesh.rotation.y;
     }
 
-    renderer.render(scene, camera);
+    // Telemetria do Rodapé e Avanço Temporal
+    if (isSimRunning) {
+        simTime += 0.016 * simTimeScale;
+    }
+
+    const timerSpan = document.getElementById('footer-sim-timer');
+    if (timerSpan) {
+        timerSpan.textContent = `t = ${simTime.toFixed(2)}s`;
+    }
+
+    // Alimentação contínua do Mini-Gráfico em Tempo Real
+    if (plotInstance) {
+        const rad = parseFloat(document.getElementById('slider-demo-radius')?.value || 1.0);
+        const waveVal = Math.sin(simTime * 3) * rad * 0.8 + (Math.cos(simTime * 7) * 0.2);
+        plotInstance.push(waveVal);
+
+        const valSpan = document.getElementById('plot-current-val');
+        if (valSpan) {
+            valSpan.textContent = `${(waveVal * 1.5).toFixed(2)} rad/s`;
+        }
+    }
+
+    if (renderer && scene && camera) {
+        renderer.render(scene, camera);
+    }
+}
+
+function changeThemeColor(color) {
+    document.documentElement.style.setProperty('--accent-color', color);
+    document.documentElement.style.setProperty('--accent-nav', color);
+    document.documentElement.style.setProperty('--accent-btn', color);
+    document.documentElement.style.setProperty('--accent-card', color);
+    document.documentElement.style.setProperty('--accent-text', color);
+    document.documentElement.style.setProperty('--accent-slider', color);
+    document.documentElement.style.setProperty('--accent-switch', color);
+    document.documentElement.style.setProperty('--accent-hud', color);
+
+    if (testLight) testLight.color.set(color);
+    if (pointsMesh && pointsMesh.material) pointsMesh.material.color.set(color);
+
+    document.querySelectorAll('.theme-dot-btn').forEach(d => {
+        d.classList.toggle('active', d.getAttribute('data-color') === color);
+    });
+
+    const globalGroup = document.querySelector('.color-dots-group[data-target="global"]');
+    if (globalGroup) {
+        globalGroup.querySelectorAll('.color-dot').forEach(d => {
+            d.classList.toggle('active', d.getAttribute('data-color') === color);
+        });
+    }
 }
 
 function setupListeners() {
-    // --- NAVEGAÇÃO ENTRE ABAS DO LABORATÓRIO ---
-    const tabs = [
-        { btn: 'tab-btn-buttons', panel: 'panel-ui-buttons', name: 'Botões & Ações' },
-        { btn: 'tab-btn-sliders', panel: 'panel-ui-sliders', name: 'Sliders & Entradas' },
-        { btn: 'tab-btn-switches', panel: 'panel-ui-switches', name: 'Switches & Toggles' },
-        { btn: 'tab-btn-huds', panel: 'panel-ui-huds', name: 'HUDs & LaTeX' },
-        { btn: 'tab-btn-icons', panel: 'panel-ui-icons', name: 'Galeria de Ícones SVG' }
-    ];
-
-    tabs.forEach(t => {
-        const btn = document.getElementById(t.btn);
-        if (btn) {
-            btn.addEventListener('click', () => {
-                tabs.forEach(o => {
-                    const b = document.getElementById(o.btn);
-                    const p = document.getElementById(o.panel);
-                    if (b) b.classList.remove('active');
-                    if (p) p.style.display = 'none';
-                });
-                btn.classList.add('active');
-                const p = document.getElementById(t.panel);
-                if (p) p.style.display = 'block';
-
-                const hudActive = document.getElementById('hud-active-comp');
-                if (hudActive) hudActive.textContent = t.name;
-            });
-        }
+    // --- CONTROLE DE MODO FOCO / RECOLHIMENTO DA SIDEBAR (DESKTOP) ---
+    initSidebarCollapse({
+        layoutSelector: '.sim-layout',
+        collapseBtnSelector: '#btn-collapse-sidebar',
+        expandBtnSelector: '#btn-expand-sidebar',
+        onResize: onWindowResize
     });
 
-    // --- SELETOR DE PALETA DE CORES (ACCENT COLOR) ---
-    document.querySelectorAll('.theme-dot-btn').forEach(dot => {
-        dot.addEventListener('click', () => {
-            document.querySelectorAll('.theme-dot-btn').forEach(d => d.classList.remove('active'));
-            dot.classList.add('active');
-            const color = dot.getAttribute('data-color');
-            document.documentElement.style.setProperty('--accent-color', color);
-            document.documentElement.style.setProperty('--border-accent', `${color}66`);
-            document.documentElement.style.setProperty('--accent-glow', `${color}59`);
-            document.documentElement.style.setProperty('--accent-subtle', `${color}26`);
-            if (testLight) testLight.color.set(color);
-            if (pointsMesh && pointsMesh.material) pointsMesh.material.color.set(color);
+    // --- CONTROLE DE BOTTOM SHEET (MOBILE & TABLETS <= 900PX) ---
+    initBottomSheet({
+        panelSelector: '.controls-panel',
+        handleSelector: '#sheet-drag-handle',
+        tabNavSelector: '.tab-nav',
+        collapseBtnSelector: '#btn-collapse-sidebar',
+        defaultState: 'peek'
+    });
+
+    // --- NAVEGAÇÃO ENTRE ABAS DO LABORATÓRIO (MAPEAMENTO EXATO DE IDs) ---
+    const tabs = [
+        { btnId: 'tab-btn-buttons', panelId: 'panel-ui-buttons', label: 'Botões & Presets' },
+        { btnId: 'tab-btn-sliders', panelId: 'panel-ui-sliders', label: 'Sliders & Entradas' },
+        { btnId: 'tab-btn-switches', panelId: 'panel-ui-switches', label: 'Switches & Toggles' },
+        { btnId: 'tab-btn-huds', panelId: 'panel-ui-huds', label: 'HUDs & LaTeX' },
+        { btnId: 'tab-btn-icons', panelId: 'panel-ui-icons', label: 'Galeria de Ícones' }
+    ];
+
+    tabs.forEach(({ btnId, panelId, label }) => {
+        const btn = document.getElementById(btnId);
+        const panel = document.getElementById(panelId);
+        if (!btn || !panel) return;
+
+        btn.addEventListener('click', () => {
+            tabs.forEach(t => {
+                const b = document.getElementById(t.btnId);
+                const p = document.getElementById(t.panelId);
+                if (b) b.classList.remove('active');
+                if (p) p.style.display = 'none';
+            });
+            btn.classList.add('active');
+            panel.style.display = 'block';
+
+            // Atualiza o elemento ativo no HUD
+            const hudActiveComp = document.getElementById('hud-active-comp');
+            if (hudActiveComp) hudActiveComp.textContent = label;
+
+            // Redimensiona o gráfico de telemetria se for a aba 4
+            if (panelId === 'panel-ui-huds' && plotInstance) {
+                setTimeout(() => plotInstance.resize(), 50);
+            }
         });
     });
 
-    // --- CONTROLE DE ROTAÇÃO NO CANVAS ---
-    const btnAuto = document.getElementById('btn-quick-autorotate');
-    if (btnAuto) {
-        btnAuto.addEventListener('click', () => {
+    // --- BOTÃO FLUTUANTE DE ROTAÇÃO NO CANVAS ---
+    const btnAutoRotate = document.getElementById('btn-quick-autorotate');
+    if (btnAutoRotate) {
+        btnAutoRotate.addEventListener('click', () => {
             autoRotateActive = !autoRotateActive;
-            btnAuto.classList.toggle('active', autoRotateActive);
+            btnAutoRotate.classList.toggle('active', autoRotateActive);
+        });
+    }
+
+    // --- BARRA DE TEMAS FLUTUANTE (CANVAS) ---
+    document.querySelectorAll('.theme-dot-btn').forEach(dot => {
+        dot.addEventListener('click', () => {
+            const color = dot.getAttribute('data-color');
+            if (color) changeThemeColor(color);
+        });
+    });
+
+    // --- POPOVER DE CORES AVANÇADO (CUSTOMIZAÇÃO POR COMPONENTE) ---
+    const btnOpenTooltip = document.getElementById('btn-toggle-color-tooltip');
+    const btnCloseTooltip = document.getElementById('btn-close-color-tooltip');
+    const colorTooltip = document.getElementById('color-customizer-tooltip');
+
+    if (btnOpenTooltip && colorTooltip) {
+        btnOpenTooltip.addEventListener('click', (e) => {
+            e.stopPropagation();
+            colorTooltip.classList.toggle('hidden');
+        });
+
+        if (btnCloseTooltip) {
+            btnCloseTooltip.addEventListener('click', () => {
+                colorTooltip.classList.add('hidden');
+            });
+        }
+
+        document.addEventListener('click', (e) => {
+            if (!colorTooltip.contains(e.target) && e.target !== btnOpenTooltip && !btnOpenTooltip.contains(e.target)) {
+                colorTooltip.classList.add('hidden');
+            }
+        });
+    }
+
+    // Gerenciador dos pontos de cor do Popover
+    document.querySelectorAll('.color-dots-group').forEach(group => {
+        const targetComponent = group.getAttribute('data-target');
+
+        // Botão Auto / Herdar
+        const inheritBtn = group.querySelector('.color-dot-inherit');
+        if (inheritBtn) {
+            inheritBtn.addEventListener('click', () => {
+                group.querySelectorAll('.color-dot').forEach(d => d.classList.remove('active'));
+                inheritBtn.classList.add('active');
+                if (targetComponent !== 'global') {
+                    document.documentElement.style.removeProperty(`--accent-${targetComponent}`);
+                }
+            });
+        }
+
+        group.querySelectorAll('.color-dot').forEach(dot => {
+            dot.addEventListener('click', () => {
+                const color = dot.getAttribute('data-color');
+                if (inheritBtn) inheritBtn.classList.remove('active');
+                group.querySelectorAll('.color-dot').forEach(d => d.classList.remove('active'));
+                dot.classList.add('active');
+
+                if (targetComponent === 'global') {
+                    changeThemeColor(color);
+                } else {
+                    const cssVar = `--accent-${targetComponent}`;
+                    document.documentElement.style.setProperty(cssVar, color);
+                }
+            });
+        });
+    });
+
+    // Botão de Reset de Todas as Cores
+    const btnResetColors = document.getElementById('btn-reset-all-colors');
+    if (btnResetColors) {
+        btnResetColors.addEventListener('click', () => {
+            const defaultAccent = '#facc15';
+            changeThemeColor(defaultAccent);
+            document.querySelectorAll('.color-dots-group').forEach(group => {
+                const targetComponent = group.getAttribute('data-target');
+                const inheritBtn = group.querySelector('.color-dot-inherit');
+                group.querySelectorAll('.color-dot').forEach(d => d.classList.remove('active'));
+
+                if (targetComponent === 'global') {
+                    const yellowDot = group.querySelector('.color-dot[data-color="#facc15"]');
+                    if (yellowDot) yellowDot.classList.add('active');
+                } else {
+                    if (inheritBtn) inheritBtn.classList.add('active');
+                    document.documentElement.style.removeProperty(`--accent-${targetComponent}`);
+                }
+            });
+        });
+    }
+
+    // --- BARRA DE TRANSPORTE / REPRODUÇÃO (ABA 1) ---
+    playControl = initToggleButton('#btn-demo-primary', (active) => {
+        isSimRunning = active;
+        autoRotateActive = active;
+
+        if (btnAutoRotate) {
+            btnAutoRotate.classList.toggle('active', active);
+        }
+
+        const headerBadge = document.getElementById('header-status-badge');
+        const footerBadge = document.getElementById('footer-status-badge');
+        const footerText = document.getElementById('footer-status-text');
+        const fpsVal = document.getElementById('hud-fps-val');
+
+        if (active) {
+            if (headerBadge) headerBadge.innerHTML = '<span class="status-dot"></span><span>Executando</span>';
+            if (footerText) footerText.textContent = 'Simulação Ativa';
+            if (footerBadge) footerBadge.classList.add('badge-accent');
+            if (fpsVal) {
+                fpsVal.textContent = '60 fps (Ativo)';
+                fpsVal.style.color = 'var(--color-emerald, #22c55e)';
+            }
+        } else {
+            if (headerBadge) headerBadge.innerHTML = '<span class="status-dot"></span><span>Pausado</span>';
+            if (footerText) footerText.textContent = 'Simulação Pausada';
+            if (footerBadge) footerBadge.classList.remove('badge-accent');
+            if (fpsVal) {
+                fpsVal.textContent = 'Pausado (0 fps)';
+                fpsVal.style.color = 'var(--color-yellow, #facc15)';
+            }
+        }
+    });
+
+    // Botão Step (Avançar 1 passo de delta t)
+    const btnStep = document.getElementById('btn-transport-step');
+    if (btnStep) {
+        btnStep.addEventListener('click', () => {
+            if (isSimRunning) {
+                if (playControl) playControl.setState(0);
+                isSimRunning = false;
+                autoRotateActive = false;
+                if (btnAutoRotate) btnAutoRotate.classList.remove('active');
+            }
+            simTime += 0.05 * simTimeScale;
+            if (currentMesh) {
+                currentMesh.rotation.y += 0.02 * simTimeScale;
+                if (wireMesh) wireMesh.rotation.y = currentMesh.rotation.y;
+                if (pointsMesh) pointsMesh.rotation.y = currentMesh.rotation.y;
+            }
+        });
+    }
+
+    // Botão Reset (t = 0.00s)
+    const btnReset = document.getElementById('btn-demo-secondary');
+    if (btnReset) {
+        btnReset.addEventListener('click', () => {
+            if (isSimRunning) {
+                if (playControl) playControl.setState(0);
+                isSimRunning = false;
+                autoRotateActive = false;
+                if (btnAutoRotate) btnAutoRotate.classList.remove('active');
+            }
+            simTime = 0.0;
+            if (currentMesh) {
+                currentMesh.rotation.set(0, 0, 0);
+                if (wireMesh) wireMesh.rotation.set(0, 0, 0);
+                if (pointsMesh) pointsMesh.rotation.set(0, 0, 0);
+            }
+            const headerBadge = document.getElementById('header-status-badge');
+            const footerText = document.getElementById('footer-status-text');
+            const footerBadge = document.getElementById('footer-status-badge');
+            const fpsVal = document.getElementById('hud-fps-val');
+
+            if (headerBadge) headerBadge.innerHTML = '<span class="status-dot"></span><span>Pronto</span>';
+            if (footerText) footerText.textContent = 'Simulação Reiniciada';
+            if (footerBadge) footerBadge.classList.remove('badge-accent');
+            if (fpsVal) {
+                fpsVal.textContent = 'Pronto (60 fps)';
+                fpsVal.style.color = 'var(--color-emerald, #22c55e)';
+            }
+        });
+    }
+
+    // Speed Selector Pills
+    document.querySelectorAll('#transport-speed-pills .speed-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('#transport-speed-pills .speed-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            simTimeScale = parseFloat(btn.dataset.speed || '1.0');
+        });
+    });
+
+    // --- INICIALIZAÇÃO DO MINI-GRÁFICO EM TEMPO REAL (ABA 4) ---
+    const plotCanvas = document.getElementById('plot-canvas');
+    if (plotCanvas) {
+        plotInstance = new RealtimePlot(plotCanvas, {
+            maxPoints: 80,
+            minVal: -1.5,
+            maxVal: 1.5
+        });
+    }
+
+    // --- INICIALIZAÇÃO DO MODAL DIDÁTICO DE TEORIA (ABA 4) ---
+    const theoryModal = initModal('#modal-theory-demo');
+    const btnOpenTheoryModal = document.getElementById('btn-open-theory-modal');
+    if (btnOpenTheoryModal && theoryModal) {
+        btnOpenTheoryModal.addEventListener('click', () => {
+            theoryModal.open();
         });
     }
 
@@ -185,7 +470,7 @@ function setupListeners() {
         if (spanClicks) spanClicks.textContent = `${clickCount}`;
     };
 
-    document.querySelectorAll('.btn-primary, .btn-secondary, .btn-preset, .field-btn, .btn-icon, .sim-btn').forEach(b => {
+    document.querySelectorAll('.btn-primary, .btn-secondary, .btn-preset, .segment-btn, .btn-icon, .sim-btn, .speed-btn').forEach(b => {
         b.addEventListener('click', registerClick);
     });
 
@@ -246,32 +531,20 @@ function setupListeners() {
         }
     });
 
-    // --- SLIDERS ---
-    const sliderRadius = document.getElementById('slider-demo-radius');
-    const valRadius = document.getElementById('val-demo-radius');
-    const hudRadius = document.getElementById('hud-sphere-radius');
-    if (sliderRadius) {
-        sliderRadius.addEventListener('input', (e) => {
-            const rad = parseFloat(e.target.value);
-            if (valRadius) valRadius.textContent = `${rad.toFixed(2)}x`;
-            if (hudRadius) hudRadius.textContent = `${rad.toFixed(2)}`;
-            const steps = parseInt(document.getElementById('slider-demo-steps')?.value || 16);
-            const meshType = document.getElementById('select-demo-mesh')?.value || 'sphere';
-            buildMeshGeometry(meshType, rad, steps);
-        });
-    }
+    // --- SLIDERS SINCRONIZADOS (DUAL-INPUT) ---
+    syncDualSlider('#slider-demo-radius', '#input-demo-radius', (rad) => {
+        const hudRadius = document.getElementById('hud-sphere-radius');
+        if (hudRadius) hudRadius.textContent = rad.toFixed(2);
+        const steps = parseInt(document.getElementById('slider-demo-steps')?.value || 16);
+        const meshType = document.getElementById('select-demo-mesh')?.value || 'sphere';
+        buildMeshGeometry(meshType, rad, steps);
+    });
 
-    const sliderSteps = document.getElementById('slider-demo-steps');
-    const valSteps = document.getElementById('val-demo-steps');
-    if (sliderSteps) {
-        sliderSteps.addEventListener('input', (e) => {
-            const steps = parseInt(e.target.value);
-            if (valSteps) valSteps.textContent = `${steps} segmentos`;
-            const rad = parseFloat(document.getElementById('slider-demo-radius')?.value || 1.0);
-            const meshType = document.getElementById('select-demo-mesh')?.value || 'sphere';
-            buildMeshGeometry(meshType, rad, steps);
-        });
-    }
+    syncDualSlider('#slider-demo-steps', '#input-demo-steps', (steps) => {
+        const rad = parseFloat(document.getElementById('slider-demo-radius')?.value || 1.0);
+        const meshType = document.getElementById('select-demo-mesh')?.value || 'sphere';
+        buildMeshGeometry(meshType, rad, parseInt(steps));
+    });
 
     const selectMesh = document.getElementById('select-demo-mesh');
     if (selectMesh) {
@@ -308,39 +581,6 @@ function setupListeners() {
     populateIconGallery();
 }
 
-const svgCache = new Map();
-
-async function inlineSVGImages() {
-    const images = document.querySelectorAll('img.icon-svg');
-    for (const img of images) {
-        const src = img.getAttribute('src');
-        if (!src || !src.endsWith('.svg')) continue;
-
-        let svgText;
-        if (svgCache.has(src)) {
-            svgText = svgCache.get(src);
-        } else {
-            try {
-                const res = await fetch(src);
-                svgText = await res.text();
-                svgCache.set(src, svgText);
-            } catch (e) {
-                continue;
-            }
-        }
-
-        const parser = new DOMParser();
-        const doc = parser.parseFromString(svgText, 'image/svg+xml');
-        const svg = doc.querySelector('svg');
-        if (svg) {
-            svg.setAttribute('class', img.getAttribute('class') || 'icon-svg');
-            if (img.id) svg.setAttribute('id', img.id);
-            if (img.getAttribute('style')) svg.setAttribute('style', img.getAttribute('style'));
-            img.replaceWith(svg);
-        }
-    }
-}
-
 function populateIconGallery() {
     const gallery = document.getElementById('icon-gallery');
     if (!gallery) return;
@@ -371,4 +611,13 @@ window.addEventListener('DOMContentLoaded', async () => {
     setupListeners();
     animate();
     await inlineSVGImages();
+
+    if (window.renderMathInElement) {
+        window.renderMathInElement(document.body, {
+            delimiters: [
+                { left: '$$', right: '$$', display: true },
+                { left: '$', right: '$', display: false }
+            ]
+        });
+    }
 });

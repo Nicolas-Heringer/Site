@@ -779,58 +779,261 @@ p {
     font-size: 0.85rem;
 }
 
-/* Responsividade básica */
+/* --- REDES SOCIAIS NO RODAPÉ (MOBILE) --- */
+.footer-social-links {
+    display: none;
+    justify-content: center;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 16px;
+}
+
+.footer-social-links a {
+    color: var(--text-secondary);
+    font-size: 1.35rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border-color);
+    transition: all 0.25s ease;
+}
+
+.footer-social-links a:hover,
+.footer-social-links a:active {
+    color: var(--accent-color);
+    border-color: var(--accent-color);
+    background: rgba(250, 204, 21, 0.15);
+    transform: translateY(-2px);
+}
+
+/* =============================================================================
+   RESPONSIVIDADE COMPLETA (TABLETS & SMARTPHONES)
+   ============================================================================= */
+
+@media (max-width: 900px) {
+    .main-content {
+        padding: 30px 24px;
+    }
+
+    #cards {
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        gap: 20px;
+    }
+}
+
 @media (max-width: 768px) {
+    body {
+        flex-direction: column;
+    }
+
+    /* Barra Superior Fixa / Sticky Navbar Glassmorphic */
     .sidebar {
         width: 100%;
-        height: auto;
-        position: relative;
+        height: 60px;
+        position: sticky;
+        top: 0;
+        left: 0;
         flex-direction: row;
         justify-content: space-between;
         align-items: center;
-        padding: 10px 20px;
+        padding: 0 16px;
+        border-right: none;
+        border-bottom: 1px solid var(--border-color);
+        background: rgba(15, 23, 42, 0.94);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        z-index: 1000;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
     }
 
     .sidebar-header {
         padding: 0;
         border: none;
+        text-align: left;
+    }
+
+    .sidebar-header h2 {
+        font-size: 1.15rem;
+        letter-spacing: 0.5px;
     }
 
     .menu {
         flex-direction: row;
         padding: 0;
+        gap: 6px;
+    }
+
+    .menu li {
+        width: auto;
     }
 
     .menu li a {
-        padding: 10px;
+        padding: 8px 12px;
+        border-radius: 8px;
         border-left: none;
-        border-bottom: 3px solid transparent;
-    }
-
-    .menu li a .texto {
-        display: none;
-        /* Esconde texto em telas pequenas */
+        border-bottom: none;
+        font-size: 0.82rem;
+        gap: 6px;
     }
 
     .menu li a .icone {
+        font-size: 1.2rem;
         margin-right: 0;
+    }
+
+    .menu li a .texto {
+        font-size: 0.82rem;
     }
 
     .menu li a:hover,
     .menu li a.active {
+        background-color: rgba(250, 204, 21, 0.15);
+        color: var(--accent-color);
         border-left: none;
-        border-bottom-color: var(--accent-color);
+        border-bottom: none;
     }
 
     .sidebar-footer {
         display: none;
-        /* Oculta redes sociais no header mobile por espaço */
     }
 
+    /* Conteúdo Principal no Mobile */
     .main-content {
         margin-left: 0;
         width: 100%;
-        padding: 20px;
+        padding: 20px 16px 40px 16px;
+    }
+
+    .section > h2 {
+        font-size: 1.6rem;
+        margin-bottom: 18px;
+    }
+
+    .card-content {
+        padding: 20px 16px;
+        border-radius: 14px;
+    }
+
+    .card-content p {
+        text-align: left;
+        font-size: 0.92rem;
+    }
+
+    /* Carrossel Deslizante Horizontal de Filtros */
+    .filter-bar {
+        display: flex;
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        gap: 8px;
+        margin-bottom: 20px;
+        padding-bottom: 6px;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+        width: 100%;
+    }
+
+    .filter-bar::-webkit-scrollbar {
+        display: none;
+    }
+
+    .filter-btn {
+        flex-shrink: 0;
+        padding: 6px 14px;
+        font-size: 0.82rem;
+        white-space: nowrap;
+    }
+
+    /* Grid de Simulações */
+    #cards {
+        grid-template-columns: 1fr;
+        gap: 16px;
+        width: 100%;
+    }
+
+    .card {
+        height: auto;
+        min-height: 180px;
+        padding: 22px 18px 18px 18px;
+        border-radius: 14px;
+        text-align: left;
+        align-items: flex-start;
+        justify-content: flex-start;
+    }
+
+    .card-tags {
+        position: static;
+        margin-bottom: 10px;
+    }
+
+    .card h1 {
+        font-size: 1.25rem;
+        margin-bottom: 8px;
+        text-align: left;
+    }
+
+    .card p {
+        font-size: 0.88rem;
+        text-align: left;
+    }
+
+    .card:active {
+        transform: scale(0.98);
+        border-color: var(--accent-color);
+        background-color: rgba(30, 41, 59, 0.7);
+    }
+
+    /* Grade Didática de Uso */
+    .usage-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+
+    .usage-card {
+        padding: 16px;
+        border-radius: 12px;
+    }
+
+    .btn-cta {
+        width: 100%;
+        justify-content: center;
+        padding: 14px 20px;
+        font-size: 0.95rem;
+    }
+
+    /* Exibe Redes Sociais no Rodapé Mobile */
+    .footer-social-links {
+        display: flex;
+    }
+
+    .rodape {
+        margin-top: 35px;
+        padding-top: 20px;
+    }
+}
+
+@media (max-width: 520px) {
+    .sidebar {
+        padding: 0 12px;
+    }
+
+    .sidebar-header h2 {
+        font-size: 1.05rem;
+    }
+
+    .menu li a {
+        padding: 6px 8px;
+    }
+
+    .menu li a .texto {
+        display: none;
+    }
+
+    .menu li a .icone {
+        font-size: 1.35rem;
     }
 }
 
@@ -1043,10 +1246,19 @@ p {
         flex-direction: column;
         align-items: flex-start;
         gap: 14px;
+        padding: 16px 14px;
     }
 
     .biblio-actions {
         width: 100%;
-        justify-content: flex-end;
+        justify-content: flex-start;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .btn-copiar-citacao,
+    .btn-link-afiliado {
+        padding: 7px 12px;
+        font-size: 0.78rem;
     }
 }

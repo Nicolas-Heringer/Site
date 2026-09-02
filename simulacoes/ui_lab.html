@@ -55,21 +55,157 @@
         <div class="canvas-area">
             <div id="three-container"></div>
 
-            <!-- Seletor Rápido de Paleta de Cores de Acento -->
-            <div class="theme-selector-bar">
+            <!-- Barra de Ferramentas Flutuante / Seletor Rápido & Popover de Configurações -->
+            <div class="canvas-toolbar pos-top-left" id="theme-selector-bar">
                 <span>🎨 Acento:</span>
-                <div class="theme-dot-btn active" style="background: #facc15;" data-color="#facc15" title="Amarelo Solar (Padrão)"></div>
-                <div class="theme-dot-btn" style="background: #38bdf8;" data-color="#38bdf8" title="Azul Ciano Atmosférico"></div>
-                <div class="theme-dot-btn" style="background: #22c55e;" data-color="#22c55e" title="Verde Esmeralda"></div>
-                <div class="theme-dot-btn" style="background: #a855f7;" data-color="#a855f7" title="Roxo Cósmico"></div>
-                <div class="theme-dot-btn" style="background: #f43f5e;" data-color="#f43f5e" title="Rosa Carmim"></div>
+                <div class="toolbar-dot theme-dot-btn active" style="background: #facc15;" data-color="#facc15" title="Amarelo Solar (Padrão)"></div>
+                <div class="toolbar-dot theme-dot-btn" style="background: #38bdf8;" data-color="#38bdf8" title="Azul Ciano Atmosférico"></div>
+                <div class="toolbar-dot theme-dot-btn" style="background: #22c55e;" data-color="#22c55e" title="Verde Esmeralda"></div>
+                <div class="toolbar-dot theme-dot-btn" style="background: #a855f7;" data-color="#a855f7" title="Roxo Cósmico"></div>
+                <div class="toolbar-dot theme-dot-btn" style="background: #f43f5e;" data-color="#f43f5e" title="Rosa Carmim"></div>
+                <div class="toolbar-divider"></div>
+                <button id="btn-toggle-color-tooltip" class="toolbar-btn" title="Personalizar cores por componente">
+                    <img src="../assets/icons/sparkles.svg" class="icon-svg" alt="Customizar">
+                    <span>Componentes</span>
+                </button>
             </div>
 
-            <!-- Botão Flutuante no Canvas -->
-            <button id="btn-quick-autorotate" class="canvas-btn-floating active" title="Alternar Rotação">
-                <img src="../assets/icons/rotate.svg" class="icon-svg icon-spin" alt="Rotação">
-                <span>Rotação da Malha 3D</span>
-            </button>
+            <!-- Popover Universal de Configurações / Customização Independente de Cores -->
+            <div id="color-customizer-tooltip" class="sim-popover hidden">
+                <div class="popover-header">
+                    <div class="popover-title">
+                        <img src="../assets/icons/sparkles.svg" class="icon-svg" alt="Cores">
+                        <span>Cores por Componente</span>
+                    </div>
+                    <button id="btn-close-color-tooltip" class="popover-close" title="Fechar">✕</button>
+                </div>
+
+                <div class="color-tooltip-body">
+                    <!-- 1. Cor Geral da Página -->
+                    <div class="color-override-row">
+                        <span class="color-row-label">🌐 Cor Geral (Global)</span>
+                        <div class="color-dots-group" data-target="global">
+                            <button class="color-dot active" style="--c: #facc15;" data-color="#facc15" title="Amarelo"></button>
+                            <button class="color-dot" style="--c: #38bdf8;" data-color="#38bdf8" title="Ciano"></button>
+                            <button class="color-dot" style="--c: #22c55e;" data-color="#22c55e" title="Esmeralda"></button>
+                            <button class="color-dot" style="--c: #a855f7;" data-color="#a855f7" title="Roxo"></button>
+                            <button class="color-dot" style="--c: #f43f5e;" data-color="#f43f5e" title="Rosa"></button>
+                        </div>
+                    </div>
+
+                    <div class="color-tooltip-divider"></div>
+
+                    <!-- 2. Barra de Navegação (Abas) -->
+                    <div class="color-override-row">
+                        <span class="color-row-label">🧭 Barra de Abas (Nav)</span>
+                        <div class="color-dots-group" data-target="nav">
+                            <button class="color-dot-inherit active" title="Herdar cor geral">Auto</button>
+                            <button class="color-dot" style="--c: #facc15;" data-color="#facc15"></button>
+                            <button class="color-dot" style="--c: #38bdf8;" data-color="#38bdf8"></button>
+                            <button class="color-dot" style="--c: #22c55e;" data-color="#22c55e"></button>
+                            <button class="color-dot" style="--c: #a855f7;" data-color="#a855f7"></button>
+                            <button class="color-dot" style="--c: #f43f5e;" data-color="#f43f5e"></button>
+                        </div>
+                    </div>
+
+                    <!-- 3. Botões & Presets -->
+                    <div class="color-override-row">
+                        <span class="color-row-label">🔘 Botões & Presets</span>
+                        <div class="color-dots-group" data-target="btn">
+                            <button class="color-dot-inherit active" title="Herdar cor geral">Auto</button>
+                            <button class="color-dot" style="--c: #facc15;" data-color="#facc15"></button>
+                            <button class="color-dot" style="--c: #38bdf8;" data-color="#38bdf8"></button>
+                            <button class="color-dot" style="--c: #22c55e;" data-color="#22c55e"></button>
+                            <button class="color-dot" style="--c: #a855f7;" data-color="#a855f7"></button>
+                            <button class="color-dot" style="--c: #f43f5e;" data-color="#f43f5e"></button>
+                        </div>
+                    </div>
+
+                    <!-- 3. Cards & Badges -->
+                    <div class="color-override-row">
+                        <span class="color-row-label">🃏 Cards & Badges</span>
+                        <div class="color-dots-group" data-target="card">
+                            <button class="color-dot-inherit active" title="Herdar cor geral">Auto</button>
+                            <button class="color-dot" style="--c: #facc15;" data-color="#facc15"></button>
+                            <button class="color-dot" style="--c: #38bdf8;" data-color="#38bdf8"></button>
+                            <button class="color-dot" style="--c: #22c55e;" data-color="#22c55e"></button>
+                            <button class="color-dot" style="--c: #a855f7;" data-color="#a855f7"></button>
+                            <button class="color-dot" style="--c: #f43f5e;" data-color="#f43f5e"></button>
+                        </div>
+                    </div>
+
+                    <!-- 4. Sliders & Inputs -->
+                    <div class="color-override-row">
+                        <span class="color-row-label">🎚️ Sliders & Inputs</span>
+                        <div class="color-dots-group" data-target="slider">
+                            <button class="color-dot-inherit active" title="Herdar cor geral">Auto</button>
+                            <button class="color-dot" style="--c: #facc15;" data-color="#facc15"></button>
+                            <button class="color-dot" style="--c: #38bdf8;" data-color="#38bdf8"></button>
+                            <button class="color-dot" style="--c: #22c55e;" data-color="#22c55e"></button>
+                            <button class="color-dot" style="--c: #a855f7;" data-color="#a855f7"></button>
+                            <button class="color-dot" style="--c: #f43f5e;" data-color="#f43f5e"></button>
+                        </div>
+                    </div>
+
+                    <!-- 5. Switches & Segmentos -->
+                    <div class="color-override-row">
+                        <span class="color-row-label">🔀 Switches & Toggles</span>
+                        <div class="color-dots-group" data-target="switch">
+                            <button class="color-dot-inherit active" title="Herdar cor geral">Auto</button>
+                            <button class="color-dot" style="--c: #facc15;" data-color="#facc15"></button>
+                            <button class="color-dot" style="--c: #38bdf8;" data-color="#38bdf8"></button>
+                            <button class="color-dot" style="--c: #22c55e;" data-color="#22c55e"></button>
+                            <button class="color-dot" style="--c: #a855f7;" data-color="#a855f7"></button>
+                            <button class="color-dot" style="--c: #f43f5e;" data-color="#f43f5e"></button>
+                        </div>
+                    </div>
+
+                    <!-- 6. HUD de Diagnóstico -->
+                    <div class="color-override-row">
+                        <span class="color-row-label">📊 HUD de Diagnóstico</span>
+                        <div class="color-dots-group" data-target="hud">
+                            <button class="color-dot-inherit active" title="Herdar cor geral">Auto</button>
+                            <button class="color-dot" style="--c: #facc15;" data-color="#facc15"></button>
+                            <button class="color-dot" style="--c: #38bdf8;" data-color="#38bdf8"></button>
+                            <button class="color-dot" style="--c: #22c55e;" data-color="#22c55e"></button>
+                            <button class="color-dot" style="--c: #a855f7;" data-color="#a855f7"></button>
+                            <button class="color-dot" style="--c: #f43f5e;" data-color="#f43f5e"></button>
+                        </div>
+                    </div>
+
+                    <!-- 7. Textos & Títulos -->
+                    <div class="color-override-row">
+                        <span class="color-row-label">🔤 Textos & Destaques</span>
+                        <div class="color-dots-group" data-target="text">
+                            <button class="color-dot-inherit active" title="Herdar cor geral">Auto</button>
+                            <button class="color-dot" style="--c: #facc15;" data-color="#facc15"></button>
+                            <button class="color-dot" style="--c: #38bdf8;" data-color="#38bdf8"></button>
+                            <button class="color-dot" style="--c: #22c55e;" data-color="#22c55e"></button>
+                            <button class="color-dot" style="--c: #a855f7;" data-color="#a855f7"></button>
+                            <button class="color-dot" style="--c: #f43f5e;" data-color="#f43f5e"></button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="color-tooltip-footer">
+                    <button id="btn-reset-all-colors" class="btn-reset-colors">
+                        <img src="../assets/icons/refresh.svg" class="icon-svg" alt="Reset">
+                        <span>Restaurar Herança Geral (Todos em Auto)</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Grupo de Ações Flutuantes no Topo Direito do Canvas -->
+            <div class="canvas-top-actions">
+                <button id="btn-quick-autorotate" class="canvas-btn-floating active" title="Alternar Rotação 3D">
+                    <img src="../assets/icons/rotate.svg" class="icon-svg icon-spin" alt="Rotação">
+                    <span class="btn-label-text">Rotação 3D</span>
+                </button>
+                <button id="btn-expand-sidebar" class="canvas-btn-expand-sidebar" title="Expandir Painel Lateral de Controles">
+                    <img src="../assets/icons/expand.svg" class="icon-svg" alt="Expandir">
+                    <span class="btn-label-text">Controles</span>
+                </button>
+            </div>
 
             <!-- HUD de Diagnóstico Flutuante -->
             <div class="sim-hud" id="hud-test">
@@ -101,41 +237,98 @@
         <!-- Painel Lateral de Controles e Demonstração -->
         <aside class="controls-panel">
 
-            <!-- Navegação por Abas de Componentes -->
-            <div class="tab-nav">
-                <button class="tab-btn active" id="tab-btn-buttons">1. Botões</button>
-                <button class="tab-btn" id="tab-btn-sliders">2. Sliders</button>
-                <button class="tab-btn" id="tab-btn-switches">3. Switches</button>
-                <button class="tab-btn" id="tab-btn-huds">4. HUDs & LaTeX</button>
-                <button class="tab-btn" id="tab-btn-icons">5. Ícones SVG</button>
+            <!-- Alça de Arraste para Mobile / Tablet (Bottom Sheet) -->
+            <div class="sheet-drag-handle" id="sheet-drag-handle" title="Deslize ou toque para expandir/recolher">
+                <div class="sheet-drag-pill"></div>
             </div>
 
-            <!-- ============================================================= -->
-            <!-- ABA 1: BOTÕES & DISPARADORES DE AÇÃO                         -->
-            <!-- ============================================================= -->
-            <div id="panel-ui-buttons">
-                <div class="sim-badge">
-                    <span class="badge-title">Botões & Ações</span>
-                    <span class="badge-status">Estados: Normal, Hover, Active e Disabled</span>
-                </div>
+            <!-- Navegação por Abas de Componentes (Design Deslizante Expansível) -->
+            <div class="tab-nav">
+                <button class="tab-btn active" id="tab-btn-buttons" title="Botões & Presets">
+                    <img src="../assets/icons/play.svg" class="icon-svg" alt="Botões">
+                    <span class="tab-label">Botões</span>
+                </button>
+                <button class="tab-btn" id="tab-btn-sliders" title="Sliders & Entradas">
+                    <img src="../assets/icons/rotate.svg" class="icon-svg" alt="Sliders">
+                    <span class="tab-label">Sliders</span>
+                </button>
+                <button class="tab-btn" id="tab-btn-switches" title="Switches & Toggles">
+                    <img src="../assets/icons/refresh.svg" class="icon-svg" alt="Switches">
+                    <span class="tab-label">Switches</span>
+                </button>
+                <button class="tab-btn" id="tab-btn-huds" title="HUDs & LaTeX">
+                    <img src="../assets/icons/compass.svg" class="icon-svg" alt="HUDs">
+                    <span class="tab-label">HUDs & LaTeX</span>
+                </button>
+                <button class="tab-btn" id="tab-btn-icons" title="Galeria de Ícones">
+                    <img src="../assets/icons/sparkles.svg" class="icon-svg" alt="Ícones">
+                    <span class="tab-label">Ícones SVG</span>
+                </button>
+                <button class="btn-collapse-sidebar" id="btn-collapse-sidebar" title="Recolher Painel (Modo Foco)">
+                    <img src="../assets/icons/collapse.svg" class="icon-svg" alt="Recolher">
+                </button>
+            </div>
 
-                <!-- Botões Primários e Secundários -->
-                <div class="control-group" style="margin-top: 12px;">
-                    <label>Ações Primárias & Secundárias</label>
-                    <button class="btn-primary" id="btn-demo-primary" style="width: 100%;">
-                        <img src="../assets/icons/play.svg" class="icon-svg" alt="Play"> Executar Simulação (.btn-primary)
-                    </button>
-                    <button class="btn-secondary" id="btn-demo-secondary" style="width: 100%; margin-top: 6px;">
-                        <img src="../assets/icons/refresh.svg" class="icon-svg" alt="Reset"> Reiniciar Parâmetros (.btn-secondary)
-                    </button>
-                    <button class="btn-primary" disabled style="width: 100%; margin-top: 6px;">
-                        Botão Desabilitado (:disabled)
-                    </button>
-                </div>
+            <!-- Corpo Rolável de Conteúdo das Abas -->
+            <div class="panel-body">
+
+                <!-- ============================================================= -->
+                <!-- ABA 1: BOTÕES & DISPARADORES DE AÇÃO                         -->
+                <!-- ============================================================= -->
+                <div id="panel-ui-buttons">
+                    <div class="tab-header">
+                        <div class="tab-header-row">
+                            <h3 class="tab-title">Controle & Disparadores</h3>
+                            <div class="sim-badge" id="header-status-badge"><span class="status-dot"></span><span>Pronto</span></div>
+                        </div>
+                        <p class="tab-subtitle">Barra de reprodução temporal, presets de modo e botões utilitários.</p>
+                    </div>
+
+                    <!-- 1. Barra de Reprodução Físico-Temporal Integrada -->
+                    <div class="sim-transport-bar">
+                        <div class="transport-controls-row">
+                            <button class="btn-primary btn-toggle transport-btn-play" id="btn-demo-primary"
+                                    data-state="0"
+                                    data-text-idle="Executar"
+                                    data-text-active="Pausar"
+                                    data-icon-idle="play"
+                                    data-icon-active="pause">
+                                <img src="../assets/icons/play.svg" class="icon-svg" alt="Play">
+                                <span class="btn-text">Executar</span>
+                            </button>
+                            <button class="btn-icon" id="btn-transport-step" title="Avançar 1 Passo no Tempo (Δt)">
+                                <img src="../assets/icons/step.svg" class="icon-svg" alt="Passo">
+                            </button>
+                            <button class="btn-icon" id="btn-demo-secondary" title="Reiniciar Simulação (t = 0)">
+                                <img src="../assets/icons/refresh.svg" class="icon-svg" alt="Reset">
+                            </button>
+                        </div>
+
+                        <div class="transport-speed-row">
+                            <span class="transport-speed-label">
+                                <img src="../assets/icons/rotate.svg" class="icon-svg" style="width: 14px; height: 14px;" alt="Velocidade">
+                                Velocidade:
+                            </span>
+                            <div class="transport-speed-pills" id="transport-speed-pills">
+                                <button class="speed-btn" data-speed="0.5">0.5×</button>
+                                <button class="speed-btn active" data-speed="1.0">1.0×</button>
+                                <button class="speed-btn" data-speed="2.0">2.0×</button>
+                                <button class="speed-btn" data-speed="5.0">5.0×</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Botão de Demonstração Desabilitado -->
+                    <div class="control-group" style="margin-top: 10px;">
+                        <button class="btn-primary" disabled style="width: 100%;">
+                            Ação Desabilitada (:disabled)
+                        </button>
+                    </div>
 
                 <!-- Presets e Grades 2x2 -->
+                <div class="sim-divider-label"><span>Presets & Modos</span></div>
+
                 <div class="control-group">
-                    <label>Botões de Grade & Presets (.btn-preset)</label>
                     <div class="control-grid-2x2">
                         <button class="btn-preset active" id="btn-demo-p1">
                             <img src="../assets/icons/sun.svg" class="icon-svg" alt="Sol"> Opção Ativa
@@ -157,8 +350,9 @@
                 </div>
 
                 <!-- Botões de Ícones Compactos -->
+                <div class="sim-divider-label"><span>Controles Rápidos</span></div>
+
                 <div class="control-group">
-                    <label>Botões Compactos de Ícones (.btn-icon)</label>
                     <div style="display: flex; gap: 8px;">
                         <button class="btn-icon active" title="Reproduzir" id="btn-icon-play">
                             <img src="../assets/icons/play.svg" class="icon-svg" alt="Play">
@@ -183,34 +377,44 @@
             <!-- ABA 2: SLIDERS & ENTRADAS DE DADOS                           -->
             <!-- ============================================================= -->
             <div id="panel-ui-sliders" style="display: none;">
-                <div class="sim-badge">
-                    <span class="badge-title">Sliders & Entradas</span>
-                    <span class="badge-status">Controles Deslizantes com Feedback em Tempo Real</span>
+                <div class="tab-header">
+                    <h3 class="tab-title">Sliders & Entradas Numéricas</h3>
+                    <p class="tab-subtitle">Sliders com entradas numéricas sincronizadas bidirecionalmente (Dual-Input).</p>
                 </div>
 
-                <!-- Slider Contínuo -->
-                <div class="control-group" style="margin-top: 12px;">
-                    <label>Slider Contínuo (Escala da Geometria 3D)</label>
-                    <div class="slider-container">
-                        <div class="slider-header">
-                            <span>Raio Geométrico</span>
-                            <span id="val-demo-radius" class="slider-val">1.00x</span>
-                        </div>
-                        <input type="range" class="sim-slider" id="slider-demo-radius" min="0.5" max="2.0" step="0.05" value="1.0">
-                    </div>
-                </div>
-
-                <!-- Slider Discreto -->
+                <!-- 1. Dual-Input Slider: Raio Geométrico -->
                 <div class="control-group">
-                    <label>Slider Discreto (Resolução de Segmentos)</label>
-                    <div class="slider-container">
+                    <div class="slider-container sim-dual-slider">
                         <div class="slider-header">
-                            <span>Densidade de Vértices</span>
-                            <span id="val-demo-steps" class="slider-val">16 segmentos</span>
+                            <label for="slider-demo-radius" class="slider-label">Raio Geométrico</label>
+                            <div class="dual-input-wrapper">
+                                <input type="number" class="dual-input-number" id="input-demo-radius"
+                                       min="0.5" max="2.5" step="0.05" value="1.00">
+                                <span class="dual-input-unit">m</span>
+                            </div>
                         </div>
-                        <input type="range" class="sim-slider" id="slider-demo-steps" min="4" max="64" step="4" value="16">
+                        <input type="range" class="sim-slider" id="slider-demo-radius"
+                               min="0.5" max="2.5" step="0.05" value="1.00">
                     </div>
                 </div>
+
+                <!-- 2. Dual-Input Slider: Resolução de Vértices -->
+                <div class="control-group">
+                    <div class="slider-container sim-dual-slider">
+                        <div class="slider-header">
+                            <label for="slider-demo-steps" class="slider-label">Densidade de Vértices</label>
+                            <div class="dual-input-wrapper">
+                                <input type="number" class="dual-input-number" id="input-demo-steps"
+                                       min="4" max="64" step="4" value="16">
+                                <span class="dual-input-unit">pts</span>
+                            </div>
+                        </div>
+                        <input type="range" class="sim-slider" id="slider-demo-steps"
+                               min="4" max="64" step="4" value="16">
+                    </div>
+                </div>
+
+                <div class="sim-divider-label"><span>Seletores & Entradas</span></div>
 
                 <!-- Dropdown e Input Numérico -->
                 <div class="control-group">
@@ -232,13 +436,13 @@
             <!-- ABA 3: SWITCHES, TOGGLES & SEGMENTOS                         -->
             <!-- ============================================================= -->
             <div id="panel-ui-switches" style="display: none;">
-                <div class="sim-badge">
-                    <span class="badge-title">Switches & Seletores</span>
-                    <span class="badge-status">Interruptores Deslizantes & Controles Segmentados</span>
+                <div class="tab-header">
+                    <h3 class="tab-title">Switches & Controles Segmentados</h3>
+                    <p class="tab-subtitle">Interruptores deslizantes animados estilo iOS e seletores em pílulas.</p>
                 </div>
 
                 <!-- Interruptores Modernos (Sliding Switches) -->
-                <div class="control-group" style="margin-top: 12px;">
+                <div class="control-group">
                     <label>Interruptores Deslizantes (.sim-switch)</label>
 
                     <div class="switch-container">
@@ -267,17 +471,18 @@
                 </div>
 
                 <!-- Seletor Segmentado (Pills 3x1) -->
+                <div class="sim-divider-label"><span>Seleção em Pílulas</span></div>
+
                 <div class="control-group">
-                    <label>Seletor Segmentado (.field-btn / .segment-btn)</label>
-                    <div class="field-selector-grid">
-                        <button class="field-btn active" id="btn-seg-1">
-                            <img src="../assets/icons/thermometer.svg" class="icon-svg" alt="Temp"> Termal
+                    <div class="segmented-control">
+                        <button class="segment-btn active" id="btn-seg-1">
+                            <img src="../assets/icons/sparkles.svg" class="icon-svg" alt="Modo A"> Modo A
                         </button>
-                        <button class="field-btn" id="btn-seg-2">
-                            <img src="../assets/icons/cyclone.svg" class="icon-svg" alt="Pressão"> Pressão
+                        <button class="segment-btn" id="btn-seg-2">
+                            <img src="../assets/icons/globe.svg" class="icon-svg" alt="Modo B"> Modo B
                         </button>
-                        <button class="field-btn" id="btn-seg-3">
-                            <img src="../assets/icons/wind.svg" class="icon-svg" alt="Vento"> Vento
+                        <button class="segment-btn" id="btn-seg-3">
+                            <img src="../assets/icons/compass.svg" class="icon-svg" alt="Modo C"> Modo C
                         </button>
                     </div>
                 </div>
@@ -287,12 +492,49 @@
             <!-- ABA 4: HUDS, BADGES & CARDS DE TEORIA (LATEX)                 -->
             <!-- ============================================================= -->
             <div id="panel-ui-huds" style="display: none;">
-                <div class="sim-badge">
-                    <span class="badge-title">Componentes de Conteúdo</span>
-                    <span class="badge-status">Fórmulas KaTeX e Caixas Explicativas</span>
+                <div class="tab-header">
+                    <div class="tab-header-row">
+                        <h3 class="tab-title">Diagnósticos & $\LaTeX$</h3>
+                        <div class="sim-badge"><span class="status-dot"></span><span>KaTeX</span></div>
+                    </div>
+                    <p class="tab-subtitle">Badges de status, cards didáticos teóricos e fórmulas matemáticas.</p>
                 </div>
 
-                <div class="control-group" style="margin-top: 12px;">
+                <!-- Demonstração de Badges / Pílulas de Status -->
+                <div class="control-group">
+                    <label>Pílulas de Status Compactas (.sim-badge / .status-badge)</label>
+                    <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                        <div class="sim-badge"><span class="status-dot"></span><span>Ativo / 60 FPS</span></div>
+                        <div class="sim-badge idle"><span class="status-dot"></span><span>Em Espera (Idle)</span></div>
+                    </div>
+                </div>
+
+                <!-- Mini-Gráfico de Telemetria em Tempo Real (Sparkline Plot) -->
+                <div class="sim-divider-label"><span>Telemetria em Tempo Real</span></div>
+
+                <div class="control-group">
+                    <div class="sim-plot-card" id="demo-realtime-plot">
+                        <div class="plot-header">
+                            <div class="plot-title-group">
+                                <span class="plot-dot"></span>
+                                <span class="plot-title">Velocidade Angular $\omega(t)$</span>
+                            </div>
+                            <div class="plot-stats">
+                                <span class="plot-stat-label">Atual:</span>
+                                <span class="plot-stat-val" id="plot-current-val">0.00 rad/s</span>
+                            </div>
+                        </div>
+                        <div class="plot-canvas-wrapper">
+                            <canvas class="sim-plot-canvas" id="plot-canvas"></canvas>
+                            <span class="plot-axis-label plot-axis-max" id="plot-axis-max">+1.2</span>
+                            <span class="plot-axis-label plot-axis-min" id="plot-axis-min">-1.2</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="sim-divider-label"><span>Teoria & Fórmulas</span></div>
+
+                <div class="control-group">
                     <label>Card Didático Teórico (.theory-card)</label>
                     <div class="theory-card">
                         <h4><img src="../assets/icons/compass.svg" class="icon-svg icon-accent" alt="Matemática"> Equações Fundamentais</h4>
@@ -307,6 +549,10 @@
                             Equação da conservação de energia em regime estacionário:
                         </p>
                         $$E = \frac{1}{2}m v^2 + V(r) = \text{constante}$$
+
+                        <button class="btn-secondary" id="btn-open-theory-modal" style="width: 100%; margin-top: 10px;">
+                            <img src="../assets/icons/compass.svg" class="icon-svg" alt="Teoria"> Ver Dedução Matemática Completa (Modal)
+                        </button>
                     </div>
                 </div>
             </div>
@@ -315,22 +561,83 @@
             <!-- ABA 5: GALERIA COMPLETA DE ÍCONES SVG                         -->
             <!-- ============================================================= -->
             <div id="panel-ui-icons" style="display: none;">
-                <div class="sim-badge">
-                    <span class="badge-title">Biblioteca de Ícones SVG</span>
-                    <span class="badge-status">17 Ícones Nativos em assets/icons/</span>
+                <div class="tab-header">
+                    <h3 class="tab-title">Biblioteca de Ícones Nativos</h3>
+                    <p class="tab-subtitle">17 ícones vetoriais SVG em assets/icons/ configurados com currentColor.</p>
                 </div>
 
-                <div class="control-group" style="margin-top: 12px;">
+                <div class="control-group">
                     <label>Clique em um ícone para copiar seu HTML</label>
                     <div class="icon-gallery-grid" id="icon-gallery">
                         <!-- Injetado dinamicamente via JS -->
                     </div>
                 </div>
             </div>
+            </div>
+
+            <!-- 3. Rodapé Fixo de Status & Telemetria do Painel -->
+            <div class="panel-footer">
+                <div class="sim-badge" id="footer-status-badge">
+                    <span class="status-dot"></span>
+                    <span id="footer-status-text">Simulação Pronta</span>
+                </div>
+                <span class="footer-meta" id="footer-sim-timer">t = 0.00s</span>
+            </div>
 
         </aside>
 
     </main>
+
+    <!-- ============================================================= -->
+    <!-- MODAL DIDÁTICO DE TEORIA & FÓRMULAS MATEMÁTICAS (.sim-modal)  -->
+    <!-- ============================================================= -->
+    <div id="modal-theory-demo" class="sim-modal-overlay hidden" aria-hidden="true" role="dialog">
+        <div class="sim-modal-container">
+            <!-- Cabeçalho do Modal -->
+            <div class="sim-modal-header">
+                <div class="sim-modal-title">
+                    <img src="../assets/icons/compass.svg" class="icon-svg icon-accent" alt="Teoria">
+                    <span>Fundamentação Teórica & Dedução Matemática</span>
+                </div>
+                <button class="sim-modal-close" data-modal-close title="Fechar Modal (Esc)">✕</button>
+            </div>
+
+            <!-- Corpo com Rolagem Independente -->
+            <div class="sim-modal-body">
+                <div class="theory-section">
+                    <h4>1. Equações Fundamentais de Fluidos & Dinâmica</h4>
+                    <p>
+                        O comportamento dinâmico de um campo escalar ou vetorial acoplado a um referencial em rotação (velocidade angular $\mathbf{\Omega}$) obedece à equação de transporte com termos inerciais de Coriolis:
+                    </p>
+                    $$\frac{\partial \mathbf{v}}{\partial t} + (\mathbf{v} \cdot \nabla)\mathbf{v} = -\frac{1}{\rho}\nabla p + \nu \nabla^2 \mathbf{v} - 2(\mathbf{\Omega} \times \mathbf{v})$$
+                </div>
+
+                <div class="theory-callout">
+                    <strong>💡 Interpretação dos Termos Físicos:</strong>
+                    <ul>
+                        <li>$\frac{\partial \mathbf{v}}{\partial t}$: Taxa de variação temporal local.</li>
+                        <li>$(\mathbf{v} \cdot \nabla)\mathbf{v}$: Não-linearidade advectiva (convecção).</li>
+                        <li>$-2(\mathbf{\Omega} \times \mathbf{v})$: Aceleração aparente de Coriolis.</li>
+                        <li>$\nu \nabla^2 \mathbf{v}$: Difusão e amortecimento viscoso cinemático.</li>
+                    </ul>
+                </div>
+
+                <div class="theory-section">
+                    <h4>2. Conservação da Energia e Hamiltoniana do Sistema</h4>
+                    <p>
+                        A densidade de Hamiltoniana total $\mathcal{H}$ é invariante no tempo na ausência de dissipação explícita ($\nu = 0$):
+                    </p>
+                    $$\mathcal{H} = \int_V \left( \frac{1}{2}\rho |\mathbf{v}|^2 + \frac{p}{\gamma - 1} + \rho \Phi(\mathbf{r}) \right) d^3 r = \text{constante}$$
+                </div>
+            </div>
+
+            <!-- Rodapé do Modal -->
+            <div class="sim-modal-footer">
+                <span class="sim-modal-hint">Pressione <kbd>Esc</kbd> para fechar</span>
+                <button class="btn-primary" data-modal-close style="min-width: 100px;">Entendido</button>
+            </div>
+        </div>
+    </div>
 
     <!-- Script Principal do Laboratório de UI -->
     <script type="module" src="scripts/ui_lab.js"></script>

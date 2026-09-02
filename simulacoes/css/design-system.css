@@ -2,7 +2,7 @@
    DESIGN SYSTEM & BIBLIOTECA DE COMPONENTES DE UI
    Autor: Nicolas Heringer
    Projeto: Plataforma de Simulações Científicas e Matemáticas
-   Arquivo: design-system.css (100% Modular e Desacoplado)
+   Arquivo: design-system.css (100% Modular, Genérico e Desacoplado)
    ============================================================================= */
 
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
@@ -19,11 +19,20 @@
     --bg-card: rgba(30, 41, 59, 0.65);
     --bg-input: rgba(15, 23, 42, 0.85);
 
-    /* Cores de Acento Reativas (Customizáveis dinamicamente via JS) */
+    /* Cor de Acento Geral da Página (Global) */
     --accent-color: #facc15;
     --accent-color-hover: #eab308;
-    --accent-subtle: rgba(250, 204, 21, 0.15);
-    --accent-glow: rgba(250, 204, 21, 0.35);
+    --accent-subtle: color-mix(in srgb, var(--accent-color) 15%, transparent);
+    --accent-glow: color-mix(in srgb, var(--accent-color) 35%, transparent);
+
+    /* Cores de Acento Independentes por Componente (com Fallback Direto para --accent-color) */
+    --accent-nav: var(--accent-color);
+    --accent-btn: var(--accent-color);
+    --accent-card: var(--accent-color);
+    --accent-text: var(--accent-color);
+    --accent-slider: var(--accent-color);
+    --accent-switch: var(--accent-color);
+    --accent-hud: var(--accent-color);
 
     /* Cores Semânticas Auxiliares */
     --color-cyan: #38bdf8;
@@ -42,7 +51,6 @@
     /* Bordas & Divisores */
     --border-color: rgba(255, 255, 255, 0.10);
     --border-subtle: rgba(255, 255, 255, 0.06);
-    --border-accent: rgba(250, 204, 21, 0.40);
 
     /* Raios de Arredondamento */
     --radius-xs: 4px;
@@ -56,7 +64,7 @@
     --shadow-sm: 0 2px 6px rgba(0, 0, 0, 0.25);
     --shadow-md: 0 4px 15px rgba(0, 0, 0, 0.35);
     --shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.50);
-    --shadow-accent-glow: 0 0 16px var(--accent-glow);
+    --shadow-popover: 0 12px 36px rgba(0, 0, 0, 0.65);
 
     /* Transições Padrão */
     --trans-fast: 0.15s cubic-bezier(0.4, 0, 0.2, 1);
@@ -132,7 +140,7 @@ body {
 }
 
 .btn-back:hover {
-    color: var(--accent-color);
+    color: var(--accent-text, var(--accent-color));
     transform: translateX(-2px);
 }
 
@@ -143,7 +151,7 @@ body {
     color: var(--text-primary);
 }
 
-/* Layout Grid da Simulação (Canvas à esquerda + Painel à direita com trava) */
+/* Layout Grid da Simulação (Canvas à esquerda + Painel à direita com trava e colapso) */
 .sim-layout {
     display: grid;
     grid-template-columns: 1fr 370px;
@@ -154,6 +162,12 @@ body {
     max-height: calc(100vh - 54px);
     overflow: hidden;
     min-height: 0;
+    transition: grid-template-columns 0.3s cubic-bezier(0.4, 0, 0.2, 1), gap 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.sim-layout.sidebar-collapsed {
+    grid-template-columns: 1fr 0px;
+    gap: 0;
 }
 
 /* Área do Canvas Interativo */
@@ -190,22 +204,126 @@ body {
     height: 100% !important;
 }
 
-/* Painel Lateral de Controles */
+/* Painel Lateral de Controles (Layout Tripartido: Topo Fixo, Corpo Rolável, Rodapé Fixo) */
 .controls-panel {
     background-color: var(--bg-panel);
     backdrop-filter: blur(14px);
     -webkit-backdrop-filter: blur(14px);
     border: 1px solid var(--border-color);
     border-radius: var(--radius-lg);
-    padding: 18px 16px;
+    padding: 14px 14px 10px 14px;
     display: flex;
     flex-direction: column;
-    gap: 16px;
     height: 100%;
     max-height: 100%;
+    overflow: hidden;
+    box-shadow: var(--shadow-md);
+    gap: 0;
+    min-width: 0;
+    transition: opacity 0.25s ease, transform 0.25s ease, padding 0.25s ease;
+}
+
+.sim-layout.sidebar-collapsed .controls-panel {
+    opacity: 0;
+    pointer-events: none;
+    transform: translateX(40px);
+    padding: 0;
+    border: none;
+}
+
+/* Botão de Recolher Sidebar no Painel */
+.btn-collapse-sidebar {
+    background: transparent;
+    border: 1px solid transparent;
+    color: var(--text-muted);
+    border-radius: var(--radius-sm);
+    width: 28px;
+    height: 34px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all var(--trans-fast);
+    flex-shrink: 0;
+    margin-left: 2px;
+}
+
+.btn-collapse-sidebar:hover {
+    color: var(--accent-text, var(--accent-color));
+    background: rgba(255, 255, 255, 0.08);
+    border-color: var(--border-color);
+}
+
+/* Grupo de Ações Flutuantes no Topo Direito do Canvas */
+.canvas-top-actions {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    z-index: 25;
+}
+
+/* Botão Flutuante de Reabrir Painel (Expandir) no Canvas */
+.canvas-btn-expand-sidebar {
+    background: rgba(15, 23, 42, 0.88);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: 8px 14px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    display: none;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    transition: all var(--trans-fast);
+    box-shadow: var(--shadow-md);
+}
+
+.sim-layout.sidebar-collapsed .canvas-btn-expand-sidebar {
+    display: inline-flex;
+}
+
+.canvas-btn-expand-sidebar:hover {
+    color: var(--text-primary);
+    border-color: var(--accent-btn, var(--accent-color));
+    background: rgba(30, 41, 59, 0.95);
+    transform: translateY(-1px);
+}
+
+/* Corpo do Painel com Rolagem Suave Exclusiva */
+.panel-body {
+    flex: 1;
     overflow-y: auto;
     scrollbar-gutter: stable;
-    box-shadow: var(--shadow-md);
+    padding-right: 4px;
+    margin-bottom: 8px;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+/* Rodapé Fixo de Status & Telemetria do Painel */
+.panel-footer {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding-top: 10px;
+    border-top: 1px solid var(--border-subtle);
+}
+
+.panel-footer .footer-meta {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    color: var(--text-secondary);
+    letter-spacing: 0.02em;
 }
 
 .control-group {
@@ -223,20 +341,65 @@ body {
     gap: 6px;
 }
 
+/* Separadores de Seção (Suportam tanto <hr> quanto <div>) */
+hr.sim-divider,
+div.sim-divider {
+    border: none;
+    height: 1px;
+    background: var(--border-color);
+    margin: 14px 0;
+    opacity: 0.8;
+}
+
+hr.sim-divider-glow,
+div.sim-divider-glow {
+    border: none;
+    height: 1px;
+    background: linear-gradient(
+        90deg,
+        transparent 0%,
+        var(--border-color) 20%,
+        var(--border-color) 80%,
+        transparent 100%
+    );
+    margin: 14px 0;
+}
+
+.sim-divider-label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 16px 0 10px 0;
+    color: var(--text-muted);
+    font-size: 0.72rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    user-select: none;
+}
+
+.sim-divider-label::before,
+.sim-divider-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border-color);
+}
+
 /* =============================================================================
-   4. BOTÕES & DISPARADORES DE AÇÃO
+   4. BOTÕES & DISPARADORES DE AÇÃO (Usam --accent-btn com fallback)
    ============================================================================= */
 
-/* Botão Primário (.sim-btn / .btn-primary) */
-button.sim-btn,
-button.btn-primary {
+/* Botão Primário (.btn-primary / .sim-btn) */
+button.btn-primary,
+button.sim-btn {
     display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 8px;
     background-color: transparent;
-    border: 1px solid var(--accent-color);
-    color: var(--accent-color);
+    border: 1px solid var(--accent-btn, var(--accent-color));
+    color: var(--accent-btn, var(--accent-color));
     padding: 11px 18px;
     border-radius: var(--radius-md);
     font-family: inherit;
@@ -250,22 +413,40 @@ button.btn-primary {
     user-select: none;
 }
 
-button.sim-btn:hover:not(:disabled),
-button.btn-primary:hover:not(:disabled) {
-    background-color: var(--accent-color);
+button.btn-primary:hover:not(:disabled),
+button.sim-btn:hover:not(:disabled) {
+    background-color: var(--accent-btn, var(--accent-color));
     color: var(--bg-main);
-    box-shadow: var(--shadow-accent-glow);
+    box-shadow: 0 0 16px color-mix(in srgb, var(--accent-btn, var(--accent-color)) 35%, transparent);
     transform: translateY(-1px);
 }
 
-button.sim-btn:active:not(:disabled),
-button.btn-primary:active:not(:disabled) {
+/* Estado Ativo / Ligado (ON / 1 / is-active) do Botão Primário & Toggle */
+button.btn-primary.is-active,
+button.btn-primary.active,
+button.btn-toggle.is-active {
+    background-color: var(--accent-btn, var(--accent-color));
+    color: var(--bg-main);
+    border-color: var(--accent-btn, var(--accent-color));
+    box-shadow: 0 0 16px color-mix(in srgb, var(--accent-btn, var(--accent-color)) 45%, transparent);
+}
+
+button.btn-primary.is-active:hover:not(:disabled),
+button.btn-primary.active:hover:not(:disabled),
+button.btn-toggle.is-active:hover:not(:disabled) {
+    filter: brightness(1.12);
+    transform: translateY(-1px);
+    box-shadow: 0 0 20px color-mix(in srgb, var(--accent-btn, var(--accent-color)) 55%, transparent);
+}
+
+button.btn-primary:active:not(:disabled),
+button.sim-btn:active:not(:disabled) {
     transform: translateY(0);
     box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
 }
 
-button.sim-btn:disabled,
-button.btn-primary:disabled {
+button.btn-primary:disabled,
+button.sim-btn:disabled {
     opacity: 0.4;
     cursor: not-allowed;
     border-color: rgba(255, 255, 255, 0.12);
@@ -273,6 +454,83 @@ button.btn-primary:disabled {
     background: transparent;
     box-shadow: none;
     transform: none;
+}
+
+/* =============================================================================
+   BARRA DE REPRODUÇÃO FÍSICO-TEMPORAL (TRANSPORT BAR)
+   ============================================================================= */
+.sim-transport-bar {
+    background: rgba(15, 23, 42, 0.75);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    box-shadow: var(--shadow-sm);
+}
+
+.transport-controls-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.transport-btn-play {
+    flex: 1;
+    min-width: 0;
+}
+
+.transport-speed-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding-top: 6px;
+    border-top: 1px solid var(--border-subtle);
+}
+
+.transport-speed-label {
+    font-size: 0.74rem;
+    color: var(--text-muted);
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    white-space: nowrap;
+}
+
+.transport-speed-pills {
+    display: flex;
+    gap: 3px;
+    background: rgba(0, 0, 0, 0.35);
+    padding: 2px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-subtle);
+}
+
+.transport-speed-pills .speed-btn {
+    background: transparent;
+    border: 1px solid transparent;
+    color: var(--text-secondary);
+    font-size: 0.68rem;
+    font-weight: 600;
+    font-family: var(--font-mono);
+    padding: 3px 6px;
+    border-radius: var(--radius-xs);
+    cursor: pointer;
+    transition: all var(--trans-fast);
+}
+
+.transport-speed-pills .speed-btn:hover {
+    color: var(--text-primary);
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.transport-speed-pills .speed-btn.active {
+    background: color-mix(in srgb, var(--accent-switch, var(--accent-color)) 20%, transparent);
+    border-color: var(--accent-switch, var(--accent-color));
+    color: var(--accent-switch, var(--accent-color));
 }
 
 /* Botão Secundário (.btn-secondary / .btn-outline) */
@@ -331,17 +589,17 @@ button.btn-outline:disabled {
 }
 
 .btn-preset:hover:not(:disabled) {
-    background: var(--accent-subtle);
-    border-color: var(--accent-color);
-    color: var(--accent-color);
+    background: color-mix(in srgb, var(--accent-btn, var(--accent-color)) 15%, transparent);
+    border-color: var(--accent-btn, var(--accent-color));
+    color: var(--accent-btn, var(--accent-color));
     transform: translateY(-1px);
 }
 
 .btn-preset.active {
-    background: var(--accent-subtle);
-    border-color: var(--accent-color);
-    color: var(--accent-color);
-    box-shadow: 0 0 10px var(--accent-glow);
+    background: color-mix(in srgb, var(--accent-btn, var(--accent-color)) 18%, transparent);
+    border-color: var(--accent-btn, var(--accent-color));
+    color: var(--accent-btn, var(--accent-color));
+    box-shadow: 0 0 10px color-mix(in srgb, var(--accent-btn, var(--accent-color)) 35%, transparent);
 }
 
 .btn-preset:disabled {
@@ -350,12 +608,9 @@ button.btn-outline:disabled {
     border-color: var(--border-subtle);
 }
 
-/* Botão Flutuante de Canvas (.canvas-btn-floating / .canvas-btn-autorotate) */
+/* Botão Flutuante de Canvas (.canvas-btn-floating / .canvas-btn-action) */
 .canvas-btn-floating,
-.canvas-btn-autorotate {
-    position: absolute;
-    top: 15px;
-    right: 15px;
+.canvas-btn-action {
     background: rgba(15, 23, 42, 0.85);
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
@@ -369,30 +624,29 @@ button.btn-outline:disabled {
     align-items: center;
     gap: 8px;
     cursor: pointer;
-    z-index: 20;
     transition: all var(--trans-fast);
     box-shadow: var(--shadow-md);
     user-select: none;
 }
 
 .canvas-btn-floating:hover,
-.canvas-btn-autorotate:hover {
+.canvas-btn-action:hover {
     color: var(--text-primary);
-    border-color: var(--accent-color);
+    border-color: var(--accent-btn, var(--accent-color));
     background: rgba(30, 41, 59, 0.9);
     transform: translateY(-1px);
 }
 
 .canvas-btn-floating.active,
-.canvas-btn-autorotate.active {
-    background: var(--accent-subtle);
-    border-color: var(--accent-color);
-    color: var(--accent-color);
-    box-shadow: var(--shadow-accent-glow);
+.canvas-btn-action.active {
+    background: color-mix(in srgb, var(--accent-btn, var(--accent-color)) 15%, transparent);
+    border-color: var(--accent-btn, var(--accent-color));
+    color: var(--accent-btn, var(--accent-color));
+    box-shadow: 0 0 14px color-mix(in srgb, var(--accent-btn, var(--accent-color)) 35%, transparent);
 }
 
 .canvas-btn-floating.active .icon-spin,
-.canvas-btn-autorotate.active .icon-spin {
+.canvas-btn-action.active .icon-spin {
     animation: spin 6s linear infinite;
 }
 
@@ -413,20 +667,20 @@ button.btn-outline:disabled {
 }
 
 .btn-icon:hover:not(:disabled) {
-    background: var(--accent-subtle);
-    border-color: var(--accent-color);
-    color: var(--accent-color);
+    background: color-mix(in srgb, var(--accent-btn, var(--accent-color)) 15%, transparent);
+    border-color: var(--accent-btn, var(--accent-color));
+    color: var(--accent-btn, var(--accent-color));
 }
 
 .btn-icon.active {
-    background: var(--accent-subtle);
-    border-color: var(--accent-color);
-    color: var(--accent-color);
-    box-shadow: 0 0 8px var(--accent-glow);
+    background: color-mix(in srgb, var(--accent-btn, var(--accent-color)) 18%, transparent);
+    border-color: var(--accent-btn, var(--accent-color));
+    color: var(--accent-btn, var(--accent-color));
+    box-shadow: 0 0 8px color-mix(in srgb, var(--accent-btn, var(--accent-color)) 35%, transparent);
 }
 
 /* =============================================================================
-   5. SLIDERS & ENTRADAS DE DADOS
+   5. SLIDERS & ENTRADAS DE DADOS (Usam --accent-slider com fallback)
    ============================================================================= */
 .slider-container {
     display: flex;
@@ -449,8 +703,70 @@ button.btn-outline:disabled {
 .slider-val {
     font-family: var(--font-mono);
     font-weight: 600;
-    color: var(--accent-color);
+    color: var(--accent-slider, var(--accent-color));
     font-size: 0.84rem;
+}
+
+/* Slider com Entrada Numérica Sincronizada (Dual-Input Slider) */
+.sim-dual-slider .slider-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 2px;
+}
+
+.sim-dual-slider .slider-label {
+    font-size: 0.82rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+    user-select: none;
+}
+
+.dual-input-wrapper {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: rgba(0, 0, 0, 0.35);
+    padding: 2px 6px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-color);
+    transition: border-color var(--trans-fast), box-shadow var(--trans-fast);
+}
+
+.dual-input-wrapper:focus-within {
+    border-color: var(--accent-slider, var(--accent-color));
+    box-shadow: 0 0 8px color-mix(in srgb, var(--accent-slider, var(--accent-color)) 30%, transparent);
+}
+
+.dual-input-number {
+    width: 62px;
+    background: transparent;
+    border: none;
+    color: var(--accent-slider, var(--accent-color));
+    font-family: var(--font-mono);
+    font-weight: 600;
+    font-size: 0.82rem;
+    text-align: right;
+    outline: none;
+    padding: 2px 0;
+}
+
+.dual-input-number::-webkit-inner-spin-button,
+.dual-input-number::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+.dual-input-number {
+    -moz-appearance: textfield;
+}
+
+.dual-input-unit {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    font-weight: 500;
+    user-select: none;
 }
 
 input[type="range"].sim-slider {
@@ -485,16 +801,15 @@ input[type="range"].sim-slider::-webkit-slider-thumb {
     height: 18px;
     width: 18px;
     border-radius: 50%;
-    background: var(--accent-color);
+    background: var(--accent-slider, var(--accent-color));
     margin-top: -6px;
-    box-shadow: 0 0 10px var(--accent-glow);
+    box-shadow: 0 0 10px color-mix(in srgb, var(--accent-slider, var(--accent-color)) 40%, transparent);
     transition: transform var(--trans-fast), background var(--trans-fast), box-shadow var(--trans-fast);
 }
 
 input[type="range"].sim-slider:hover::-webkit-slider-thumb {
     transform: scale(1.22);
-    background: var(--accent-color-hover);
-    box-shadow: 0 0 14px var(--accent-glow);
+    box-shadow: 0 0 14px color-mix(in srgb, var(--accent-slider, var(--accent-color)) 50%, transparent);
 }
 
 /* Select Box Estilizado */
@@ -518,7 +833,7 @@ select.sim-control {
 
 select.sim-control:focus,
 select.sim-control:hover {
-    border-color: var(--accent-color);
+    border-color: var(--accent-slider, var(--accent-color));
 }
 
 select.sim-control option {
@@ -542,12 +857,12 @@ input[type="text"].sim-input {
 
 input[type="number"].sim-input:focus,
 input[type="text"].sim-input:focus {
-    border-color: var(--accent-color);
-    box-shadow: 0 0 8px var(--accent-subtle);
+    border-color: var(--accent-slider, var(--accent-color));
+    box-shadow: 0 0 8px color-mix(in srgb, var(--accent-slider, var(--accent-color)) 20%, transparent);
 }
 
 /* =============================================================================
-   6. SWITCHES MODERNOS & CONTROLES SEGMENTADOS
+   6. SWITCHES MODERNOS & CONTROLES SEGMENTADOS (Usam --accent-switch com fallback)
    ============================================================================= */
 
 /* Sliding Switch Moderno (Estilo iOS) */
@@ -602,8 +917,8 @@ input[type="text"].sim-input:focus {
 }
 
 .sim-switch input:checked + .slider-round {
-    background-color: var(--accent-color);
-    border-color: var(--accent-color);
+    background-color: var(--accent-switch, var(--accent-color));
+    border-color: var(--accent-switch, var(--accent-color));
 }
 
 .sim-switch input:checked + .slider-round:before {
@@ -611,9 +926,9 @@ input[type="text"].sim-input:focus {
     background-color: var(--bg-surface);
 }
 
-/* Controles Segmentados (Pills) */
+/* Controles Segmentados Universais (Pills / Segmented Controls) */
 .segmented-control,
-.field-selector-grid {
+.segmented-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(60px, 1fr));
     gap: 4px;
@@ -624,7 +939,7 @@ input[type="text"].sim-input:focus {
 }
 
 .segment-btn,
-.field-btn {
+.btn-segment {
     padding: 8px 4px;
     font-size: 0.75rem;
     font-weight: 600;
@@ -643,135 +958,193 @@ input[type="text"].sim-input:focus {
 }
 
 .segment-btn:hover,
-.field-btn:hover {
+.btn-segment:hover {
     color: var(--text-primary);
     background: rgba(255, 255, 255, 0.05);
 }
 
 .segment-btn.active,
-.field-btn.active {
-    background: var(--accent-subtle);
-    border-color: var(--accent-color);
-    color: var(--accent-color);
+.btn-segment.active {
+    background: color-mix(in srgb, var(--accent-switch, var(--accent-color)) 15%, transparent);
+    border-color: var(--accent-switch, var(--accent-color));
+    color: var(--accent-switch, var(--accent-color));
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
-/* Navegação por Abas no Painel */
+/* Barra de Navegação por Abas Expansíveis (Sliding / Accordion Tab Bar) */
 .tab-nav {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(50px, 1fr));
+    display: flex;
+    align-items: center;
     gap: 4px;
-    margin-bottom: 8px;
+    margin-bottom: 12px;
     background: rgba(15, 23, 42, 0.75);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
     padding: 4px;
     border-radius: var(--radius-lg);
     border: 1px solid var(--border-color);
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.3);
 }
 
 .tab-btn {
-    padding: 7px 4px;
-    font-size: 0.72rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 8px 10px;
+    font-size: 0.76rem;
     font-weight: 600;
-    border-radius: var(--radius-sm);
+    border-radius: var(--radius-md);
     background: transparent;
     color: var(--text-secondary);
     border: 1px solid transparent;
     cursor: pointer;
-    text-align: center;
-    transition: all var(--trans-fast);
+    transition: all var(--trans-normal);
     white-space: nowrap;
     overflow: hidden;
-    text-overflow: ellipsis;
+    user-select: none;
+    flex: 0 0 auto;
 }
 
-.tab-btn:hover:not(.disabled) {
-    color: var(--text-primary);
-    background: rgba(255, 255, 255, 0.05);
+.tab-btn .tab-label {
+    display: inline-block;
+    max-width: 0;
+    opacity: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    vertical-align: middle;
+    transition: max-width var(--trans-normal), opacity var(--trans-normal), transform var(--trans-normal);
+    transform: translateX(-4px);
 }
 
+.tab-btn .icon-svg {
+    width: 1.15em;
+    height: 1.15em;
+    flex-shrink: 0;
+    color: currentColor;
+}
+
+/* Aba Ativa: Fica expandida com cor de acento */
 .tab-btn.active {
-    background: var(--accent-subtle);
-    border-color: var(--accent-color);
-    color: var(--accent-color);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    flex: 1 0 auto;
+    background: color-mix(in srgb, var(--accent-nav, var(--accent-color)) 18%, transparent);
+    border-color: var(--accent-nav, var(--accent-color));
+    color: var(--accent-nav, var(--accent-color));
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.25);
+}
+
+.tab-btn.active .tab-label {
+    max-width: 140px;
+    opacity: 1;
+    transform: translateX(0);
+}
+
+/* Hover na Aba Inativa: Expande suavemente ao passar o mouse */
+.tab-btn:hover:not(.active):not(.disabled) {
+    color: var(--text-primary);
+    background: rgba(255, 255, 255, 0.08);
+    border-color: color-mix(in srgb, var(--accent-nav, var(--accent-color)) 35%, transparent);
+}
+
+.tab-btn:hover:not(.active):not(.disabled) .tab-label {
+    max-width: 140px;
+    opacity: 0.95;
+    transform: translateX(0);
 }
 
 .tab-btn.disabled {
-    opacity: 0.4;
+    opacity: 0.35;
     cursor: not-allowed;
 }
 
 /* =============================================================================
-   7. HUDS, BADGES, TOOLTIPS & CARDS DIDÁTICOS (LATEX)
+   7. CABEÇALHOS DE ABA, BADGES DE STATUS, HUDS & CARDS DIDÁTICOS (LATEX)
    ============================================================================= */
 
-/* Badge de Estado da Simulação (.sim-badge / .climate-badge) */
-.sim-badge,
-.climate-badge {
+/* Cabeçalho Tipográfico Suave da Aba (.tab-header) */
+.tab-header {
     display: flex;
     flex-direction: column;
+    gap: 3px;
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border-subtle);
+}
+
+.tab-header-row {
+    display: flex;
     align-items: center;
-    gap: 4px;
-    background: linear-gradient(
-        135deg,
-        var(--accent-subtle) 0%,
-        rgba(255, 255, 255, 0.02) 100%
-    );
-    border: 1px solid var(--border-accent);
-    border-radius: var(--radius-lg);
-    padding: 12px 14px;
-    text-align: center;
-    position: relative;
-    overflow: hidden;
-    box-shadow: var(--shadow-sm);
+    justify-content: space-between;
+    gap: 8px;
 }
 
-.sim-badge::before,
-.climate-badge::before {
-    content: '';
-    position: absolute;
-    top: -30px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 160px;
-    height: 60px;
-    background: radial-gradient(
-        ellipse,
-        var(--accent-glow) 0%,
-        transparent 70%
-    );
-    pointer-events: none;
+.tab-title {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    letter-spacing: -0.01em;
 }
 
-.sim-badge .badge-title,
-.climate-title {
-    display: block;
-    font-size: 1.05rem;
-    font-weight: 700;
-    color: var(--accent-color);
-    letter-spacing: 0.02em;
-    line-height: 1.2;
-}
-
-.sim-badge .badge-status,
-.climate-status {
-    display: block;
+.tab-subtitle {
     font-size: 0.74rem;
-    color: var(--text-secondary);
+    color: var(--text-muted);
+    line-height: 1.4;
+}
+
+/* Pílula Compacta de Status Real (.sim-badge / .status-badge) */
+.sim-badge,
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 3px 9px;
+    border-radius: var(--radius-pill);
+    background: color-mix(in srgb, var(--accent-card, var(--accent-color)) 12%, transparent);
+    border: 1px solid color-mix(in srgb, var(--accent-card, var(--accent-color)) 30%, transparent);
+    color: var(--accent-card, var(--accent-color));
+    font-size: 0.70rem;
+    font-weight: 600;
     font-family: var(--font-mono);
     letter-spacing: 0.02em;
+    user-select: none;
 }
 
-/* HUD Flutuante no Canvas (.sim-hud / .climate-hud) */
-.sim-hud,
-.climate-hud {
+.status-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+    box-shadow: 0 0 6px currentColor;
+    animation: pulseDot 2s ease-in-out infinite;
+}
+
+@keyframes pulseDot {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.3); opacity: 0.7; }
+}
+
+.sim-badge.idle,
+.status-badge.idle {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 255, 255, 0.12);
+    color: var(--text-muted);
+}
+
+.sim-badge.idle .status-dot,
+.status-badge.idle .status-dot {
+    box-shadow: none;
+    animation: none;
+}
+
+/* HUD Flutuante no Canvas (.sim-hud) - Canto Inferior Esquerdo */
+.sim-hud {
     position: absolute;
-    top: 15px;
-    left: 15px;
-    background: rgba(15, 23, 42, 0.85);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.12);
+    bottom: 20px;
+    left: 20px;
+    background: rgba(15, 23, 42, 0.88);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.14);
     border-radius: var(--radius-lg);
     padding: 10px 14px;
     display: flex;
@@ -798,19 +1171,105 @@ input[type="text"].sim-input:focus {
 .hud-val {
     font-family: var(--font-mono);
     font-weight: 600;
-    color: var(--accent-color);
+    color: var(--accent-hud, var(--accent-color));
 }
+
+/* =============================================================================
+   MINI-GRÁFICO DE TELEMETRIA EM TEMPO REAL (.sim-plot-card / .sim-sparkline)
+   ============================================================================= */
+.sim-plot-card {
+    background: rgba(15, 23, 42, 0.75);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: 10px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    box-shadow: var(--shadow-sm);
+}
+
+.plot-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.plot-title-group {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.plot-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--accent-hud, var(--accent-color));
+    box-shadow: 0 0 6px var(--accent-hud, var(--accent-color));
+}
+
+.plot-stats {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+}
+
+.plot-stat-label {
+    color: var(--text-muted);
+}
+
+.plot-stat-val {
+    color: var(--accent-hud, var(--accent-color));
+    font-weight: 600;
+}
+
+.plot-canvas-wrapper {
+    position: relative;
+    width: 100%;
+    height: 84px;
+    background: rgba(0, 0, 0, 0.40);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-subtle);
+    overflow: hidden;
+}
+
+.sim-plot-canvas {
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+
+.plot-axis-label {
+    position: absolute;
+    right: 6px;
+    font-family: var(--font-mono);
+    font-size: 0.62rem;
+    color: var(--text-muted);
+    pointer-events: none;
+    user-select: none;
+}
+
+.plot-axis-max { top: 3px; }
+.plot-axis-min { bottom: 3px; }
 
 /* Dica Interativa Flutuante */
 .interactive-hint {
     position: absolute;
-    bottom: 20px;
-    right: 20px;
-    background: rgba(15, 23, 42, 0.80);
+    bottom: 15px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(15, 23, 42, 0.85);
     backdrop-filter: blur(8px);
-    border: 1px solid rgba(255, 255, 255, 0.10);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.12);
     border-radius: var(--radius-md);
-    padding: 8px 12px;
+    padding: 6px 14px;
     font-size: 0.74rem;
     color: var(--text-secondary);
     pointer-events: none;
@@ -819,15 +1278,16 @@ input[type="text"].sim-input:focus {
     align-items: center;
     gap: 7px;
     box-shadow: var(--shadow-sm);
+    white-space: nowrap;
 }
 
-/* Tooltip Flutuante de Inspeção */
+/* Tooltip Flutuante de Inspeção Genérico */
 .cell-tooltip {
     position: absolute;
     background: rgba(15, 23, 42, 0.94);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
-    border: 1px solid var(--accent-color);
+    border: 1px solid var(--accent-card, var(--accent-color));
     border-radius: var(--radius-lg);
     padding: 10px 14px;
     font-size: 0.76rem;
@@ -850,7 +1310,7 @@ input[type="text"].sim-input:focus {
     align-items: center;
     justify-content: space-between;
     font-weight: 700;
-    color: var(--accent-color);
+    color: var(--accent-card, var(--accent-color));
     margin-bottom: 6px;
     padding-bottom: 4px;
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
@@ -871,10 +1331,10 @@ input[type="text"].sim-input:focus {
 .tooltip-v {
     font-family: var(--font-mono);
     font-weight: 600;
-    color: var(--accent-color);
+    color: var(--accent-hud, var(--accent-color));
 }
 
-/* Card Didático Teórico com KaTeX */
+/* Card Didático Teórico com KaTeX - Fundo Sólido */
 .theory-card {
     background: var(--bg-card);
     border: 1px solid var(--border-color);
@@ -887,7 +1347,7 @@ input[type="text"].sim-input:focus {
 }
 
 .theory-card h4 {
-    color: var(--accent-color);
+    color: var(--accent-card, var(--accent-text, var(--accent-color)));
     margin-bottom: 8px;
     font-size: 0.86rem;
     font-weight: 600;
@@ -918,6 +1378,158 @@ input[type="text"].sim-input:focus {
 }
 
 /* =============================================================================
+   MODAL DIDÁTICO DE TEORIA & FÓRMULAS (.sim-modal-overlay / .sim-modal-container)
+   ============================================================================= */
+.sim-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.78);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    opacity: 1;
+    visibility: visible;
+    transition: opacity var(--trans-normal), visibility var(--trans-normal);
+}
+
+.sim-modal-overlay.hidden {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+}
+
+.sim-modal-container {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-xl);
+    width: 100%;
+    max-width: 680px;
+    max-height: 85vh;
+    display: flex;
+    flex-direction: column;
+    box-shadow: var(--shadow-popover);
+    transform: translateY(0) scale(1);
+    transition: transform var(--trans-normal);
+    overflow: hidden;
+}
+
+.sim-modal-overlay.hidden .sim-modal-container {
+    transform: translateY(16px) scale(0.96);
+}
+
+.sim-modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border-subtle);
+    background: var(--bg-surface-elevated);
+    flex-shrink: 0;
+}
+
+.sim-modal-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 1.02rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.sim-modal-close {
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    font-size: 1.15rem;
+    cursor: pointer;
+    border-radius: var(--radius-xs);
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all var(--trans-fast);
+}
+
+.sim-modal-close:hover {
+    color: var(--text-primary);
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.sim-modal-body {
+    padding: 22px 24px;
+    overflow-y: auto;
+    flex: 1;
+    font-size: 0.90rem;
+    line-height: 1.65;
+    color: var(--text-secondary);
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    scrollbar-gutter: stable;
+}
+
+.theory-section h4 {
+    color: var(--accent-card, var(--accent-text, var(--accent-color)));
+    font-size: 0.94rem;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.theory-section p {
+    margin-bottom: 8px;
+}
+
+.theory-callout {
+    background: color-mix(in srgb, var(--accent-card, var(--accent-color)) 8%, transparent);
+    border-left: 3px solid var(--accent-card, var(--accent-color));
+    padding: 12px 16px;
+    border-radius: var(--radius-sm);
+    font-size: 0.85rem;
+    color: var(--text-primary);
+}
+
+.theory-callout ul {
+    margin-left: 18px;
+    margin-top: 6px;
+}
+
+.theory-callout li {
+    margin-bottom: 4px;
+    color: var(--text-secondary);
+}
+
+.sim-modal-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 20px;
+    border-top: 1px solid var(--border-subtle);
+    background: var(--bg-surface-elevated);
+    flex-shrink: 0;
+}
+
+.sim-modal-hint {
+    font-size: 0.76rem;
+    color: var(--text-muted);
+}
+
+.sim-modal-hint kbd {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid var(--border-color);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+}
+
+/* =============================================================================
    8. ÍCONES VETORIAIS SVG & UTILITÁRIOS
    ============================================================================= */
 
@@ -935,9 +1547,10 @@ input[type="text"].sim-input:focus {
 }
 
 .icon-accent,
+.text-accent,
 .theory-card h4 .icon-svg,
 .interactive-hint .icon-svg {
-    color: var(--accent-color);
+    color: var(--accent-text, var(--accent-color));
 }
 
 .icon-spin {
@@ -978,43 +1591,288 @@ input[type="text"].sim-input:focus {
     gap: 10px;
 }
 
-/* Seletor de Paleta do Laboratório */
+/* =============================================================================
+   9. BARRA FLUTUANTE DE FERRAMENTAS & POPOVER UNIVERSAL (.canvas-toolbar / .sim-popover)
+   ============================================================================= */
+
+/* Barra Flutuante Genérica no Canvas / Viewport */
+.canvas-toolbar,
+.sim-toolbar,
 .theme-selector-bar {
     position: absolute;
     top: 15px;
     left: 15px;
-    background: rgba(15, 23, 42, 0.85);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.15);
+    background: rgba(15, 23, 42, 0.90);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 1px solid rgba(255, 255, 255, 0.16);
     border-radius: var(--radius-lg);
-    padding: 8px 12px;
-    display: flex;
+    padding: 6px 10px;
+    display: inline-flex;
     align-items: center;
-    gap: 10px;
-    z-index: 20;
-    font-size: 0.78rem;
+    gap: 8px;
+    z-index: 50;
+    font-size: 0.76rem;
     color: var(--text-secondary);
     box-shadow: var(--shadow-sm);
+    white-space: nowrap;
+    user-select: none;
 }
 
+/* Modificadores de Posição da Toolbar */
+.canvas-toolbar.pos-top-left     { top: 15px; left: 15px; right: auto; bottom: auto; }
+.canvas-toolbar.pos-top-right    { top: 15px; right: 15px; left: auto; bottom: auto; }
+.canvas-toolbar.pos-bottom-left  { bottom: 15px; left: 15px; top: auto; right: auto; }
+.canvas-toolbar.pos-bottom-right { bottom: 15px; right: 15px; top: auto; left: auto; }
+
+.toolbar-divider,
+.theme-bar-divider {
+    width: 1px;
+    height: 16px;
+    background: rgba(255, 255, 255, 0.15);
+    margin: 0 2px;
+}
+
+.toolbar-dot,
 .theme-dot-btn {
-    width: 18px;
-    height: 18px;
+    width: 16px;
+    height: 16px;
     border-radius: 50%;
     border: 2px solid transparent;
     cursor: pointer;
     transition: transform var(--trans-fast), border-color var(--trans-fast), box-shadow var(--trans-fast);
+    flex-shrink: 0;
 }
 
+.toolbar-dot:hover,
 .theme-dot-btn:hover {
-    transform: scale(1.25);
+    transform: scale(1.2);
 }
 
+.toolbar-dot.active,
 .theme-dot-btn.active {
     border-color: #ffffff;
     transform: scale(1.15);
     box-shadow: 0 0 10px currentColor;
+}
+
+/* Botão de Ação / Disparo do Popover na Toolbar */
+.toolbar-btn,
+.theme-custom-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    color: var(--text-primary);
+    padding: 4px 10px;
+    border-radius: var(--radius-sm);
+    font-size: 0.72rem;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+    transition: all var(--trans-fast);
+    white-space: nowrap;
+}
+
+.toolbar-btn:hover,
+.toolbar-btn.active,
+.theme-custom-btn:hover,
+.theme-custom-btn.active {
+    background: color-mix(in srgb, var(--accent-color) 22%, transparent);
+    border-color: var(--accent-color);
+    color: var(--accent-color);
+    box-shadow: 0 0 10px color-mix(in srgb, var(--accent-color) 30%, transparent);
+}
+
+/* Popover Flutuante Universal (.sim-popover) */
+.sim-popover,
+.color-tooltip-popover {
+    position: absolute;
+    top: 54px;
+    left: 15px;
+    min-width: 350px;
+    max-width: 380px;
+    background: rgba(15, 23, 42, 0.96);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-popover);
+    z-index: 60;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 14px;
+    animation: fadeInSlide 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.sim-popover.hidden,
+.color-tooltip-popover.hidden {
+    display: none;
+}
+
+@keyframes fadeInSlide {
+    from {
+        opacity: 0;
+        transform: translateY(-8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.popover-header,
+.color-tooltip-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.popover-title,
+.color-tooltip-title {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.popover-title .icon-svg,
+.color-tooltip-title .icon-svg {
+    color: var(--accent-color);
+}
+
+.popover-close,
+.color-tooltip-close {
+    background: transparent;
+    border: none;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    cursor: pointer;
+    padding: 2px 6px;
+    border-radius: 4px;
+    transition: all var(--trans-fast);
+}
+
+.popover-close:hover,
+.color-tooltip-close:hover {
+    color: var(--text-primary);
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.popover-body,
+.color-tooltip-body {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-height: 380px;
+    overflow-y: auto;
+}
+
+.popover-row,
+.color-override-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 4px 0;
+}
+
+.popover-row-label,
+.color-row-label {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+.color-dots-group {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.color-dot {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: var(--c);
+    border: 1.5px solid transparent;
+    cursor: pointer;
+    transition: transform var(--trans-fast), border-color var(--trans-fast), box-shadow var(--trans-fast);
+}
+
+.color-dot:hover {
+    transform: scale(1.25);
+}
+
+.color-dot.active {
+    border-color: #ffffff;
+    transform: scale(1.2);
+    box-shadow: 0 0 8px var(--c);
+}
+
+.color-dot-inherit {
+    font-size: 0.65rem;
+    font-weight: 600;
+    padding: 2px 5px;
+    border-radius: var(--radius-xs);
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all var(--trans-fast);
+}
+
+.color-dot-inherit:hover {
+    color: var(--text-primary);
+    background: rgba(255, 255, 255, 0.15);
+}
+
+.color-dot-inherit.active {
+    background: rgba(255, 255, 255, 0.22);
+    border-color: rgba(255, 255, 255, 0.5);
+    color: #ffffff;
+}
+
+.color-tooltip-divider {
+    height: 1px;
+    background: var(--border-color);
+    margin: 4px 0;
+}
+
+.color-tooltip-footer {
+    padding-top: 8px;
+    border-top: 1px solid var(--border-color);
+}
+
+.btn-reset-colors {
+    width: 100%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 7px 10px;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    color: var(--text-secondary);
+    font-size: 0.74rem;
+    font-weight: 500;
+    font-family: inherit;
+    cursor: pointer;
+    transition: all var(--trans-fast);
+}
+
+.btn-reset-colors:hover {
+    background: rgba(255, 255, 255, 0.12);
+    border-color: rgba(255, 255, 255, 0.25);
+    color: var(--text-primary);
 }
 
 /* Galeria de Ícones */
@@ -1054,23 +1912,207 @@ input[type="text"].sim-input:focus {
 }
 
 /* =============================================================================
-   9. RESPONSIVIDADE (MOBILE & TABLET)
+   10. RESPONSIVIDADE (MOBILE & TABLET - NATIVE BOTTOM SHEET)
    ============================================================================= */
+
+/* Alça de Arraste do Bottom Sheet (Oculto no Desktop) */
+.sheet-drag-handle {
+    display: none;
+    width: 100%;
+    height: 16px;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    touch-action: none;
+    user-select: none;
+    padding-top: 4px;
+}
+
+.sheet-drag-pill {
+    width: 36px;
+    height: 4px;
+    background: rgba(255, 255, 255, 0.25);
+    border-radius: 999px;
+    transition: background 0.2s ease, width 0.2s ease;
+}
+
+.sheet-drag-handle:hover .sheet-drag-pill,
+.sheet-drag-handle:active .sheet-drag-pill {
+    background: var(--accent-color);
+    width: 48px;
+}
+
 @media (max-width: 900px) {
+    /* Layout Mobile com Canvas em Fullscreen relativo e Painel em Bottom Sheet */
     .sim-layout {
+        position: relative;
         grid-template-columns: 1fr;
-        grid-template-rows: auto 1fr;
-        height: auto;
+        grid-template-rows: 1fr;
+        height: calc(100vh - var(--header-height, 48px));
         max-height: none;
-        overflow-y: auto;
+        overflow: hidden;
     }
 
+    /* O Canvas 3D ocupa 100% da área útil do viewport */
     .canvas-area {
-        min-height: 50vh;
-        height: 50vh;
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        min-height: 100%;
+        z-index: 1;
     }
 
+    /* Oculta botão de expandir sidebar do desktop no mobile */
+    .canvas-btn-expand-sidebar {
+        display: none !important;
+    }
+
+    /* Barra de ferramentas compacta no topo esquerdo */
+    .canvas-toolbar {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        z-index: 30;
+        font-size: 0.74rem;
+        padding: 4px 8px;
+        gap: 5px;
+    }
+
+    .toolbar-dot,
+    .theme-dot-btn {
+        width: 14px;
+        height: 14px;
+    }
+
+    /* Grupo de ações no topo direito */
+    .canvas-top-actions {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        z-index: 30;
+        gap: 4px;
+    }
+
+    .canvas-btn-floating {
+        padding: 5px 8px;
+        font-size: 0.74rem;
+        gap: 5px;
+    }
+
+    /* Em telas estreitas (< 560px), oculta textos para economizar espaço e evitar sobreposição */
+    @media (max-width: 560px) {
+        .canvas-btn-floating .btn-label-text {
+            display: none;
+        }
+        .canvas-btn-floating {
+            padding: 5px 7px;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .canvas-toolbar span:first-child {
+            display: none;
+        }
+    }
+
+    /* Oculta dica interativa no mobile para não poluir o 3D */
+    .interactive-hint {
+        display: none !important;
+    }
+
+    /* HUD de diagnóstico compacto acima do Bottom Sheet */
+    .sim-hud {
+        position: absolute;
+        bottom: 74px;
+        left: 10px;
+        right: auto;
+        max-width: calc(100vw - 20px);
+        padding: 6px 10px;
+        gap: 4px;
+        font-size: 0.70rem;
+        z-index: 20;
+    }
+
+    .hud-item {
+        gap: 10px;
+    }
+
+    /* Popovers de personalização acima de todos os elementos */
+    .color-tooltip-popover,
+    .sim-popover {
+        position: absolute;
+        top: 48px;
+        left: 10px;
+        right: 10px;
+        width: auto;
+        max-width: 360px;
+        z-index: 100;
+    }
+
+    /* O Painel de Controles vira um Bottom Sheet Ancorado na Base */
     .controls-panel {
-        max-height: none;
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        width: 100%;
+        max-width: 100%;
+        max-height: 88vh;
+        z-index: 50;
+        border-radius: 20px 20px 0 0;
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        border-bottom: none;
+        background: rgba(15, 23, 42, 0.94);
+        backdrop-filter: blur(18px);
+        -webkit-backdrop-filter: blur(18px);
+        box-shadow: 0 -10px 35px rgba(0, 0, 0, 0.65);
+        display: flex;
+        flex-direction: column;
+        transition: height 0.32s cubic-bezier(0.16, 1, 0.3, 1), transform 0.32s cubic-bezier(0.16, 1, 0.3, 1);
+        overflow: hidden;
+    }
+
+    /* Exibe a Alça de Arraste */
+    .sheet-drag-handle {
+        display: flex;
+    }
+
+    /* Estado 1: Peek (Recolhido / Mostra apenas as abas) */
+    .controls-panel.sheet-peek {
+        height: 64px;
+    }
+    .controls-panel.sheet-peek .panel-body,
+    .controls-panel.sheet-peek .panel-footer {
+        display: none !important;
+    }
+
+    /* Estado 2: Half (Meia Tela / 50vh) */
+    .controls-panel.sheet-half {
+        height: 52vh;
+    }
+
+    /* Estado 3: Expanded (Tela Cheia / 85vh) */
+    .controls-panel.sheet-expanded {
+        height: 85vh;
+    }
+
+    /* Ajuste da Barra de Abas no Mobile */
+    .tab-nav {
+        padding: 2px 8px 6px 8px;
+        flex-shrink: 0;
+        gap: 4px;
+        overflow-x: auto;
+    }
+
+    .tab-btn {
+        padding: 6px 10px;
+        font-size: 0.8rem;
+    }
+
+    /* Botão de recolher vira botão de minimizar/expandir no mobile */
+    .btn-collapse-sidebar {
+        display: flex;
     }
 }
+
