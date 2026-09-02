@@ -21,6 +21,52 @@
     height: 100% !important;
 }
 
+/* ---------- Botão de Rotação Automática Flutuante no Canvas ---------- */
+.canvas-btn-autorotate {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background: rgba(15, 23, 42, 0.85);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 10px;
+    padding: 8px 14px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    z-index: 20;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.35);
+}
+
+.canvas-btn-autorotate:hover {
+    color: var(--text-primary);
+    border-color: rgba(56, 189, 248, 0.5);
+    background: rgba(30, 41, 59, 0.9);
+    transform: translateY(-1px);
+}
+
+.canvas-btn-autorotate.active {
+    background: rgba(56, 189, 248, 0.22);
+    border-color: #38bdf8;
+    color: #38bdf8;
+    box-shadow: 0 0 12px rgba(56, 189, 248, 0.35);
+}
+
+.canvas-btn-autorotate.active .icon-spin {
+    animation: spin 6s linear infinite;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
 /* ---------- Navegação Progressiva por Abas (1 a 4) ---------- */
 .tab-nav {
     display: grid;
@@ -119,7 +165,7 @@
     letter-spacing: 0.02em;
 }
 
-/* ---------- HUD de Diagnósticos Topológicos ---------- */
+/* ---------- HUD de Diagnósticos Topológicos / Climáticos ---------- */
 .climate-hud {
     position: absolute;
     top: 15px;
@@ -174,7 +220,7 @@
     transform: translate(15px, 15px);
     transition: opacity 0.15s ease, transform 0.1s ease-out;
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
-    min-width: 190px;
+    min-width: 200px;
 }
 
 .cell-tooltip.visible {
@@ -266,6 +312,105 @@
     border-color: #38bdf8;
     color: #38bdf8;
     font-weight: 600;
+}
+
+/* ---------- Seletor de Campo Climático Segmentado (Aba 4) ---------- */
+.field-selector-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 4px;
+    background: rgba(15, 23, 42, 0.75);
+    padding: 4px;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+}
+
+.field-btn {
+    padding: 8px 4px;
+    font-size: 0.74rem;
+    font-weight: 600;
+    border-radius: 6px;
+    background: transparent;
+    color: var(--text-secondary);
+    border: 1px solid transparent;
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.2s ease;
+}
+
+.field-btn:hover {
+    color: var(--text-primary);
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.field-btn.active {
+    background: rgba(56, 189, 248, 0.25);
+    border-color: #38bdf8;
+    color: #38bdf8;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* ---------- Barra de Gradiente de Cores do Clima ---------- */
+.climate-colorbar-container {
+    margin-top: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.climate-colorbar {
+    width: 100%;
+    height: 10px;
+    border-radius: 5px;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.climate-colorbar-labels {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.70rem;
+    font-family: 'Courier New', monospace;
+    color: var(--text-secondary);
+}
+
+/* ---------- Mini-Orrery (Mapa da Órbita Terrestre na Aba 3) ---------- */
+.mini-orrery-container {
+    background: rgba(10, 15, 29, 0.9);
+    border: 1px solid rgba(56, 189, 248, 0.35);
+    border-radius: 12px;
+    padding: 10px;
+    margin-top: 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.5);
+}
+
+.mini-orrery-header {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--accent-color);
+    margin-bottom: 6px;
+}
+
+#canvas-mini-orrery {
+    width: 100%;
+    height: 180px;
+    border-radius: 8px;
+    background: radial-gradient(circle at center, #0f172a 0%, #050814 100%);
+    cursor: pointer;
+}
+
+.mini-orrery-caption {
+    font-size: 0.71rem;
+    color: var(--text-secondary);
+    text-align: center;
+    margin-top: 6px;
+    line-height: 1.35;
 }
 
 /* ---------- Legenda de Cores de Topologia ---------- */

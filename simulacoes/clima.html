@@ -5,12 +5,12 @@
     <!-- Metadados da Página -->
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tesselação de Voronoi & Relaxamento de Lloyd — Discretização na Esfera</title>
+    <title>Tesselação de Voronoi & Dinâmica Climática Planetária — Da Geometria ao Clima Global</title>
 
     <meta name="description"
-        content="Simulação educacional progressiva de Tesselação de Voronoi Esférica e Relaxamento de Lloyd (Centroidal Voronoi Tessellation - SCVT). Explore a matemática dos domínios esféricos e conecte-a com a geografia da Terra e a astronomia celeste.">
+        content="Simulação educacional progressiva de Tesselação de Voronoi Esférica, Geografia Terrestre, Estações do Ano e Dinâmica Climática Global com Gradiente Térmico, Força de Coriolis, Ventos Alísios e Ciclones Interativos.">
     <meta name="keywords"
-        content="tesselação de voronoi, diagrama de voronoi, algoritmo de lloyd, esfera, característica de euler, mapa da terra, constelações do zodiaco, astronomia, física computacional, three.js">
+        content="clima global, forca de coriolis, ventos alisios, celulas de hadley, termodinamica atmosferica, ciclones, voronoi, astronomia, física computacional, three.js">
     <meta name="author" content="Nicolas Heringer">
 
     <!-- Favicon -->
@@ -50,7 +50,7 @@
     <!-- Cabeçalho da Simulação -->
     <header class="sim-header">
         <a href="../index.html#secao-simulacoes" class="btn-back">← Voltar ao Hub</a>
-        <span class="sim-title">Tesselação de Voronoi & Relaxamento de Lloyd na Esfera (SCVT)</span>
+        <span class="sim-title">Tesselação de Voronoi & Dinâmica Climática Planetária (SCVT)</span>
     </header>
 
     <!-- Layout Principal -->
@@ -63,41 +63,77 @@
             <!-- Tooltip Flutuante de Inspeção de Célula (Hover) -->
             <div id="cell-tooltip" class="cell-tooltip"></div>
 
-            <!-- HUD de Diagnósticos Topológicos em Tempo Real -->
+            <!-- HUD de Diagnósticos Topológicos / Astronômicos / Climáticos em Tempo Real -->
             <div class="climate-hud" id="hud-mesh-stats">
-                <div class="hud-item">
+                <!-- Diagnósticos Topológicos da Aba 1 -->
+                <div class="hud-item" id="hud-row-iter">
                     <span class="hud-label">Iteração de Lloyd:</span>
                     <span class="hud-val" id="stat-lloyd-iter">0</span>
                 </div>
-                <div class="hud-item">
+                <div class="hud-item" id="hud-row-shift">
                     <span class="hud-label">Deslocamento Médio (Δx):</span>
                     <span class="hud-val" id="stat-lloyd-shift">0.00e+0</span>
                 </div>
-                <div class="hud-item">
+                <div class="hud-item" id="hud-row-pent">
                     <span class="hud-label">Pentágonos (F₅):</span>
                     <span class="hud-val" id="stat-pentagons" style="color: #facc15;">-</span>
                 </div>
-                <div class="hud-item">
+                <div class="hud-item" id="hud-row-hex">
                     <span class="hud-label">Hexágonos (F₆):</span>
                     <span class="hud-val" id="stat-hexagons" style="color: #38bdf8;">-</span>
                 </div>
-                <div class="hud-item">
+                <div class="hud-item" id="hud-row-hept">
                     <span class="hud-label">Heptágonos / Outros:</span>
                     <span class="hud-val" id="stat-heptagons" style="color: #ec4899;">-</span>
                 </div>
+
+                <!-- Métricas da Aba 3 (Estações e Sol) -->
+                <div class="hud-item" id="hud-row-season-date" style="display: none;">
+                    <span class="hud-label">Data Simulada:</span>
+                    <span class="hud-val" id="stat-season-date" style="color: #facc15;">21 de Junho</span>
+                </div>
+                <div class="hud-item" id="hud-row-sun-decl" style="display: none;">
+                    <span class="hud-label">Declinação Solar (δ):</span>
+                    <span class="hud-val" id="stat-sun-decl" style="color: #38bdf8;">+23.4° N</span>
+                </div>
+                <div class="hud-item" id="hud-row-zodiac" style="display: none;">
+                    <span class="hud-label">Sol no Zodíaco:</span>
+                    <span class="hud-val" id="stat-zodiac-sign" style="color: #a855f7;">Gêmeos (Gemini)</span>
+                </div>
+
+                <!-- Métricas da Aba 4 (Dinâmica Climática) -->
+                <div class="hud-item" id="hud-row-climate-field" style="display: none;">
+                    <span class="hud-label">Campo Ativo:</span>
+                    <span class="hud-val" id="stat-climate-field" style="color: #facc15;">Temperatura (T)</span>
+                </div>
+                <div class="hud-item" id="hud-row-temp-range" style="display: none;">
+                    <span class="hud-label">Temp. Eq / Polos:</span>
+                    <span class="hud-val" id="stat-temp-range" style="color: #ec4899;">+32°C / -18°C</span>
+                </div>
+                <div class="hud-item" id="hud-row-max-wind" style="display: none;">
+                    <span class="hud-label">Vento Máximo:</span>
+                    <span class="hud-val" id="stat-max-wind" style="color: #38bdf8;">65 km/h</span>
+                </div>
+
                 <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.1); margin: 3px 0;">
-                <div class="hud-item">
+                <div class="hud-item" id="hud-row-thickness">
                     <span class="hud-label">Espessura Visual:</span>
                     <span class="hud-val" id="stat-visual-thickness" style="color: #38bdf8;">-</span>
                 </div>
-                <div class="hud-item">
+                <div class="hud-item" id="hud-row-exaggeration">
                     <span class="hud-label">Exagero Vertical:</span>
                     <span class="hud-val" id="stat-exaggeration" style="color: #a855f7;">-</span>
                 </div>
             </div>
 
+            <!-- Botão Flutuante de Rotação Automática da Terra -->
+            <button id="btn-quick-autorotate" class="canvas-btn-autorotate" title="Alternar Rotação Axial da Terra">
+                <span class="icon-spin">🔄</span>
+                <span id="label-quick-autorotate">Rotação da Terra</span>
+            </button>
+
             <!-- Dica Interativa -->
-            <div class="interactive-hint">
+            <div class="interactive-hint" id="canvas-interactive-hint">
                 💡 Arraste para girar a esfera e passe o mouse sobre uma célula para inspecioná-la.
             </div>
         </div>
@@ -109,8 +145,8 @@
             <div class="tab-nav">
                 <button class="tab-btn active" id="btn-tab-math">1. Matemática</button>
                 <button class="tab-btn" id="btn-tab-science">2. Ciência & Terra</button>
-                <button class="tab-btn disabled" id="btn-tab-seasons" title="Disponível na próxima etapa">3. Estações</button>
-                <button class="tab-btn disabled" id="btn-tab-atmosphere" title="Disponível na próxima etapa">4. Atmosfera</button>
+                <button class="tab-btn" id="btn-tab-seasons">3. Estações & Sol</button>
+                <button class="tab-btn" id="btn-tab-atmosphere">4. Clima & Ventos</button>
             </div>
 
             <!-- ============================================================= -->
@@ -175,10 +211,6 @@
                     <div class="toggle-row">
                         <label for="toggle-graticule">Equador & Linhas de Grade</label>
                         <input type="checkbox" id="toggle-graticule" checked>
-                    </div>
-                    <div class="toggle-row">
-                        <label for="toggle-autorotate">Rotação Automática da Câmera</label>
-                        <input type="checkbox" id="toggle-autorotate">
                     </div>
                 </div>
 
@@ -257,6 +289,213 @@
                     </p>
                     <p style="margin-top: 6px; font-size: 0.76rem; color: #38bdf8;">
                         🔍 <em>Passe o cursor sobre as células para inspecionar as coordenadas reais de Latitude, Longitude, área em $\text{km}^2$ e o continente/oceano correspondente!</em>
+                    </p>
+                </div>
+            </div>
+
+            <!-- ============================================================= -->
+            <!-- ABA 3: ESTAÇÕES DO ANO, ECLÍPTICA & MOVIMENTOS CELESTES       -->
+            <!-- ============================================================= -->
+            <div id="panel-tab-seasons" style="display: none;">
+                <div class="climate-badge">
+                    <span class="climate-title" id="span-season-badge-title">Solstício de Junho</span>
+                    <span class="climate-status" id="span-season-badge-status">Inverno (Sul) • Verão (Norte)</span>
+                </div>
+
+                <!-- Mini-Orrery (Mapa 2D da Órbita Terrestre e Zodíaco) -->
+                <div class="mini-orrery-container">
+                    <div class="mini-orrery-header">
+                        <span>Órbita Terrestre (Vista da Eclíptica)</span>
+                        <span id="label-orrery-month" style="font-family: monospace; color: #facc15;">21/Jun</span>
+                    </div>
+                    <canvas id="canvas-mini-orrery" width="280" height="180"></canvas>
+                    <div class="mini-orrery-caption">
+                        O Sol é projetado contra a <strong>Constelação de Gêmeos</strong>. À meia-noite, a Terra olha para <strong>Sagitário</strong>.
+                    </div>
+                </div>
+
+                <!-- Controles Orbitais e Temporais -->
+                <div class="control-group" style="margin-top: 10px;">
+                    <label>Posição na Órbita & Hora do Dia</label>
+
+                    <!-- Slider de Dia do Ano (1 a 365) -->
+                    <div class="slider-container">
+                        <div class="slider-header">
+                            <span>Dia do Ano (Translação)</span>
+                            <span id="val-day-of-year" class="slider-val">Dia 172 (21/Jun)</span>
+                        </div>
+                        <input type="range" id="slider-day-of-year" min="1" max="365" step="1" value="172">
+                    </div>
+
+                    <!-- Slider de Hora do Dia (0h a 24h) -->
+                    <div class="slider-container">
+                        <div class="slider-header">
+                            <span>Rotação Diurna (Hora Local)</span>
+                            <span id="val-hour-of-day" class="slider-val">12:00 (Meio-dia)</span>
+                        </div>
+                        <input type="range" id="slider-hour-of-day" min="0" max="24" step="0.25" value="12">
+                    </div>
+
+                    <!-- Botões de Animação Automática -->
+                    <div class="control-grid-2x2" style="margin-top: 8px;">
+                        <button id="btn-play-orbit" class="btn-preset" style="background: rgba(56, 189, 248, 0.15); border-color: #38bdf8;">▶ Translação Anual</button>
+                        <button id="btn-play-diurnal" class="btn-preset">🔄 Rotação Contínua</button>
+                    </div>
+                </div>
+
+                <!-- Botões Rápidos das 4 Estações Cardeais -->
+                <div class="control-group">
+                    <label>Estações Cardeais (Solstícios & Equinócios)</label>
+                    <div class="control-grid-2x2">
+                        <button id="btn-season-jun" class="btn-preset active" title="21 de Junho">☀️ Solstício Junho</button>
+                        <button id="btn-season-sep" class="btn-preset" title="22 de Setembro">🍂 Equinócio Set</button>
+                        <button id="btn-season-dec" class="btn-preset" title="21 de Dezembro">❄️ Solstício Dez</button>
+                        <button id="btn-season-mar" class="btn-preset" title="20 de Março">🌸 Equinócio Mar</button>
+                    </div>
+                </div>
+
+                <!-- Opções de Visualização Astronômica -->
+                <div class="control-group">
+                    <label>Guias Astronômicas</label>
+                    <div class="toggle-row">
+                        <label for="toggle-axial-tilt">Inclinação Axial Real (23,44°)</label>
+                        <input type="checkbox" id="toggle-axial-tilt" checked>
+                    </div>
+                    <div class="toggle-row">
+                        <label for="toggle-polar-axis">Linha do Eixo Polar (Norte-Sul)</label>
+                        <input type="checkbox" id="toggle-polar-axis" checked>
+                    </div>
+                    <div class="toggle-row">
+                        <label for="toggle-sun-terminator">Terminador Dia/Noite (Luz Solar)</label>
+                        <input type="checkbox" id="toggle-sun-terminator" checked>
+                    </div>
+                    <div class="toggle-row">
+                        <label for="toggle-ecliptic-plane">Plano da Eclíptica</label>
+                        <input type="checkbox" id="toggle-ecliptic-plane" checked>
+                    </div>
+                </div>
+
+                <!-- Card Didático da Aba 3 -->
+                <div class="theory-card">
+                    <h4>☀️ Por que Existem as Estações do Ano?</h4>
+                    <p>
+                        A causa das estações <strong>NÃO é a distância da Terra ao Sol</strong>, mas sim a <strong>inclinação fixa de $23{,}44^\circ$ do eixo de rotação da Terra</strong> em relação à perpendicular do plano orbital (o plano da Eclíptica):
+                    </p>
+                    <ul>
+                        <li><strong>Solstício de Junho</strong>: O Polo Norte aponta para o Sol ($\delta_\odot = +23{,}44^\circ$). Ocorre o <em>Verão no Hemisfério Norte</em> e o <em>Inverno no Hemisfério Sul</em>.</li>
+                        <li><strong>Solstício de Dezembro</strong>: O Polo Sul aponta para o Sol ($\delta_\odot = -23{,}44^\circ$). <em>Verão no Sul</em> e <em>Inverno no Norte</em>.</li>
+                        <li><strong>Equinócios (Março e Setembro)</strong>: A luz solar incide perpendicularmente sobre o Equador ($\delta_\odot = 0^\circ$). O dia e a noite duram exatamente 12 horas em todo o planeta!</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- ============================================================= -->
+            <!-- ABA 4: DINÂMICA CLIMÁTICA & CIRCULAÇÃO DE CORIOLIS            -->
+            <!-- ============================================================= -->
+            <div id="panel-tab-atmosphere" style="display: none;">
+                <div class="climate-badge">
+                    <span class="climate-title">Dinâmica Climática Global</span>
+                    <span class="climate-status">Aba 4: Termodinâmica, Coriolis & Ciclones</span>
+                </div>
+
+                <!-- Seletor de Campo Físico para Coloração das Células -->
+                <div class="control-group" style="margin-top: 12px;">
+                    <label>Campo Escalar da Atmosfera</label>
+                    <div class="field-selector-grid">
+                        <button class="field-btn active" id="btn-field-temp">🌡️ Temp (T)</button>
+                        <button class="field-btn" id="btn-field-pressure">🌀 Pressão (P)</button>
+                        <button class="field-btn" id="btn-field-wind">💨 Vento (|v|)</button>
+                    </div>
+
+                    <!-- Barra de Gradiente de Cores com Escala -->
+                    <div class="climate-colorbar-container">
+                        <div class="climate-colorbar" id="climate-colorbar"></div>
+                        <div class="climate-colorbar-labels">
+                            <span id="colorbar-min-lbl">-30°C</span>
+                            <span id="colorbar-mid-lbl">+15°C</span>
+                            <span id="colorbar-max-lbl">+35°C</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Grupo: Parâmetros Físicos do Clima -->
+                <div class="control-group">
+                    <label>Termodinâmica & Rotação Planetária</label>
+
+                    <div class="slider-container">
+                        <div class="slider-header">
+                            <span>Contraste Equador-Polo (ΔT)</span>
+                            <span id="val-temp-delta" class="slider-val">50 °C</span>
+                        </div>
+                        <input type="range" id="slider-temp-delta" min="15" max="75" step="1" value="50">
+                    </div>
+
+                    <div class="slider-container">
+                        <div class="slider-header">
+                            <span>Temperatura Média Global</span>
+                            <span id="val-temp-mean" class="slider-val">15 °C</span>
+                        </div>
+                        <input type="range" id="slider-temp-mean" min="0" max="30" step="1" value="15">
+                    </div>
+
+                    <div class="slider-container">
+                        <div class="slider-header">
+                            <span>Rotação / Força de Coriolis (Ω)</span>
+                            <span id="val-coriolis" class="slider-val">1.0x (Terra)</span>
+                        </div>
+                        <input type="range" id="slider-coriolis" min="0" max="3.0" step="0.1" value="1.0">
+                    </div>
+                </div>
+
+                <!-- Grupo: Fluxo de Ventos & Partículas -->
+                <div class="control-group">
+                    <label>Fluxo de Vento & Partículas</label>
+                    <div class="toggle-row">
+                        <label for="toggle-wind-particles">Partículas de Ar em Fluxo (Streamlines)</label>
+                        <input type="checkbox" id="toggle-wind-particles" checked>
+                    </div>
+                    <div class="toggle-row">
+                        <label for="toggle-wind-vectors">Vetores de Vento nas Células</label>
+                        <input type="checkbox" id="toggle-wind-vectors" checked>
+                    </div>
+
+                    <div class="slider-container" style="margin-top: 6px;">
+                        <div class="slider-header">
+                            <span>Velocidade do Fluxo de Ar</span>
+                            <span id="val-wind-speed" class="slider-val">1.0x</span>
+                        </div>
+                        <input type="range" id="slider-wind-speed" min="0.2" max="3.0" step="0.2" value="1.0">
+                    </div>
+                </div>
+
+                <!-- Grupo: Laboratório Interativo de Ciclones -->
+                <div class="control-group">
+                    <label>Laboratório Interativo de Ciclones</label>
+                    <div class="control-grid-2x2">
+                        <button id="btn-tool-cyclone" class="btn-preset" title="Clique no globo para semear uma Baixa Pressão">🌪️ Criar Ciclone</button>
+                        <button id="btn-tool-anticyclone" class="btn-preset" title="Clique no globo para semear uma Alta Pressão">💨 Anticiclone</button>
+                    </div>
+                    <button id="btn-reset-atmosphere" class="btn-preset" style="width: 100%; margin-top: 6px;">🔄 Resetar Perturbações</button>
+                    <div style="font-size: 0.72rem; color: var(--text-secondary); margin-top: 4px; text-align: center;">
+                        💡 <em>Clique em qualquer oceano ou continente no globo para semear um vórtice!</em>
+                    </div>
+                </div>
+
+                <!-- Card Didático Teórico da Aba 4 -->
+                <div class="theory-card">
+                    <h4>🌀 A Circulação Geral da Atmosfera e Coriolis</h4>
+                    <p>
+                        A diferença de radiação solar aquece o Equador e resfria os Polos. A rotação da Terra ($\mathbf{\Omega}$) gera a <strong>Aceleração de Coriolis</strong>:
+                    </p>
+                    $$\mathbf{a}_C = -2\mathbf{\Omega} \times \mathbf{v}$$
+                    <ul>
+                        <li><strong>Hemisfério Norte</strong>: O ar é desviado para a <strong>direita</strong>. Ciclones espiralam em sentido <strong>anti-horário</strong>.</li>
+                        <li><strong>Hemisfério Sul</strong>: O ar é desviado para a <strong>esquerda</strong>. Ciclones espiralam em sentido <strong>horário</strong>.</li>
+                        <li><strong>Ventos Alísios</strong>: Convergem dos trópicos para o Equador (NE no Norte e SE no Sul).</li>
+                        <li><strong>Ventos de Oeste (*Westerlies*)</strong>: Sopram de Oeste para Leste nas latitudes médias ($30^\circ - 60^\circ$).</li>
+                    </ul>
+                    <p>
+                        <em>Experimente zerar o slider de Coriolis ($\Omega = 0$) para ver a atmosfera sem rotação (Célula única de Hadley)!</em>
                     </p>
                 </div>
             </div>
