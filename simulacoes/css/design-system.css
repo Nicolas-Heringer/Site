@@ -750,15 +750,14 @@ button.btn-outline:disabled {
     text-align: right;
     outline: none;
     padding: 2px 0;
+    -moz-appearance: textfield;
+    appearance: textfield;
 }
 
 .dual-input-number::-webkit-inner-spin-button,
 .dual-input-number::-webkit-outer-spin-button {
     -webkit-appearance: none;
     margin: 0;
-}
-.dual-input-number {
-    -moz-appearance: textfield;
 }
 
 .dual-input-unit {
