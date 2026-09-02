@@ -1760,8 +1760,9 @@ function setupUIListeners() {
             state.isAutoLloyd = !state.isAutoLloyd;
             btnAuto.innerHTML = state.isAutoLloyd
                 ? '<img src="../assets/icons/pause.svg" class="icon-svg" alt="Pause"> Pausar Relaxamento'
-                : '<img src="../assets/icons/play.svg" class="icon-svg" alt="Play"> Iniciar Relaxamento';
+                : '<img src="../assets/icons/play.svg" class="icon-svg" alt="Play"> Relaxar (Lloyd Automático)';
             btnAuto.classList.toggle('active', state.isAutoLloyd);
+            inlineSVGImages();
         });
     }
 
@@ -1770,6 +1771,7 @@ function setupUIListeners() {
         if (btnAuto) {
             btnAuto.innerHTML = '<img src="../assets/icons/play.svg" class="icon-svg" alt="Play"> Relaxar (Lloyd Automático)';
             btnAuto.classList.remove('active');
+            inlineSVGImages();
         }
     }
 
@@ -1877,6 +1879,7 @@ function setupUIListeners() {
                 ? '<img src="../assets/icons/pause.svg" class="icon-svg" alt="Pause"> Pausar Órbita'
                 : '<img src="../assets/icons/play.svg" class="icon-svg" alt="Play"> Translação Anual';
             btnPlayOrbit.classList.toggle('active', state.isPlayingOrbit);
+            inlineSVGImages();
         });
     }
 
@@ -1888,6 +1891,7 @@ function setupUIListeners() {
                 ? '<img src="../assets/icons/pause.svg" class="icon-svg" alt="Pause"> Pausar Rotação'
                 : '<img src="../assets/icons/rotate.svg" class="icon-svg" alt="Rotação"> Rotação Contínua';
             btnPlayDiurnal.classList.toggle('active', state.isPlayingDiurnal);
+            inlineSVGImages();
         });
     }
 
@@ -2083,15 +2087,49 @@ function setupUIListeners() {
     }
 }
 
+const svgCache = new Map();
+
+async function inlineSVGImages() {
+    const images = document.querySelectorAll('img.icon-svg');
+    for (const img of images) {
+        const src = img.getAttribute('src');
+        if (!src || !src.endsWith('.svg')) continue;
+
+        let svgText;
+        if (svgCache.has(src)) {
+            svgText = svgCache.get(src);
+        } else {
+            try {
+                const res = await fetch(src);
+                svgText = await res.text();
+                svgCache.set(src, svgText);
+            } catch (e) {
+                continue;
+            }
+        }
+
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(svgText, 'image/svg+xml');
+        const svg = doc.querySelector('svg');
+        if (svg) {
+            svg.setAttribute('class', img.getAttribute('class') || 'icon-svg');
+            if (img.id) svg.setAttribute('id', img.id);
+            if (img.getAttribute('style')) svg.setAttribute('style', img.getAttribute('style'));
+            img.replaceWith(svg);
+        }
+    }
+}
+
 // =============================================================================
 // 13. INICIALIZAÇÃO
 // =============================================================================
 
-window.addEventListener('DOMContentLoaded', () => {
+window.addEventListener('DOMContentLoaded', async () => {
     initThreeScene();
     initWorker();
     setupUIListeners();
     switchTab('tab-math');
     updatePlanetaryScaleStats();
     animate(performance.now());
+    await inlineSVGImages();
 });

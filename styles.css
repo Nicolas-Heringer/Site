@@ -352,6 +352,12 @@ p {
     border: 1px solid rgba(252, 129, 74, 0.4);
 }
 
+.tag-dev {
+    background-color: rgba(56, 189, 248, 0.2);
+    color: #38bdf8;
+    border: 1px solid rgba(56, 189, 248, 0.4);
+}
+
 /* Card oculto pelo filtro */
 .card-link.card-hidden {
     display: none;
@@ -740,15 +746,23 @@ p {
     box-shadow: 0 8px 25px rgba(250, 204, 21, 0.4);
 }
 
-/* Ícones Vetoriais SVG Nativos (Tema Escuro: Branco Puro) */
+/* Ícones Vetoriais SVG Nativos (Herança Dinâmica de Cores e Cor de Acento) */
 .icon-svg {
     width: 1.15em;
     height: 1.15em;
     display: inline-block;
     vertical-align: -0.18em;
+    color: currentColor;
+    stroke: currentColor;
+    fill: none;
     flex-shrink: 0;
-    transition: transform 0.2s ease, filter 0.2s ease;
-    filter: brightness(0) invert(1);
+    transition: color 0.2s ease, stroke 0.2s ease, transform 0.2s ease;
+}
+
+.icon-accent,
+.subsection-title .icon-svg,
+.tech-pill .icon-svg {
+    color: var(--accent-color);
 }
 
 /* --- RODAPÉ --- */

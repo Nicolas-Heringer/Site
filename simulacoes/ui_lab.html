@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Design System & Laboratório de Interface (UI Lab)</title>
+
+    <meta name="description" content="Ambiente controlado para desenvolvimento, teste e padronização de componentes de interface, botões, sliders, switches, HUDs e catálogo de ícones vetoriais.">
+    <meta name="author" content="Nicolas Heringer">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="../favicon.svg">
+
+    <!-- Design System 100% Desacoplado e Modular -->
+    <link rel="stylesheet" href="css/design-system.css">
+
+    <!-- Suporte a LaTeX com KaTeX -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"
+        onload="renderMathInElement(document.body, {
+            delimiters: [
+                {left: '$$', right: '$$', display: true},
+                {left: '$', right: '$', display: false},
+                {left: '\\(', right: '\\)', display: false},
+                {left: '\\[', right: '\\]', display: true}
+            ],
+            throwOnError: false
+        });"></script>
+
+    <!-- Three.js via importmap (ES Modules) -->
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://cdn.jsdelivr.net/npm/three@0.165.0/build/three.module.js",
+            "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.165.0/examples/jsm/"
+        }
+    }
+    </script>
+</head>
+
+<body>
+
+    <!-- Cabeçalho da Simulação -->
+    <header class="sim-header">
+        <a href="../index.html#secao-simulacoes" class="btn-back">← Voltar ao Hub</a>
+        <span class="sim-title">Design System & Laboratório de Interface (UI Sandbox)</span>
+    </header>
+
+    <!-- Layout Principal -->
+    <main class="sim-layout">
+
+        <!-- Área de Demonstração / Canvas Interativo -->
+        <div class="canvas-area">
+            <div id="three-container"></div>
+
+            <!-- Seletor Rápido de Paleta de Cores de Acento -->
+            <div class="theme-selector-bar">
+                <span>🎨 Acento:</span>
+                <div class="theme-dot-btn active" style="background: #facc15;" data-color="#facc15" title="Amarelo Solar (Padrão)"></div>
+                <div class="theme-dot-btn" style="background: #38bdf8;" data-color="#38bdf8" title="Azul Ciano Atmosférico"></div>
+                <div class="theme-dot-btn" style="background: #22c55e;" data-color="#22c55e" title="Verde Esmeralda"></div>
+                <div class="theme-dot-btn" style="background: #a855f7;" data-color="#a855f7" title="Roxo Cósmico"></div>
+                <div class="theme-dot-btn" style="background: #f43f5e;" data-color="#f43f5e" title="Rosa Carmim"></div>
+            </div>
+
+            <!-- Botão Flutuante no Canvas -->
+            <button id="btn-quick-autorotate" class="canvas-btn-floating active" title="Alternar Rotação">
+                <img src="../assets/icons/rotate.svg" class="icon-svg icon-spin" alt="Rotação">
+                <span>Rotação da Malha 3D</span>
+            </button>
+
+            <!-- HUD de Diagnóstico Flutuante -->
+            <div class="sim-hud" id="hud-test">
+                <div class="hud-item">
+                    <span class="hud-label">Elemento Ativo:</span>
+                    <span class="hud-val" id="hud-active-comp">Botões & Presets</span>
+                </div>
+                <div class="hud-item">
+                    <span class="hud-label">Cliques Registrados:</span>
+                    <span class="hud-val" id="hud-click-count">0</span>
+                </div>
+                <div class="hud-item">
+                    <span class="hud-label">Raio da Geometria:</span>
+                    <span class="hud-val" id="hud-sphere-radius" style="color: var(--color-cyan);">1.00</span>
+                </div>
+                <div class="hud-item">
+                    <span class="hud-label">Status do Render:</span>
+                    <span class="hud-val" id="hud-fps-val" style="color: var(--color-emerald);">60 fps (Ativo)</span>
+                </div>
+            </div>
+
+            <!-- Dica Interativa -->
+            <div class="interactive-hint">
+                <img src="../assets/icons/lightbulb.svg" class="icon-svg icon-accent" alt="Dica">
+                Arraste com o mouse para orbitar a geometria 3D e teste os componentes no painel.
+            </div>
+        </div>
+
+        <!-- Painel Lateral de Controles e Demonstração -->
+        <aside class="controls-panel">
+
+            <!-- Navegação por Abas de Componentes -->
+            <div class="tab-nav">
+                <button class="tab-btn active" id="tab-btn-buttons">1. Botões</button>
+                <button class="tab-btn" id="tab-btn-sliders">2. Sliders</button>
+                <button class="tab-btn" id="tab-btn-switches">3. Switches</button>
+                <button class="tab-btn" id="tab-btn-huds">4. HUDs & LaTeX</button>
+                <button class="tab-btn" id="tab-btn-icons">5. Ícones SVG</button>
+            </div>
+
+            <!-- ============================================================= -->
+            <!-- ABA 1: BOTÕES & DISPARADORES DE AÇÃO                         -->
+            <!-- ============================================================= -->
+            <div id="panel-ui-buttons">
+                <div class="sim-badge">
+                    <span class="badge-title">Botões & Ações</span>
+                    <span class="badge-status">Estados: Normal, Hover, Active e Disabled</span>
+                </div>
+
+                <!-- Botões Primários e Secundários -->
+                <div class="control-group" style="margin-top: 12px;">
+                    <label>Ações Primárias & Secundárias</label>
+                    <button class="btn-primary" id="btn-demo-primary" style="width: 100%;">
+                        <img src="../assets/icons/play.svg" class="icon-svg" alt="Play"> Executar Simulação (.btn-primary)
+                    </button>
+                    <button class="btn-secondary" id="btn-demo-secondary" style="width: 100%; margin-top: 6px;">
+                        <img src="../assets/icons/refresh.svg" class="icon-svg" alt="Reset"> Reiniciar Parâmetros (.btn-secondary)
+                    </button>
+                    <button class="btn-primary" disabled style="width: 100%; margin-top: 6px;">
+                        Botão Desabilitado (:disabled)
+                    </button>
+                </div>
+
+                <!-- Presets e Grades 2x2 -->
+                <div class="control-group">
+                    <label>Botões de Grade & Presets (.btn-preset)</label>
+                    <div class="control-grid-2x2">
+                        <button class="btn-preset active" id="btn-demo-p1">
+                            <img src="../assets/icons/sun.svg" class="icon-svg" alt="Sol"> Opção Ativa
+                        </button>
+                        <button class="btn-preset" id="btn-demo-p2">
+                            <img src="../assets/icons/snowflake.svg" class="icon-svg" alt="Neve"> Opção 2
+                        </button>
+                        <button class="btn-preset" id="btn-demo-p3">
+                            <img src="../assets/icons/leaf.svg" class="icon-svg" alt="Folha"> Opção 3
+                        </button>
+                        <button class="btn-preset" id="btn-demo-p4">
+                            <img src="../assets/icons/flower.svg" class="icon-svg" alt="Flor"> Opção 4
+                        </button>
+                    </div>
+
+                    <button class="btn-preset" id="btn-demo-dice" style="width: 100%; margin-top: 8px;">
+                        <img src="../assets/icons/dice.svg" class="icon-svg" alt="Dado"> Sortear Configuração Aleatória
+                    </button>
+                </div>
+
+                <!-- Botões de Ícones Compactos -->
+                <div class="control-group">
+                    <label>Botões Compactos de Ícones (.btn-icon)</label>
+                    <div style="display: flex; gap: 8px;">
+                        <button class="btn-icon active" title="Reproduzir" id="btn-icon-play">
+                            <img src="../assets/icons/play.svg" class="icon-svg" alt="Play">
+                        </button>
+                        <button class="btn-icon" title="Pausar" id="btn-icon-pause">
+                            <img src="../assets/icons/pause.svg" class="icon-svg" alt="Pause">
+                        </button>
+                        <button class="btn-icon" title="Passo a Passo" id="btn-icon-step">
+                            <img src="../assets/icons/step.svg" class="icon-svg" alt="Step">
+                        </button>
+                        <button class="btn-icon" title="Atualizar" id="btn-icon-refresh">
+                            <img src="../assets/icons/refresh.svg" class="icon-svg" alt="Refresh">
+                        </button>
+                        <button class="btn-icon" title="Brilho / Ideia" id="btn-icon-sparkles">
+                            <img src="../assets/icons/sparkles.svg" class="icon-svg" alt="Sparkles">
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ============================================================= -->
+            <!-- ABA 2: SLIDERS & ENTRADAS DE DADOS                           -->
+            <!-- ============================================================= -->
+            <div id="panel-ui-sliders" style="display: none;">
+                <div class="sim-badge">
+                    <span class="badge-title">Sliders & Entradas</span>
+                    <span class="badge-status">Controles Deslizantes com Feedback em Tempo Real</span>
+                </div>
+
+                <!-- Slider Contínuo -->
+                <div class="control-group" style="margin-top: 12px;">
+                    <label>Slider Contínuo (Escala da Geometria 3D)</label>
+                    <div class="slider-container">
+                        <div class="slider-header">
+                            <span>Raio Geométrico</span>
+                            <span id="val-demo-radius" class="slider-val">1.00x</span>
+                        </div>
+                        <input type="range" class="sim-slider" id="slider-demo-radius" min="0.5" max="2.0" step="0.05" value="1.0">
+                    </div>
+                </div>
+
+                <!-- Slider Discreto -->
+                <div class="control-group">
+                    <label>Slider Discreto (Resolução de Segmentos)</label>
+                    <div class="slider-container">
+                        <div class="slider-header">
+                            <span>Densidade de Vértices</span>
+                            <span id="val-demo-steps" class="slider-val">16 segmentos</span>
+                        </div>
+                        <input type="range" class="sim-slider" id="slider-demo-steps" min="4" max="64" step="4" value="16">
+                    </div>
+                </div>
+
+                <!-- Dropdown e Input Numérico -->
+                <div class="control-group">
+                    <label>Select Box Customizado & Input Numérico</label>
+                    <select class="sim-control" id="select-demo-mesh">
+                        <option value="sphere">Esfera Geodésica 3D</option>
+                        <option value="cube">Cubo Poligonal 3D</option>
+                        <option value="torus">Torus / Toroide 3D</option>
+                    </select>
+
+                    <div style="margin-top: 8px;">
+                        <label style="font-size: 0.80rem;">Input Numérico Direto (.sim-input):</label>
+                        <input type="number" class="sim-input" id="input-demo-num" value="42" min="0" max="100" style="width: 100%; margin-top: 4px;">
+                    </div>
+                </div>
+            </div>
+
+            <!-- ============================================================= -->
+            <!-- ABA 3: SWITCHES, TOGGLES & SEGMENTOS                         -->
+            <!-- ============================================================= -->
+            <div id="panel-ui-switches" style="display: none;">
+                <div class="sim-badge">
+                    <span class="badge-title">Switches & Seletores</span>
+                    <span class="badge-status">Interruptores Deslizantes & Controles Segmentados</span>
+                </div>
+
+                <!-- Interruptores Modernos (Sliding Switches) -->
+                <div class="control-group" style="margin-top: 12px;">
+                    <label>Interruptores Deslizantes (.sim-switch)</label>
+
+                    <div class="switch-container">
+                        <span class="switch-label">Exibir Wireframe (Arestas)</span>
+                        <label class="sim-switch">
+                            <input type="checkbox" id="switch-demo-wireframe" checked>
+                            <span class="slider-round"></span>
+                        </label>
+                    </div>
+
+                    <div class="switch-container">
+                        <span class="switch-label">Pontos de Vértices</span>
+                        <label class="sim-switch">
+                            <input type="checkbox" id="switch-demo-points" checked>
+                            <span class="slider-round"></span>
+                        </label>
+                    </div>
+
+                    <div class="switch-container">
+                        <span class="switch-label">Luz Direcional Dinâmica</span>
+                        <label class="sim-switch">
+                            <input type="checkbox" id="switch-demo-light" checked>
+                            <span class="slider-round"></span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Seletor Segmentado (Pills 3x1) -->
+                <div class="control-group">
+                    <label>Seletor Segmentado (.field-btn / .segment-btn)</label>
+                    <div class="field-selector-grid">
+                        <button class="field-btn active" id="btn-seg-1">
+                            <img src="../assets/icons/thermometer.svg" class="icon-svg" alt="Temp"> Termal
+                        </button>
+                        <button class="field-btn" id="btn-seg-2">
+                            <img src="../assets/icons/cyclone.svg" class="icon-svg" alt="Pressão"> Pressão
+                        </button>
+                        <button class="field-btn" id="btn-seg-3">
+                            <img src="../assets/icons/wind.svg" class="icon-svg" alt="Vento"> Vento
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ============================================================= -->
+            <!-- ABA 4: HUDS, BADGES & CARDS DE TEORIA (LATEX)                 -->
+            <!-- ============================================================= -->
+            <div id="panel-ui-huds" style="display: none;">
+                <div class="sim-badge">
+                    <span class="badge-title">Componentes de Conteúdo</span>
+                    <span class="badge-status">Fórmulas KaTeX e Caixas Explicativas</span>
+                </div>
+
+                <div class="control-group" style="margin-top: 12px;">
+                    <label>Card Didático Teórico (.theory-card)</label>
+                    <div class="theory-card">
+                        <h4><img src="../assets/icons/compass.svg" class="icon-svg icon-accent" alt="Matemática"> Equações Fundamentais</h4>
+                        <p>
+                            Exemplo de fórmula matemática renderizada via KaTeX com integração de variáveis:
+                        </p>
+                        $$\nabla \cdot \mathbf{v} = 0 \quad \implies \quad \mathbf{a}_C = -2\mathbf{\Omega} \times \mathbf{v}$$
+                        <p>
+                            Os cards utilizam tipografia suave, bom espaçamento e bordas sutis com cantos arredondados de $12\text{px}$.
+                        </p>
+                        <p>
+                            Equação da conservação de energia em regime estacionário:
+                        </p>
+                        $$E = \frac{1}{2}m v^2 + V(r) = \text{constante}$$
+                    </div>
+                </div>
+            </div>
+
+            <!-- ============================================================= -->
+            <!-- ABA 5: GALERIA COMPLETA DE ÍCONES SVG                         -->
+            <!-- ============================================================= -->
+            <div id="panel-ui-icons" style="display: none;">
+                <div class="sim-badge">
+                    <span class="badge-title">Biblioteca de Ícones SVG</span>
+                    <span class="badge-status">17 Ícones Nativos em assets/icons/</span>
+                </div>
+
+                <div class="control-group" style="margin-top: 12px;">
+                    <label>Clique em um ícone para copiar seu HTML</label>
+                    <div class="icon-gallery-grid" id="icon-gallery">
+                        <!-- Injetado dinamicamente via JS -->
+                    </div>
+                </div>
+            </div>
+
+        </aside>
+
+    </main>
+
+    <!-- Script Principal do Laboratório de UI -->
+    <script type="module" src="scripts/ui_lab.js"></script>
+</body>
+
+</html>

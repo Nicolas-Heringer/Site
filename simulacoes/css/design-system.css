@@ -1,0 +1,1076 @@
+/* =============================================================================
+   DESIGN SYSTEM & BIBLIOTECA DE COMPONENTES DE UI
+   Autor: Nicolas Heringer
+   Projeto: Plataforma de Simulações Científicas e Matemáticas
+   Arquivo: design-system.css (100% Modular e Desacoplado)
+   ============================================================================= */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+/* =============================================================================
+   1. DESIGN TOKENS (:root)
+   ============================================================================= */
+:root {
+    /* Paleta de Cores de Superfície (Dark Theme de Alto Contraste) */
+    --bg-main: #070b16;
+    --bg-surface: #0f172a;
+    --bg-surface-elevated: #1e293b;
+    --bg-panel: rgba(15, 23, 42, 0.80);
+    --bg-card: rgba(30, 41, 59, 0.65);
+    --bg-input: rgba(15, 23, 42, 0.85);
+
+    /* Cores de Acento Reativas (Customizáveis dinamicamente via JS) */
+    --accent-color: #facc15;
+    --accent-color-hover: #eab308;
+    --accent-subtle: rgba(250, 204, 21, 0.15);
+    --accent-glow: rgba(250, 204, 21, 0.35);
+
+    /* Cores Semânticas Auxiliares */
+    --color-cyan: #38bdf8;
+    --color-cyan-glow: rgba(56, 189, 248, 0.35);
+    --color-emerald: #22c55e;
+    --color-purple: #a855f7;
+    --color-rose: #f43f5e;
+
+    /* Tipografia e Cores de Texto */
+    --text-primary: #f8fafc;
+    --text-secondary: #94a3b8;
+    --text-muted: #64748b;
+    --font-sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --font-mono: 'JetBrains Mono', 'Courier New', monospace;
+
+    /* Bordas & Divisores */
+    --border-color: rgba(255, 255, 255, 0.10);
+    --border-subtle: rgba(255, 255, 255, 0.06);
+    --border-accent: rgba(250, 204, 21, 0.40);
+
+    /* Raios de Arredondamento */
+    --radius-xs: 4px;
+    --radius-sm: 6px;
+    --radius-md: 8px;
+    --radius-lg: 12px;
+    --radius-xl: 16px;
+    --radius-pill: 9999px;
+
+    /* Sombras e Elevações */
+    --shadow-sm: 0 2px 6px rgba(0, 0, 0, 0.25);
+    --shadow-md: 0 4px 15px rgba(0, 0, 0, 0.35);
+    --shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.50);
+    --shadow-accent-glow: 0 0 16px var(--accent-glow);
+
+    /* Transições Padrão */
+    --trans-fast: 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+    --trans-normal: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    --trans-slow: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* =============================================================================
+   2. RESET & ESTILOS GLOBAIS
+   ============================================================================= */
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    background-color: var(--bg-main);
+    color: var(--text-primary);
+    font-family: var(--font-sans);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* Scrollbar Global */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+::-webkit-scrollbar-track {
+    background: rgba(15, 23, 42, 0.4);
+    border-radius: var(--radius-xs);
+}
+::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.18);
+    border-radius: var(--radius-xs);
+}
+::-webkit-scrollbar-thumb:hover {
+    background: var(--accent-color);
+}
+
+/* =============================================================================
+   3. CABEÇALHO & LAYOUT PRINCIPAL DA SIMULAÇÃO
+   ============================================================================= */
+.sim-header {
+    display: flex;
+    align-items: center;
+    padding: 0 24px;
+    height: 54px;
+    flex-shrink: 0;
+    background-color: var(--bg-surface);
+    border-bottom: 1px solid var(--border-color);
+    box-shadow: var(--shadow-sm);
+    z-index: 100;
+}
+
+.btn-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    text-decoration: none;
+    color: var(--text-secondary);
+    font-size: 0.88rem;
+    font-weight: 500;
+    transition: color var(--trans-fast), transform var(--trans-fast);
+    margin-right: 20px;
+}
+
+.btn-back:hover {
+    color: var(--accent-color);
+    transform: translateX(-2px);
+}
+
+.sim-title {
+    font-size: 1.15rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    color: var(--text-primary);
+}
+
+/* Layout Grid da Simulação (Canvas à esquerda + Painel à direita com trava) */
+.sim-layout {
+    display: grid;
+    grid-template-columns: 1fr 370px;
+    flex: 1;
+    gap: 16px;
+    padding: 16px;
+    height: calc(100vh - 54px);
+    max-height: calc(100vh - 54px);
+    overflow: hidden;
+    min-height: 0;
+}
+
+/* Área do Canvas Interativo */
+.canvas-area {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background-color: rgba(0, 0, 0, 0.35);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border-color);
+    overflow: hidden;
+    position: relative;
+    height: 100%;
+    min-height: 0;
+    min-width: 0;
+}
+
+#three-container {
+    position: absolute;
+    inset: 0;
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    cursor: grab;
+}
+
+#three-container:active {
+    cursor: grabbing;
+}
+
+#three-container canvas {
+    display: block;
+    width: 100% !important;
+    height: 100% !important;
+}
+
+/* Painel Lateral de Controles */
+.controls-panel {
+    background-color: var(--bg-panel);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: 18px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    height: 100%;
+    max-height: 100%;
+    overflow-y: auto;
+    scrollbar-gutter: stable;
+    box-shadow: var(--shadow-md);
+}
+
+.control-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.control-group label {
+    font-size: 0.82rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+/* =============================================================================
+   4. BOTÕES & DISPARADORES DE AÇÃO
+   ============================================================================= */
+
+/* Botão Primário (.sim-btn / .btn-primary) */
+button.sim-btn,
+button.btn-primary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    background-color: transparent;
+    border: 1px solid var(--accent-color);
+    color: var(--accent-color);
+    padding: 11px 18px;
+    border-radius: var(--radius-md);
+    font-family: inherit;
+    font-weight: 600;
+    font-size: 0.88rem;
+    cursor: pointer;
+    transition: all var(--trans-normal);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    user-select: none;
+}
+
+button.sim-btn:hover:not(:disabled),
+button.btn-primary:hover:not(:disabled) {
+    background-color: var(--accent-color);
+    color: var(--bg-main);
+    box-shadow: var(--shadow-accent-glow);
+    transform: translateY(-1px);
+}
+
+button.sim-btn:active:not(:disabled),
+button.btn-primary:active:not(:disabled) {
+    transform: translateY(0);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+}
+
+button.sim-btn:disabled,
+button.btn-primary:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    border-color: rgba(255, 255, 255, 0.12);
+    color: var(--text-muted);
+    background: transparent;
+    box-shadow: none;
+    transform: none;
+}
+
+/* Botão Secundário (.btn-secondary / .btn-outline) */
+button.btn-secondary,
+button.btn-outline {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    background-color: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    padding: 10px 16px;
+    border-radius: var(--radius-md);
+    font-family: inherit;
+    font-weight: 500;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all var(--trans-fast);
+    user-select: none;
+}
+
+button.btn-secondary:hover:not(:disabled),
+button.btn-outline:hover:not(:disabled) {
+    background-color: rgba(255, 255, 255, 0.10);
+    border-color: rgba(255, 255, 255, 0.25);
+    color: #ffffff;
+    transform: translateY(-1px);
+}
+
+button.btn-secondary:disabled,
+button.btn-outline:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+    border-color: var(--border-subtle);
+    color: var(--text-muted);
+}
+
+/* Botões de Grade / Presets (.btn-preset) */
+.btn-preset {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    padding: 9px 10px;
+    font-size: 0.80rem;
+    font-weight: 600;
+    background: rgba(30, 41, 59, 0.7);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    color: var(--text-primary);
+    cursor: pointer;
+    transition: all var(--trans-fast);
+    text-align: center;
+    user-select: none;
+}
+
+.btn-preset:hover:not(:disabled) {
+    background: var(--accent-subtle);
+    border-color: var(--accent-color);
+    color: var(--accent-color);
+    transform: translateY(-1px);
+}
+
+.btn-preset.active {
+    background: var(--accent-subtle);
+    border-color: var(--accent-color);
+    color: var(--accent-color);
+    box-shadow: 0 0 10px var(--accent-glow);
+}
+
+.btn-preset:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+    border-color: var(--border-subtle);
+}
+
+/* Botão Flutuante de Canvas (.canvas-btn-floating / .canvas-btn-autorotate) */
+.canvas-btn-floating,
+.canvas-btn-autorotate {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background: rgba(15, 23, 42, 0.85);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: var(--radius-lg);
+    padding: 8px 14px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    z-index: 20;
+    transition: all var(--trans-fast);
+    box-shadow: var(--shadow-md);
+    user-select: none;
+}
+
+.canvas-btn-floating:hover,
+.canvas-btn-autorotate:hover {
+    color: var(--text-primary);
+    border-color: var(--accent-color);
+    background: rgba(30, 41, 59, 0.9);
+    transform: translateY(-1px);
+}
+
+.canvas-btn-floating.active,
+.canvas-btn-autorotate.active {
+    background: var(--accent-subtle);
+    border-color: var(--accent-color);
+    color: var(--accent-color);
+    box-shadow: var(--shadow-accent-glow);
+}
+
+.canvas-btn-floating.active .icon-spin,
+.canvas-btn-autorotate.active .icon-spin {
+    animation: spin 6s linear infinite;
+}
+
+/* Botão Compacto com Ícone (.btn-icon) */
+.btn-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    border-radius: var(--radius-md);
+    background: rgba(30, 41, 59, 0.6);
+    border: 1px solid var(--border-color);
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all var(--trans-fast);
+}
+
+.btn-icon:hover:not(:disabled) {
+    background: var(--accent-subtle);
+    border-color: var(--accent-color);
+    color: var(--accent-color);
+}
+
+.btn-icon.active {
+    background: var(--accent-subtle);
+    border-color: var(--accent-color);
+    color: var(--accent-color);
+    box-shadow: 0 0 8px var(--accent-glow);
+}
+
+/* =============================================================================
+   5. SLIDERS & ENTRADAS DE DADOS
+   ============================================================================= */
+.slider-container {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    background: rgba(15, 23, 42, 0.5);
+    padding: 10px 12px;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-subtle);
+}
+
+.slider-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.80rem;
+    color: var(--text-secondary);
+}
+
+.slider-val {
+    font-family: var(--font-mono);
+    font-weight: 600;
+    color: var(--accent-color);
+    font-size: 0.84rem;
+}
+
+input[type="range"].sim-slider {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    background: transparent;
+    padding: 6px 0;
+    cursor: pointer;
+}
+
+input[type="range"].sim-slider:focus {
+    outline: none;
+}
+
+input[type="range"].sim-slider::-webkit-slider-runnable-track {
+    width: 100%;
+    height: 6px;
+    background: rgba(255, 255, 255, 0.12);
+    border-radius: 3px;
+    border: none;
+    transition: background var(--trans-fast);
+}
+
+input[type="range"].sim-slider:hover::-webkit-slider-runnable-track {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+input[type="range"].sim-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    border: 2px solid var(--bg-surface);
+    height: 18px;
+    width: 18px;
+    border-radius: 50%;
+    background: var(--accent-color);
+    margin-top: -6px;
+    box-shadow: 0 0 10px var(--accent-glow);
+    transition: transform var(--trans-fast), background var(--trans-fast), box-shadow var(--trans-fast);
+}
+
+input[type="range"].sim-slider:hover::-webkit-slider-thumb {
+    transform: scale(1.22);
+    background: var(--accent-color-hover);
+    box-shadow: 0 0 14px var(--accent-glow);
+}
+
+/* Select Box Estilizado */
+select.sim-control {
+    appearance: none;
+    background-color: var(--bg-input);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    padding: 10px 14px;
+    border-radius: var(--radius-md);
+    font-family: inherit;
+    font-size: 0.88rem;
+    cursor: pointer;
+    outline: none;
+    transition: border-color var(--trans-fast), box-shadow var(--trans-fast);
+    background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%2394a3b8%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+    background-size: 10px auto;
+}
+
+select.sim-control:focus,
+select.sim-control:hover {
+    border-color: var(--accent-color);
+}
+
+select.sim-control option {
+    background-color: var(--bg-surface);
+    color: var(--text-primary);
+}
+
+/* Input Numérico & Textual */
+input[type="number"].sim-input,
+input[type="text"].sim-input {
+    background-color: var(--bg-input);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    padding: 9px 12px;
+    border-radius: var(--radius-md);
+    font-family: inherit;
+    font-size: 0.88rem;
+    outline: none;
+    transition: border-color var(--trans-fast);
+}
+
+input[type="number"].sim-input:focus,
+input[type="text"].sim-input:focus {
+    border-color: var(--accent-color);
+    box-shadow: 0 0 8px var(--accent-subtle);
+}
+
+/* =============================================================================
+   6. SWITCHES MODERNOS & CONTROLES SEGMENTADOS
+   ============================================================================= */
+
+/* Sliding Switch Moderno (Estilo iOS) */
+.switch-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 7px 0;
+    font-size: 0.82rem;
+    color: var(--text-secondary);
+}
+
+.switch-label {
+    cursor: pointer;
+    user-select: none;
+}
+
+.sim-switch {
+    position: relative;
+    display: inline-block;
+    width: 38px;
+    height: 20px;
+    flex-shrink: 0;
+}
+
+.sim-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider-round {
+    position: absolute;
+    cursor: pointer;
+    inset: 0;
+    background-color: rgba(255, 255, 255, 0.15);
+    transition: var(--trans-normal);
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.slider-round:before {
+    position: absolute;
+    content: "";
+    height: 14px;
+    width: 14px;
+    left: 2px;
+    bottom: 2px;
+    background-color: white;
+    transition: var(--trans-normal);
+    border-radius: 50%;
+}
+
+.sim-switch input:checked + .slider-round {
+    background-color: var(--accent-color);
+    border-color: var(--accent-color);
+}
+
+.sim-switch input:checked + .slider-round:before {
+    transform: translateX(18px);
+    background-color: var(--bg-surface);
+}
+
+/* Controles Segmentados (Pills) */
+.segmented-control,
+.field-selector-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(60px, 1fr));
+    gap: 4px;
+    background: rgba(15, 23, 42, 0.75);
+    padding: 4px;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-color);
+}
+
+.segment-btn,
+.field-btn {
+    padding: 8px 4px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    border-radius: var(--radius-sm);
+    background: transparent;
+    color: var(--text-secondary);
+    border: 1px solid transparent;
+    cursor: pointer;
+    text-align: center;
+    transition: all var(--trans-fast);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    user-select: none;
+}
+
+.segment-btn:hover,
+.field-btn:hover {
+    color: var(--text-primary);
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.segment-btn.active,
+.field-btn.active {
+    background: var(--accent-subtle);
+    border-color: var(--accent-color);
+    color: var(--accent-color);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Navegação por Abas no Painel */
+.tab-nav {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(50px, 1fr));
+    gap: 4px;
+    margin-bottom: 8px;
+    background: rgba(15, 23, 42, 0.75);
+    padding: 4px;
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border-color);
+}
+
+.tab-btn {
+    padding: 7px 4px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    border-radius: var(--radius-sm);
+    background: transparent;
+    color: var(--text-secondary);
+    border: 1px solid transparent;
+    cursor: pointer;
+    text-align: center;
+    transition: all var(--trans-fast);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.tab-btn:hover:not(.disabled) {
+    color: var(--text-primary);
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.tab-btn.active {
+    background: var(--accent-subtle);
+    border-color: var(--accent-color);
+    color: var(--accent-color);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.tab-btn.disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+/* =============================================================================
+   7. HUDS, BADGES, TOOLTIPS & CARDS DIDÁTICOS (LATEX)
+   ============================================================================= */
+
+/* Badge de Estado da Simulação (.sim-badge / .climate-badge) */
+.sim-badge,
+.climate-badge {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    background: linear-gradient(
+        135deg,
+        var(--accent-subtle) 0%,
+        rgba(255, 255, 255, 0.02) 100%
+    );
+    border: 1px solid var(--border-accent);
+    border-radius: var(--radius-lg);
+    padding: 12px 14px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+}
+
+.sim-badge::before,
+.climate-badge::before {
+    content: '';
+    position: absolute;
+    top: -30px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 160px;
+    height: 60px;
+    background: radial-gradient(
+        ellipse,
+        var(--accent-glow) 0%,
+        transparent 70%
+    );
+    pointer-events: none;
+}
+
+.sim-badge .badge-title,
+.climate-title {
+    display: block;
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--accent-color);
+    letter-spacing: 0.02em;
+    line-height: 1.2;
+}
+
+.sim-badge .badge-status,
+.climate-status {
+    display: block;
+    font-size: 0.74rem;
+    color: var(--text-secondary);
+    font-family: var(--font-mono);
+    letter-spacing: 0.02em;
+}
+
+/* HUD Flutuante no Canvas (.sim-hud / .climate-hud) */
+.sim-hud,
+.climate-hud {
+    position: absolute;
+    top: 15px;
+    left: 15px;
+    background: rgba(15, 23, 42, 0.85);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: var(--radius-lg);
+    padding: 10px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    font-size: 0.78rem;
+    color: var(--text-primary);
+    z-index: 10;
+    pointer-events: none;
+    box-shadow: var(--shadow-md);
+}
+
+.hud-item {
+    display: flex;
+    justify-content: space-between;
+    gap: 15px;
+}
+
+.hud-label {
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+.hud-val {
+    font-family: var(--font-mono);
+    font-weight: 600;
+    color: var(--accent-color);
+}
+
+/* Dica Interativa Flutuante */
+.interactive-hint {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    background: rgba(15, 23, 42, 0.80);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.10);
+    border-radius: var(--radius-md);
+    padding: 8px 12px;
+    font-size: 0.74rem;
+    color: var(--text-secondary);
+    pointer-events: none;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    box-shadow: var(--shadow-sm);
+}
+
+/* Tooltip Flutuante de Inspeção */
+.cell-tooltip {
+    position: absolute;
+    background: rgba(15, 23, 42, 0.94);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--accent-color);
+    border-radius: var(--radius-lg);
+    padding: 10px 14px;
+    font-size: 0.76rem;
+    color: var(--text-primary);
+    pointer-events: none;
+    z-index: 100;
+    opacity: 0;
+    transform: translate(15px, 15px);
+    transition: opacity var(--trans-fast), transform 0.1s ease-out;
+    box-shadow: var(--shadow-lg);
+    min-width: 200px;
+}
+
+.cell-tooltip.visible {
+    opacity: 1;
+}
+
+.tooltip-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-weight: 700;
+    color: var(--accent-color);
+    margin-bottom: 6px;
+    padding-bottom: 4px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    font-size: 0.82rem;
+}
+
+.tooltip-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 3px;
+}
+
+.tooltip-lbl {
+    color: var(--text-secondary);
+}
+
+.tooltip-v {
+    font-family: var(--font-mono);
+    font-weight: 600;
+    color: var(--accent-color);
+}
+
+/* Card Didático Teórico com KaTeX */
+.theory-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: 14px 16px;
+    margin-top: 10px;
+    font-size: 0.80rem;
+    line-height: 1.6;
+    color: var(--text-secondary);
+}
+
+.theory-card h4 {
+    color: var(--accent-color);
+    margin-bottom: 8px;
+    font-size: 0.86rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+}
+
+.theory-card p {
+    margin-bottom: 8px;
+}
+
+.theory-card ul {
+    margin-left: 18px;
+    margin-bottom: 8px;
+}
+
+.theory-card li {
+    margin-bottom: 4px;
+}
+
+.theory-card .katex-display {
+    margin: 10px 0;
+    font-size: 0.95em;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: 4px 0;
+}
+
+/* =============================================================================
+   8. ÍCONES VETORIAIS SVG & UTILITÁRIOS
+   ============================================================================= */
+
+/* Ícones Vetoriais SVG Nativos */
+.icon-svg {
+    width: 1.15em;
+    height: 1.15em;
+    display: inline-block;
+    vertical-align: -0.18em;
+    color: currentColor;
+    stroke: currentColor;
+    fill: none;
+    flex-shrink: 0;
+    transition: color var(--trans-fast), stroke var(--trans-fast), transform var(--trans-fast);
+}
+
+.icon-accent,
+.theory-card h4 .icon-svg,
+.interactive-hint .icon-svg {
+    color: var(--accent-color);
+}
+
+.icon-spin {
+    animation: spin 6s linear infinite;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* Utilitários de Grid */
+.control-grid-2x2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+}
+
+.control-grid-3x1 {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+}
+
+.flex-row-between {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.preview-box {
+    background: rgba(0, 0, 0, 0.25);
+    border: 1px dashed var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+/* Seletor de Paleta do Laboratório */
+.theme-selector-bar {
+    position: absolute;
+    top: 15px;
+    left: 15px;
+    background: rgba(15, 23, 42, 0.85);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: var(--radius-lg);
+    padding: 8px 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    z-index: 20;
+    font-size: 0.78rem;
+    color: var(--text-secondary);
+    box-shadow: var(--shadow-sm);
+}
+
+.theme-dot-btn {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    border: 2px solid transparent;
+    cursor: pointer;
+    transition: transform var(--trans-fast), border-color var(--trans-fast), box-shadow var(--trans-fast);
+}
+
+.theme-dot-btn:hover {
+    transform: scale(1.25);
+}
+
+.theme-dot-btn.active {
+    border-color: #ffffff;
+    transform: scale(1.15);
+    box-shadow: 0 0 10px currentColor;
+}
+
+/* Galeria de Ícones */
+.icon-gallery-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+    gap: 8px;
+    margin-top: 10px;
+}
+
+.icon-card {
+    background: rgba(15, 23, 42, 0.6);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    padding: 10px 6px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    transition: all var(--trans-fast);
+}
+
+.icon-card:hover {
+    background: var(--accent-subtle);
+    border-color: var(--accent-color);
+    color: var(--accent-color);
+    transform: translateY(-2px);
+}
+
+.icon-card-name {
+    font-size: 0.65rem;
+    color: var(--text-secondary);
+    font-family: var(--font-mono);
+    text-align: center;
+    word-break: break-all;
+}
+
+/* =============================================================================
+   9. RESPONSIVIDADE (MOBILE & TABLET)
+   ============================================================================= */
+@media (max-width: 900px) {
+    .sim-layout {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto 1fr;
+        height: auto;
+        max-height: none;
+        overflow-y: auto;
+    }
+
+    .canvas-area {
+        min-height: 50vh;
+        height: 50vh;
+    }
+
+    .controls-panel {
+        max-height: none;
+    }
+}

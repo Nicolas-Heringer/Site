@@ -274,28 +274,37 @@ button.sim-btn:disabled {
     box-shadow: none;
 }
 
-/* Ícones Vetoriais SVG Nativos (Tema Escuro: Branco Puro com Transições) */
+/* Ícones Vetoriais SVG Nativos (Herança Dinâmica de Cores e Cor de Acento) */
 .icon-svg {
     width: 1.15em;
     height: 1.15em;
     display: inline-block;
     vertical-align: -0.18em;
+    color: currentColor;
+    stroke: currentColor;
+    fill: none;
     flex-shrink: 0;
-    transition: transform 0.2s ease, filter 0.2s ease;
-    filter: brightness(0) invert(1); /* Garante que qualquer SVG seja branco puro no tema escuro */
+    transition: color 0.2s ease, stroke 0.2s ease, transform 0.2s ease;
 }
 
-/* Realce Ciano (#38bdf8) ao passar o mouse ou em botões ativos */
+/* Ícones de Destaque / Accent */
+.icon-accent,
+.theory-card h4 .icon-svg,
+.interactive-hint .icon-svg,
+.subsection-title .icon-svg {
+    color: var(--accent-color);
+}
+
+/* Realce com a Cor de Acento no Hover e Estados Ativos */
 .btn-preset:hover .icon-svg,
 .field-btn:hover .icon-svg,
-.canvas-btn-autorotate:hover .icon-svg {
-    filter: brightness(0) saturate(100%) invert(67%) sepia(76%) saturate(1476%) hue-rotate(167deg) brightness(101%) contrast(97%);
-}
-
+.sim-btn:hover .icon-svg,
+.canvas-btn-autorotate:hover .icon-svg,
+.tab-btn.active .icon-svg,
 .btn-preset.active .icon-svg,
 .field-btn.active .icon-svg,
 .canvas-btn-autorotate.active .icon-svg {
-    filter: brightness(0) saturate(100%) invert(67%) sepia(76%) saturate(1476%) hue-rotate(167deg) brightness(101%) contrast(97%);
+    color: var(--accent-color);
 }
 
 /* --- CONTROLE SEGMENTADO (PILLS / CHAVE SELETORA) --- */
