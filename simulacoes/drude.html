@@ -8,7 +8,7 @@
     <title>Modelo de Drude — Condução Elétrica em Redes Cristalinas</title>
 
     <meta name="description"
-        content="Simulação do modelo clássico de Drude para condução elétrica em metais e redes cristalinas. Observe o efeito do campo elétrico, agitação térmica e colisões em redes triangulares, hexagonais e armchair.">
+        content="Simulação interativa do modelo clássico de Drude para condução elétrica em metais e redes cristalinas. Observe velocidade de deriva, agitação térmica, colisões e resistividade em diferentes estruturas.">
     <meta name="keywords"
         content="modelo de drude, condução elétrica, elétrons livres, campo elétrico, velocidade de deriva, rede cristalina, grafeno, física da matéria condensada">
     <meta name="author" content="Nicolas Heringer">
@@ -16,90 +16,386 @@
     <!-- Favicon -->
     <link rel="icon" type="image/svg+xml" href="../favicon.svg">
 
-    <!-- Estilos CSS -->
-    <link rel="stylesheet" href="css/base.css">
+    <!-- Estilos CSS do Design System e Específicos -->
+    <link rel="stylesheet" href="css/design-system.css">
     <link rel="stylesheet" href="css/drude.css">
 
-    <!-- Suporte a LaTeX com KaTeX -->
+    <!-- Suporte a Fórmulas Matemáticas com KaTeX -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" crossorigin="anonymous">
     <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" crossorigin="anonymous"></script>
-    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" crossorigin="anonymous" onload="renderMathInElement(document.body, {
-            delimiters: [
-                {left: '$$', right: '$$', display: true},
-                {left: '$', right: '$', display: false},
-                {left: '\\(', right: '\\)', display: false},
-                {left: '\\[', right: '\\]', display: true}
-            ],
-            throwOnError: false
-        });"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" crossorigin="anonymous"></script>
 </head>
 
 <body>
     <!-- Cabeçalho da Simulação -->
     <header class="sim-header">
-        <a href="../index.html#secao-simulacoes" class="btn-back">← Voltar ao Hub</a>
-        <span class="sim-title">Modelo de Drude</span>
+        <a href="../index.html#secao-simulacoes" class="btn-back">
+            <svg class="icon-svg" viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+            Voltar ao Hub
+        </a>
+        <h1 class="sim-title">Modelo de Drude — Condução Elétrica em Redes Cristalinas</h1>
     </header>
 
-    <!-- Conteúdo Principal -->
+    <!-- Layout Grid Principal -->
     <main class="sim-layout">
-        <!-- Área de Visualização (Canvas) -->
+
+        <!-- 1. Área do Canvas Interativo 2D -->
         <div class="canvas-area">
             <canvas id="drudeCanvas"></canvas>
-        </div>
 
-        <!-- Painel de Controles -->
-        <aside class="controls-panel">
-            <div class="info-section">
-                <p>Simulação do modelo clássico de condução elétrica (Modelo de Drude).</p>
+            <!-- Grupo de Ações Flutuantes no Topo Direito -->
+            <div class="canvas-top-actions">
+                <button id="btn-toggle-tracer" class="canvas-btn-floating" title="Alternar Rastro do Elétron Traçador">
+                    <img src="../assets/icons/sparkles.svg" class="icon-svg" alt="Traçador">
+                    <span class="btn-label-text">Elétron Traçador</span>
+                </button>
+                <button id="btn-expand-sidebar" class="canvas-btn-expand-sidebar" title="Expandir Painel de Controles (F)">
+                    <img src="../assets/icons/expand.svg" class="icon-svg" alt="Expandir">
+                    <span class="btn-label-text">Controles</span>
+                </button>
             </div>
 
-            <!-- SENTIDO DO CAMPO ELÉTRICO -->
-            <div class="control-group">
-                <label>Sentido do Campo Elétrico ($\vec{E}$):</label>
-                <div class="segmented-control" id="dirCampoControl">
-                    <button type="button" class="segment-btn" data-dir="-1"
-                        title="Campo para a Esquerda">$\leftarrow$</button>
-                    <button type="button" class="segment-btn active" data-dir="0" title="Campo Desligado">$0$</button>
-                    <button type="button" class="segment-btn" data-dir="1"
-                        title="Campo para a Direita">$\rightarrow$</button>
+            <!-- HUD de Telemetria Físico em Tempo Real -->
+            <div class="sim-hud" id="sim-hud">
+                <div class="hud-item">
+                    <span class="hud-label">Velocidade de Deriva:</span>
+                    <span class="hud-val" id="hud-vd" style="color: var(--accent-hud, var(--accent-color));">v_d = 0.00</span>
+                </div>
+                <div class="hud-item">
+                    <span class="hud-label">Velocidade Térmica:</span>
+                    <span class="hud-val" id="hud-vth">v_th = 1.00</span>
+                </div>
+                <div class="hud-item">
+                    <span class="hud-label">Campo Elétrico $\vec{E}$:</span>
+                    <span class="hud-val" id="hud-efield">0.00 (Off)</span>
+                </div>
+                <div class="hud-item">
+                    <span class="hud-label">Taxa de Colisões:</span>
+                    <span class="hud-val" id="hud-col-rate" style="color: var(--color-emerald, #22c55e);">0 col/s</span>
                 </div>
             </div>
 
-            <!-- INTENSIDADE DO CAMPO -->
-            <div class="control-group">
-                <label for="intensidadeCampo">
-                    Intensidade do Campo ($|E|$): <strong><span id="valIntensidadeCampo">0.20</span></strong>
-                </label>
-                <input type="range" id="intensidadeCampo" class="sim-slider" min="0.05" max="1.00" step="0.05"
-                    value="0.20">
+            <!-- Dica Interativa Flutuante -->
+            <div class="interactive-hint">
+                <img src="../assets/icons/lightbulb.svg" class="icon-svg icon-accent" alt="Dica">
+                Ligue o campo elétrico ($\vec{E}$) para gerar velocidade de deriva ou aumente a temperatura para visualizar a resistência por agitação térmica.
+            </div>
+        </div>
+
+        <!-- 2. Painel Lateral de Controles (Layout Tripartido / Bottom Sheet no Mobile) -->
+        <aside class="controls-panel">
+
+            <!-- Alça de Arraste para Mobile / Tablet (Bottom Sheet) -->
+            <div class="sheet-drag-handle" id="sheet-drag-handle" title="Deslize ou toque para expandir/recolher">
+                <div class="sheet-drag-pill"></div>
             </div>
 
-            <!-- TEMPERATURA / AGITAÇÃO TÉRMICA -->
-            <div class="control-group">
-                <label for="temperatura">
-                    Temperatura (Agitação Térmica): <strong><span id="valTemp">0</span></strong>
-                </label>
-                <input type="range" id="temperatura" class="sim-slider" min="0" max="100" step="1" value="0">
+            <!-- Topo: Barra de Abas Expansíveis -->
+            <div class="tab-nav">
+                <button class="tab-btn active" id="tab-btn-params" title="Parâmetros Físicos">
+                    <img src="../assets/icons/rotate.svg" class="icon-svg" alt="Parâmetros">
+                    <span class="tab-label">Parâmetros</span>
+                </button>
+                <button class="tab-btn" id="tab-btn-theory" title="Fundamentação Teórica & Fórmulas">
+                    <img src="../assets/icons/compass.svg" class="icon-svg" alt="Teoria">
+                    <span class="tab-label">Teoria</span>
+                </button>
+                <button class="btn-collapse-sidebar" id="btn-collapse-sidebar" title="Modo Foco (F)">
+                    <img src="../assets/icons/collapse.svg" class="icon-svg" alt="Recolher">
+                </button>
             </div>
 
-            <div class="control-group">
-                <label for="tipoRede">Tipo de Rede:</label>
-                <select id="tipoRede" class="sim-control">
-                    <option value="triangular">Triangular</option>
-                    <option value="hexagonal">Hexagonal (Grafeno)</option>
-                    <option value="armchair">Armchair</option>
-                </select>
+            <!-- Centro: Corpo Rolável de Conteúdo -->
+            <div class="panel-body">
+
+                <!-- ABA 1: PARÂMETROS E CONTROLES -->
+                <div id="panel-tab-params">
+                    <div class="tab-header">
+                        <div class="tab-header-row">
+                            <h3 class="tab-title">Dinâmica de Carga & Transporte</h3>
+                            <div class="sim-badge" id="header-status-badge">
+                                <span class="status-dot"></span>
+                                <span>Ativo</span>
+                            </div>
+                        </div>
+                        <p class="tab-subtitle">Modelo microscópico clássico de condução em sólidos cristalinos e amorfos.</p>
+                    </div>
+
+                    <!-- 1. Barra de Reprodução Físico-Temporal -->
+                    <div class="sim-transport-bar">
+                        <div class="transport-controls-row">
+                            <button class="btn-primary btn-toggle transport-btn-play" id="btn-play-sim"
+                                    data-state="1"
+                                    data-text-idle="Executar"
+                                    data-text-active="Pausar"
+                                    data-icon-idle="play"
+                                    data-icon-active="pause">
+                                <img src="../assets/icons/pause.svg" class="icon-svg" alt="Pausar">
+                                <span class="btn-text">Pausar</span>
+                            </button>
+                            <button class="btn-icon" id="btn-step-sim" title="Avançar 1 Passo Temporal (Δt)">
+                                <img src="../assets/icons/step.svg" class="icon-svg" alt="Passo">
+                            </button>
+                            <button class="btn-icon" id="btn-reset-sim" title="Reiniciar Posições dos Elétrons">
+                                <img src="../assets/icons/refresh.svg" class="icon-svg" alt="Reset">
+                            </button>
+                        </div>
+
+                        <div class="transport-speed-row">
+                            <span class="transport-speed-label">
+                                <img src="../assets/icons/rotate.svg" class="icon-svg" style="width: 14px; height: 14px;" alt="Velocidade">
+                                Velocidade:
+                            </span>
+                            <div class="transport-speed-pills" id="sim-speed-pills">
+                                <button class="speed-btn" data-speed="0.5">0.5×</button>
+                                <button class="speed-btn active" data-speed="1.0">1.0×</button>
+                                <button class="speed-btn" data-speed="2.0">2.0×</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="sim-divider-label"><span>Campo Elétrico Externo</span></div>
+
+                    <!-- Sentido do Campo Elétrico -->
+                    <div class="control-group">
+                        <label>Sentido do Campo ($\vec{E}$):</label>
+                        <div class="segmented-control" id="dirCampoControl">
+                            <button type="button" class="segment-btn" data-dir="-1" title="Campo para a Esquerda">$\leftarrow$</button>
+                            <button type="button" class="segment-btn active" data-dir="0" title="Campo Desligado">$0$</button>
+                            <button type="button" class="segment-btn" data-dir="1" title="Campo para a Direita">$\rightarrow$</button>
+                        </div>
+                    </div>
+
+                    <!-- Slider Sincronizado: Intensidade do Campo -->
+                    <div class="control-group">
+                        <div class="slider-container sim-dual-slider">
+                            <div class="slider-header">
+                                <label for="slider-intensidade" class="slider-label">Intensidade do Campo ($|E|$)</label>
+                                <div class="dual-input-wrapper">
+                                    <input type="number" class="dual-input-number" id="numIntensidade"
+                                           min="0.00" max="1.00" step="0.05" value="0.20">
+                                </div>
+                            </div>
+                            <input type="range" class="sim-slider" id="slider-intensidade"
+                                   min="0.00" max="1.00" step="0.05" value="0.20">
+                        </div>
+                    </div>
+
+                    <div class="sim-divider-label"><span>Agitação Térmica & Fônons</span></div>
+
+                    <!-- Slider Sincronizado: Temperatura -->
+                    <div class="control-group">
+                        <div class="slider-container sim-dual-slider">
+                            <div class="slider-header">
+                                <label for="slider-temperatura" class="slider-label">Temperatura ($T$)</label>
+                                <div class="dual-input-wrapper">
+                                    <input type="number" class="dual-input-number" id="numTemperatura"
+                                           min="0" max="100" step="1" value="0">
+                                    <span class="dual-input-unit">arb</span>
+                                </div>
+                            </div>
+                            <input type="range" class="sim-slider" id="slider-temperatura"
+                                   min="0" max="100" step="1" value="0">
+                        </div>
+                    </div>
+
+                    <div class="sim-divider-label"><span>Estrutura da Rede Cristalina</span></div>
+
+                    <!-- Seletor de Tipo de Rede -->
+                    <div class="control-group">
+                        <label for="tipoRede">Geometria da Rede:</label>
+                        <select id="tipoRede" class="sim-control">
+                            <option value="quadrada">Rede Quadrada (Cúbica Simples 2D)</option>
+                            <option value="triangular">Rede Triangular (Compacta)</option>
+                            <option value="hexagonal">Rede Hexagonal (Grafeno / Honeycomb)</option>
+                            <option value="armchair">Grafeno com Borda Armchair</option>
+                            <option value="kagome">Rede de Kagome (Tri-hexagonal)</option>
+                            <option value="amorfa">Rede Amorfa (Sólido Desordenado)</option>
+                        </select>
+                    </div>
+
+                    <div class="sim-divider-label"><span>Portadores de Carga</span></div>
+
+                    <!-- Slider Sincronizado: Quantidade de Elétrons -->
+                    <div class="control-group">
+                        <div class="slider-container sim-dual-slider">
+                            <div class="slider-header">
+                                <label for="slider-eletrons" class="slider-label">Número de Elétrons ($N$)</label>
+                                <div class="dual-input-wrapper">
+                                    <input type="number" class="dual-input-number" id="numEletronsInput"
+                                           min="50" max="400" step="25" value="200">
+                                </div>
+                            </div>
+                            <input type="range" class="sim-slider" id="slider-eletrons"
+                                   min="50" max="400" step="25" value="200">
+                        </div>
+                    </div>
+
+                    <!-- Botão de Ação: Zerar Velocidades Térmicas -->
+                    <div class="control-group" style="margin-top: 14px;">
+                        <button id="btnZerar" class="btn-secondary" style="width: 100%;">
+                            <img src="../assets/icons/snowflake.svg" class="icon-svg" alt="Zerar">
+                            <span>Zerar Velocidades Térmicas</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- ABA 2: TEORIA E DEDUÇÃO MATEMÁTICA -->
+                <div id="panel-tab-theory" style="display: none;">
+                    <div class="tab-header">
+                        <div class="tab-header-row">
+                            <h3 class="tab-title">Fundamentação Teórica</h3>
+                        </div>
+                        <p class="tab-subtitle">O modelo microscópico de condução elétrica de Paul Drude (1900).</p>
+                    </div>
+
+                    <!-- Card Didático 1: Hipóteses de Drude -->
+                    <div class="control-group">
+                        <div class="theory-card">
+                            <h4><img src="../assets/icons/compass.svg" class="icon-svg icon-accent" alt="Modelo"> O Gás Clássico de Elétrons Livres</h4>
+                            <p>
+                                O modelo trata os elétrons de valência como partículas clássicas livres que se movem entre íons positivos fixos.
+                                Entre colisões sucessivas, as interações elétron-elétron e elétron-íon são desconsideradas, e a aceleração decorre exclusivamente do campo elétrico externo:
+                            </p>
+                            $$\mathbf{a} = -\frac{e\mathbf{E}}{m}$$
+                        </div>
+                    </div>
+
+                    <!-- Card Didático 2: Velocidade de Deriva e Lei de Ohm -->
+                    <div class="control-group">
+                        <div class="theory-card">
+                            <h4><img src="../assets/icons/rotate.svg" class="icon-svg icon-accent" alt="Deriva"> Velocidade de Deriva ($v_d$) & Tempo de Relaxação ($\tau$)</h4>
+                            <p>
+                                Em cada colisão com um íon da rede, o elétron sofre um espalhamento inelástico estocástico, "esquecendo" seu momento anterior.
+                                A velocidade média estacionária adquirida ao longo do campo é a <strong>velocidade de deriva</strong>:
+                            </p>
+                            $$\mathbf{v}_d = -\frac{e\tau}{m} \mathbf{E} = -\mu \mathbf{E}$$
+                            <p>
+                                A densidade de corrente de condução resultante expressa a Lei de Ohm microscópica:
+                            </p>
+                            $$\mathbf{J} = -n e \mathbf{v}_d = \frac{n e^2 \tau}{m} \mathbf{E} = \sigma_0 \mathbf{E}$$
+
+                            <button class="btn-secondary" id="btn-open-theory-modal" style="width: 100%; margin-top: 12px;">
+                                <img src="../assets/icons/compass.svg" class="icon-svg" alt="Teoria">
+                                Ver Dedução Matemática Completa
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Card Didático 3: Temperatura e Resistência -->
+                    <div class="control-group">
+                        <div class="theory-card">
+                            <h4><img src="../assets/icons/thermometer.svg" class="icon-svg icon-accent" alt="Calor"> Resistividade & Agitação Térmica</h4>
+                            <p>
+                                O aumento da temperatura faz os íons oscilarem ao redor de suas posições de equilíbrio na rede (fônons).
+                                Isso amplia a <strong>seção de choque transversal efetiva</strong> de colisão, diminuindo o tempo de relaxação $\tau(T)$
+                                e provocando a elevação da resistividade elétrica $\rho(T) = 1/\sigma(T)$.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Referência Bibliográfica -->
+                    <div class="control-group">
+                        <div class="biblio-ref">
+                            📖 <strong>Referência:</strong> N. W. Ashcroft & N. D. Mermin, <em>Solid State Physics</em> (Cap. 1: The Drude Theory of Metals), Saunders College Publishing.
+                        </div>
+                    </div>
+                </div>
+
             </div>
 
-            <div class="control-group">
-                <button id="btnZerar" class="sim-btn">Zerar Velocidades</button>
+            <!-- Base: Rodapé Fixo de Telemetria -->
+            <div class="panel-footer">
+                <div class="sim-badge" id="footer-status-badge">
+                    <span class="status-dot"></span>
+                    <span id="footer-status-text">Simulação Ativa</span>
+                </div>
+                <span class="footer-meta" id="footer-sim-info">v_d = 0.00 px/s</span>
             </div>
+
         </aside>
+
     </main>
 
-    <!-- Script da Simulação -->
-    <script src="scripts/drude.js"></script>
+    <!-- Modal Didático de Teoria e Fórmulas Matemáticas -->
+    <div id="modal-teoria" class="sim-modal-overlay hidden" aria-hidden="true" role="dialog">
+        <div class="sim-modal-container">
+            <div class="sim-modal-header">
+                <div class="sim-modal-title">
+                    <img src="../assets/icons/compass.svg" class="icon-svg icon-accent" alt="Teoria">
+                    <span>Fundamentação Teórica: Modelo de Condução de Drude</span>
+                </div>
+                <button class="sim-modal-close" data-modal-close title="Fechar Modal (Esc)">✕</button>
+            </div>
+
+            <div class="sim-modal-body">
+                <div class="theory-section">
+                    <h4>1. Equação do Transporte de Momento com Termo de Fricção</h4>
+                    <p>
+                        A taxa média de variação do momento linear $\mathbf{p}(t) = m\mathbf{v}(t)$ de um elétron sujeito a um campo elétrico $\mathbf{E}$ e a colisões estocásticas com taxa média $1/\tau$ é expressa pela equação diferencial de Langevin/Drude:
+                    </p>
+                    $$\frac{d\mathbf{p}}{dt} = -e\mathbf{E} - \frac{\mathbf{p}}{\tau}$$
+                    <p>
+                        Em regime estacionário ($\frac{d\mathbf{p}}{dt} = 0$), o ganho de momento decorrente do campo elétrico equilibra perfeitamente a dissipação por espalhamento com os íons da rede:
+                    </p>
+                    $$\mathbf{p}_{\text{est}} = -e\tau\mathbf{E} \implies \mathbf{v}_d = -\frac{e\tau}{m}\mathbf{E}$$
+                </div>
+
+                <div class="theory-section">
+                    <h4>2. Condutividade Elétrica e Resistividade Estática</h4>
+                    <p>
+                        Para uma densidade volumétrica de $n$ elétrons de condução por unidade de volume, cada qual carregando carga $-e$, a densidade de corrente elétrica líquida $\mathbf{J}$ é:
+                    </p>
+                    $$\mathbf{J} = -n e \mathbf{v}_d = \left(\frac{n e^2 \tau}{m}\right) \mathbf{E} = \sigma_0 \mathbf{E}$$
+                    <p>
+                        A resistividade elétrica de Drude $\rho_0$ é o recíproco da condutividade $\sigma_0$:
+                    </p>
+                    $$\rho_0 = \frac{1}{\sigma_0} = \frac{m}{n e^2 \tau}$$
+                </div>
+
+                <div class="theory-callout">
+                    <strong>💡 Ordens de Grandeza Notáveis em Metais Típicos (Cobre):</strong>
+                    <ul>
+                        <li><strong>Velocidade Térmica ($v_{\text{th}}$ / $v_F$):</strong> $\sim 10^6 \text{ m/s}$ (movimento ultrarrápido caótico).</li>
+                        <li><strong>Velocidade de Deriva ($v_d$):</strong> $\sim 10^{-4} \text{ m/s} = 0.1 \text{ mm/s}$ (deriva líquida extremamente lenta).</li>
+                        <li><strong>Tempo de relaxação ($\tau$):</strong> $\sim 10^{-14} \text{ s} = 10 \text{ fs}$.</li>
+                        <li><strong>Livre caminho médio ($\ell = v\tau$):</strong> $\sim 10 \text{ nm}$ (centenas de parâmetros de rede).</li>
+                    </ul>
+                </div>
+
+                <div class="theory-section">
+                    <h4>3. Efeito da Temperatura: Espalhamento por Fônons</h4>
+                    <p>
+                        Em uma rede cristalina estática perfeita a $T = 0\text{ K}$, a teoria quântica de Bloch demonstra que os elétrons se propagam como ondas sem resistência alguma.
+                        A resistência em metais puros provém quase inteiramente da <strong>agitação térmica dos núcleos</strong> (ondas acústicas na rede ou fônons) e de defeitos estruturais.
+                    </p>
+                    <p>
+                        À medida que a temperatura $T$ sobe, a amplitude média quadrática de oscilação dos núcleos $\langle u^2 \rangle \propto T$ cresce, elevando a seção de choque aparente $\sigma_{\text{choque}}$ e encurtando o tempo entre colisões $\tau$:
+                    </p>
+                    $$\tau(T) \propto \frac{1}{T} \implies \rho(T) \propto T \quad (\text{para } T > \Theta_D)$$
+                    <p>
+                        Essa relação linear $\rho(T) \propto T$ em temperaturas médias e altas é fielmente reproduzida pelo modelo simulado.
+                    </p>
+                </div>
+
+                <div class="theory-section">
+                    <h4>4. Estruturas Cristalinas & Efeito da Geometria</h4>
+                    <p>
+                        Diferentes geometrias de rede — como <strong>quadrada</strong>, <strong>triangular</strong>, <strong>hexagonal (grafeno)</strong> e <strong>kagome</strong> — impõem caminhos de espalhamento e geometrias de canal distintas para os portadores de carga.
+                        Em redes ordenadas, trajetórias balísticas e canais de condução podem surgir ao longo de direções de alta simetria cristalográfica, enquanto redes <strong>amorfas</strong> desordenadas introduzem espalhamento isotrópico uniforme de alta resistividade residual (Lei de Matthiessen).
+                    </p>
+                </div>
+            </div>
+
+            <div class="sim-modal-footer">
+                <span class="sim-modal-hint">Pressione <kbd>Esc</kbd> para fechar</span>
+                <button class="btn-primary" data-modal-close style="min-width: 100px;">Entendido</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Script Principal da Simulação (ES Module) -->
+    <script type="module" src="scripts/drude.js"></script>
 </body>
 
-</html>
+</html>

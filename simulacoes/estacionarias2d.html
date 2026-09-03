@@ -8,7 +8,7 @@
     <title>Ondas Estacionárias 2D — Padrões de Chladni</title>
 
     <meta name="description"
-        content="Simulação de ondas estacionárias bidimensionais em superfícies quadradas. Visualize os padrões modais e linhas nodais de Chladni para diferentes modos de vibração n e m.">
+        content="Simulação interativa de ondas estacionárias bidimensionais em superfícies retangulares. Visualize os padrões modais e linhas nodais de Chladni para diferentes modos n e m.">
     <meta name="keywords"
         content="ondas estacionárias, figuras de chladni, padrões modais, linhas nodais, vibração 2D, acústica, física ondulatória">
     <meta name="author" content="Nicolas Heringer">
@@ -16,74 +16,345 @@
     <!-- Favicon -->
     <link rel="icon" type="image/svg+xml" href="../favicon.svg">
 
-    <!-- Estilos CSS -->
-    <link rel="stylesheet" href="css/base.css">
+    <!-- Estilos CSS do Design System e Específicos -->
+    <link rel="stylesheet" href="css/design-system.css">
     <link rel="stylesheet" href="css/estacionarias2d.css">
 
-    <!-- Suporte a LaTeX com KaTeX -->
+    <!-- Suporte a Fórmulas Matemáticas com KaTeX -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" crossorigin="anonymous">
     <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" crossorigin="anonymous"></script>
-    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" crossorigin="anonymous"
-        onload="renderMathInElement(document.body, {
-            delimiters: [
-                {left: '$$', right: '$$', display: true},
-                {left: '$', right: '$', display: false},
-                {left: '\\(', right: '\\)', display: false},
-                {left: '\\[', right: '\\]', display: true}
-            ],
-            throwOnError: false
-        });"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" crossorigin="anonymous"></script>
 </head>
 
 <body>
     <!-- Cabeçalho da Simulação -->
     <header class="sim-header">
-        <a href="../index.html#secao-simulacoes" class="btn-back">← Voltar ao Hub</a>
-        <span class="sim-title">Ondas Estacionárias 2D</span>
+        <a href="../index.html#secao-simulacoes" class="btn-back">
+            <svg class="icon-svg" viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+            Voltar ao Hub
+        </a>
+        <h1 class="sim-title">Ondas Estacionárias 2D — Padrões de Chladni</h1>
     </header>
 
-    <!-- Conteúdo Principal -->
+    <!-- Layout Grid Principal -->
     <main class="sim-layout">
-        <!-- Área de Visualização (Canvas) -->
+
+        <!-- 1. Área do Canvas Interativo 2D -->
         <div class="canvas-area">
-            <canvas id="simulacao" width="600" height="600"></canvas>
+            <canvas id="simulacao"></canvas>
+
+            <!-- Grupo de Ações Flutuantes no Topo Direito -->
+            <div class="canvas-top-actions">
+                <button id="btn-export-png" class="canvas-btn-floating" title="Salvar Padrão como Imagem PNG">
+                    <img src="../assets/icons/sparkles.svg" class="icon-svg" alt="Exportar">
+                    <span class="btn-label-text">Exportar PNG</span>
+                </button>
+                <button id="btn-expand-sidebar" class="canvas-btn-expand-sidebar" title="Expandir Painel de Controles (F)">
+                    <img src="../assets/icons/expand.svg" class="icon-svg" alt="Expandir">
+                    <span class="btn-label-text">Controles</span>
+                </button>
+            </div>
+
+            <!-- HUD de Telemetria e Inspeção sob o Cursor -->
+            <div class="sim-hud" id="sim-hud">
+                <div class="hud-item">
+                    <span class="hud-label">Modo $(n, m)$:</span>
+                    <span class="hud-val" id="hud-mode" style="color: var(--accent-hud, var(--accent-color));">n = 1, m = 5</span>
+                </div>
+                <div class="hud-item">
+                    <span class="hud-label">Frequência $f/f_0$:</span>
+                    <span class="hud-val" id="hud-freq" style="color: var(--color-emerald, #22c55e);">5.10 f₀</span>
+                </div>
+                <div class="hud-item">
+                    <span class="hud-label">Posição:</span>
+                    <span class="hud-val" id="hud-coords">(x: -, y: -)</span>
+                </div>
+                <div class="hud-item">
+                    <span class="hud-label">Amplitude $\psi$:</span>
+                    <span class="hud-val" id="hud-amplitude">ψ = 0.00</span>
+                </div>
+            </div>
+
+            <!-- Dica Interativa Flutuante -->
+            <div class="interactive-hint">
+                <img src="../assets/icons/lightbulb.svg" class="icon-svg icon-accent" alt="Dica">
+                Passe o cursor sobre a placa para ler a amplitude local $\psi(x, y)$ ou experimente os modos e presets.
+            </div>
         </div>
 
-        <!-- Painel de Controles -->
+        <!-- 2. Painel Lateral de Controles (Layout Tripartido / Bottom Sheet no Mobile) -->
         <aside class="controls-panel">
-            <div class="control-group">
-                <label for="n">Modo n:</label>
-                <input type="number" id="n" class="sim-input" value="1" min="1" max="10">
+
+            <!-- Alça de Arraste para Mobile / Tablet (Bottom Sheet) -->
+            <div class="sheet-drag-handle" id="sheet-drag-handle" title="Deslize ou toque para expandir/recolher">
+                <div class="sheet-drag-pill"></div>
             </div>
 
-            <div class="control-group">
-                <label for="m">Modo m:</label>
-                <input type="number" id="m" class="sim-input" value="5" min="1" max="10">
+            <!-- Topo: Barra de Abas Expansíveis -->
+            <div class="tab-nav">
+                <button class="tab-btn active" id="tab-btn-params" title="Parâmetros Modais">
+                    <img src="../assets/icons/rotate.svg" class="icon-svg" alt="Parâmetros">
+                    <span class="tab-label">Parâmetros</span>
+                </button>
+                <button class="tab-btn" id="tab-btn-theory" title="Fundamentação Teórica & Fórmulas">
+                    <img src="../assets/icons/compass.svg" class="icon-svg" alt="Teoria">
+                    <span class="tab-label">Teoria</span>
+                </button>
+                <button class="btn-collapse-sidebar" id="btn-collapse-sidebar" title="Modo Foco (F)">
+                    <img src="../assets/icons/collapse.svg" class="icon-svg" alt="Recolher">
+                </button>
             </div>
 
-            <div class="control-group">
-                <label for="drawType">Tipo de desenho:</label>
-                <select id="drawType" class="sim-control">
-                    <option value="mapped">Escala de cinza</option>
-                    <option value="abs">Nós das ondas</option>
-                    <option value="positiveAndNegative">Positivo e negativo</option>
-                </select>
+            <!-- Centro: Corpo Rolável de Conteúdo -->
+            <div class="panel-body">
+
+                <!-- ABA 1: PARÂMETROS E CONTROLES -->
+                <div id="panel-tab-params">
+                    <div class="tab-header">
+                        <div class="tab-header-row">
+                            <h3 class="tab-title">Modos Normais & Chladni</h3>
+                            <div class="sim-badge" id="header-status-badge">
+                                <span class="status-dot"></span>
+                                <span>Ativo</span>
+                            </div>
+                        </div>
+                        <p class="tab-subtitle">Vibração estacionária em superfícies bidimensionais com bordas livres.</p>
+                    </div>
+
+                    <!-- Slider Sincronizado: Modo n -->
+                    <div class="control-group">
+                        <div class="slider-container sim-dual-slider">
+                            <div class="slider-header">
+                                <label for="slider-n" class="slider-label">Modo Horizontal ($n$)</label>
+                                <div class="dual-input-wrapper">
+                                    <input type="number" class="dual-input-number" id="n"
+                                           min="1" max="10" step="1" value="1">
+                                </div>
+                            </div>
+                            <input type="range" class="sim-slider" id="slider-n"
+                                   min="1" max="10" step="1" value="1">
+                        </div>
+                    </div>
+
+                    <!-- Slider Sincronizado: Modo m -->
+                    <div class="control-group">
+                        <div class="slider-container sim-dual-slider">
+                            <div class="slider-header">
+                                <label for="slider-m" class="slider-label">Modo Vertical ($m$)</label>
+                                <div class="dual-input-wrapper">
+                                    <input type="number" class="dual-input-number" id="m"
+                                           min="1" max="10" step="1" value="5">
+                                </div>
+                            </div>
+                            <input type="range" class="sim-slider" id="slider-m"
+                                   min="1" max="10" step="1" value="5">
+                        </div>
+                    </div>
+
+                    <div class="sim-divider-label"><span>Mapeamento & Visualização</span></div>
+
+                    <!-- Seletor de Tipo de Desenho -->
+                    <div class="control-group">
+                        <label for="drawType">Tipo de Desenho:</label>
+                        <select id="drawType" class="sim-control">
+                            <option value="mapped">Escala de cinza (Amplitude Contínua)</option>
+                            <option value="abs">Nós das ondas (Linhas de Chladni)</option>
+                            <option value="positiveAndNegative">Positivo e negativo (Fases Opostas)</option>
+                            <option value="random">Cores aleatórias (Mapeamento Cromático)</option>
+                        </select>
+                    </div>
+
+                    <div class="sim-divider-label"><span>Padrões Notáveis (Presets)</span></div>
+
+                    <!-- Grade de Presets Clássicos -->
+                    <div class="control-group">
+                        <div class="control-grid-2x2">
+                            <button class="btn-preset active" data-n="1" data-m="5">
+                                <img src="../assets/icons/sparkles.svg" class="icon-svg" alt="Padrão"> (1, 5) Padrão
+                            </button>
+                            <button class="btn-preset" data-n="2" data-m="3">
+                                <img src="../assets/icons/compass.svg" class="icon-svg" alt="Cruz"> (2, 3) Cruz Dupla
+                            </button>
+                            <button class="btn-preset" data-n="3" data-m="5">
+                                <img src="../assets/icons/rotate.svg" class="icon-svg" alt="Xadrez"> (3, 5) Xadrez
+                            </button>
+                            <button class="btn-preset" data-n="1" data-m="3">
+                                <img src="../assets/icons/sun.svg" class="icon-svg" alt="Simetria"> (1, 3) Quádruplo
+                            </button>
+                            <button class="btn-preset" data-n="4" data-m="6">
+                                <img src="../assets/icons/wind.svg" class="icon-svg" alt="Alta Freq"> (4, 6) Fina
+                            </button>
+                            <button class="btn-preset" data-n="2" data-m="7">
+                                <img src="../assets/icons/cyclone.svg" class="icon-svg" alt="Curvas"> (2, 7) Harmônica
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="sim-divider-label"><span>Resolução da Grade</span></div>
+
+                    <!-- Resolução / Tamanho da Célula -->
+                    <div class="control-group">
+                        <label for="cellSizeSelect">Tamanho da Célula de Cálculo:</label>
+                        <select id="cellSizeSelect" class="sim-control">
+                            <option value="2">2 px (Ultra Definição)</option>
+                            <option value="4" selected>4 px (Equilibrada — Recomendada)</option>
+                            <option value="6">6 px (Desempenho Rápido)</option>
+                        </select>
+                    </div>
+
+                    <!-- Botão de Ação -->
+                    <div class="control-group" style="margin-top: 14px;">
+                        <button id="atualizar" class="btn-primary" style="width: 100%;">
+                            <img src="../assets/icons/refresh.svg" class="icon-svg" alt="Atualizar">
+                            <span>Atualizar Simulação</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- ABA 2: TEORIA E DEDUÇÃO MATEMÁTICA -->
+                <div id="panel-tab-theory" style="display: none;">
+                    <div class="tab-header">
+                        <div class="tab-header-row">
+                            <h3 class="tab-title">Fundamentação Teórica</h3>
+                        </div>
+                        <p class="tab-subtitle">Princípios físicos das figuras de Chladni e superposição modal em 2D.</p>
+                    </div>
+
+                    <!-- Card Didático 1: Figuras de Chladni -->
+                    <div class="control-group">
+                        <div class="theory-card">
+                            <h4><img src="../assets/icons/compass.svg" class="icon-svg icon-accent" alt="Acústica"> O Experimento de Chladni (1787)</h4>
+                            <p>
+                                O físico alemão Ernst Chladni espalhou areia fina sobre placas metálicas vibrantes excitadas por um arco de violino.
+                                As partículas de areia são arremessadas para longe das zonas de oscilação vigorosa (antinós) e repousam estavelmente nas
+                                <strong>linhas nodais</strong>, onde o deslocamento vertical é estritamente nulo ($\psi = 0$).
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Card Didático 2: Equação Governante -->
+                    <div class="control-group">
+                        <div class="theory-card">
+                            <h4><img src="../assets/icons/rotate.svg" class="icon-svg icon-accent" alt="Modos"> Superposição e Degenerescência</h4>
+                            <p>
+                                Para uma placa quadrada de lado $L$ com bordas livres, os modos normais $(n, m)$ e $(m, n)$ compartilham a mesma frequência natural própria ($\omega_{nm} = \omega_{mn}$).
+                                A interferência estacionária antissimétrica gera o padrão de Chladni:
+                            </p>
+                            $$\psi_{n,m}(x, y) = \cos\left(\frac{n\pi x}{L}\right) \cos\left(\frac{m\pi y}{L}\right) - \cos\left(\frac{m\pi x}{L}\right) \cos\left(\frac{n\pi y}{L}\right)$$
+                            <p>
+                                A relação de frequência própria normalizada satisfaz:
+                            </p>
+                            $$\frac{f_{n,m}}{f_0} = \sqrt{n^2 + m^2}$$
+
+                            <button class="btn-secondary" id="btn-open-theory-modal" style="width: 100%; margin-top: 12px;">
+                                <img src="../assets/icons/compass.svg" class="icon-svg" alt="Teoria">
+                                Ver Dedução Matemática Completa
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Referência Bibliográfica -->
+                    <div class="control-group">
+                        <div class="biblio-ref">
+                            📖 <strong>Referência:</strong> Silva et al., <em>Padrões de Chladni em superfícies quadradas</em>. <a
+                                href="https://doi.org/10.1590/1806-9126-RBEF-2023-0354"
+                                target="_blank" rel="noopener noreferrer">Revista Brasileira de Ensino de Física (RBEF), DOI: 10.1590/1806-9126-RBEF-2023-0354</a>.
+                        </div>
+                    </div>
+                </div>
+
             </div>
 
-            <div class="control-group">
-                <button id="atualizar" class="sim-btn">Atualizar</button>
+            <!-- Base: Rodapé Fixo de Telemetria -->
+            <div class="panel-footer">
+                <div class="sim-badge" id="footer-status-badge">
+                    <span class="status-dot"></span>
+                    <span id="footer-status-text">Simulação Ativa</span>
+                </div>
+                <span class="footer-meta" id="footer-sim-info">f = 5.10 f₀</span>
             </div>
 
-            <div class="info-section">
-                <p>Visualização de padrões de Chladni (ondas estacionárias bidimensionais em uma superfície quadrada).
-                </p>
-                <p>Referência: <a href="https://doi.org/10.1590/1806-9126-RBEF-2023-0354">Aqui</a></p>
-            </div>
         </aside>
+
     </main>
 
-    <!-- Script da Simulação -->
-    <script type="text/javascript" src="scripts/estacionarias2d.js"></script>
+    <!-- Modal Didático de Teoria e Fórmulas Matemáticas -->
+    <div id="modal-teoria" class="sim-modal-overlay hidden" aria-hidden="true" role="dialog">
+        <div class="sim-modal-container">
+            <div class="sim-modal-header">
+                <div class="sim-modal-title">
+                    <img src="../assets/icons/compass.svg" class="icon-svg icon-accent" alt="Teoria">
+                    <span>Fundamentação Teórica: Modos Normais 2D & Chladni</span>
+                </div>
+                <button class="sim-modal-close" data-modal-close title="Fechar Modal (Esc)">✕</button>
+            </div>
+
+            <div class="sim-modal-body">
+                <div class="theory-section">
+                    <h4>1. Equação de Onda Bidimensional e Equação de Helmholtz</h4>
+                    <p>
+                        A vibração transversal de pequenas amplitudes em uma membrana ou placa bidimensional é descrita pela equação de onda diferencial parcial:
+                    </p>
+                    $$\nabla^2 \psi(x, y, t) = \frac{1}{v^2} \frac{\partial^2 \psi(x, y, t)}{\partial t^2}$$
+                    <p>
+                        onde $\nabla^2 = \frac{\partial^2}{\partial x^2} + \frac{\partial^2}{\partial y^2}$ é o operador Laplaciano 2D e $v$ é a velocidade de fase das ondas mecânicas no meio.
+                        Adotando soluções harmônicas estacionárias da forma $\psi(x, y, t) = \phi(x, y) \cos(\omega t + \delta)$, obtemos a <strong>Equação de Helmholtz</strong>:
+                    </p>
+                    $$\nabla^2 \phi(x, y) + k^2 \phi(x, y) = 0, \quad k = \frac{\omega}{v}$$
+                </div>
+
+                <div class="theory-section">
+                    <h4>2. Separação de Variáveis e Condições de Borda Livre</h4>
+                    <p>
+                        Em coordenadas cartesianas, assumindo $\phi(x, y) = X(x) Y(y)$ em uma placa retangular de lados $L_x$ e $L_y$:
+                    </p>
+                    $$\frac{1}{X} \frac{d^2 X}{dx^2} + \frac{1}{Y} \frac{d^2 Y}{dy^2} + k^2 = 0$$
+                    <p>
+                        Para contornos livres (tensão ou momento nulo nas bordas), as autofunções espaciais são cossenoidais:
+                    </p>
+                    $$X_n(x) = \cos\left(\frac{n\pi x}{L_x}\right), \quad Y_m(y) = \cos\left(\frac{m\pi y}{L_y}\right) \quad (n, m \in \mathbb{N})$$
+                    <p>
+                        A relação de dispersão dos autovalores fornece as frequências de ressonância:
+                    </p>
+                    $$\omega_{n,m} = \pi v \sqrt{\left(\frac{n}{L_x}\right)^2 + \left(\frac{m}{L_y}\right)^2}$$
+                </div>
+
+                <div class="theory-callout">
+                    <strong>💡 Degenerescência Modal em Placas Quadradas ($L_x = L_y = L$):</strong>
+                    <p>
+                        Quando a geometria é perfeitamente quadrada, os modos $(n, m)$ e $(m, n)$ compartilham exatamente a mesma frequência própria:
+                    </p>
+                    $$\omega_{n,m} = \omega_{m,n} = \frac{\pi v}{L} \sqrt{n^2 + m^2}$$
+                    <p>
+                        Devido à linearidade da equação de onda, qualquer combinação linear dessas soluções degeneradas também é um modo próprio estacionário válido com a mesma frequência.
+                    </p>
+                </div>
+
+                <div class="theory-section">
+                    <h4>3. A Fórmula de Chladni & Linhas Nodais</h4>
+                    <p>
+                        A configuração clássica observada experimentalmente corresponde à superposição antissimétrica entre os dois modos degenerados:
+                    </p>
+                    $$\psi_{n,m}(x, y) = \cos\left(\frac{n\pi x}{L}\right) \cos\left(\frac{m\pi y}{L}\right) - \cos\left(\frac{m\pi x}{L}\right) \cos\left(\frac{n\pi y}{L}\right)$$
+                    <p>
+                        As <strong>linhas nodais</strong> são definidas pelo conjunto de pontos onde o deslocamento transversal se anula identicamente em todos os instantes:
+                    </p>
+                    $$\psi_{n,m}(x, y) = 0$$
+                    <p>
+                        Nessas curvas, a aceleração vertical $\ddot{\psi} = -\omega^2 \psi$ é zero. Grãos de areia ou partículas espalhadas sobre a placa recebem impulsos mecânicos contínuos em regiões com $\psi \neq 0$ até se estabilizarem nas linhas nodais, revelando visualmente os fascinantes padrões geométricos de Chladni.
+                    </p>
+                </div>
+            </div>
+
+            <div class="sim-modal-footer">
+                <span class="sim-modal-hint">Pressione <kbd>Esc</kbd> para fechar</span>
+                <button class="btn-primary" data-modal-close style="min-width: 100px;">Entendido</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Script Principal da Simulação (ES Module) -->
+    <script type="module" src="scripts/estacionarias2d.js"></script>
 </body>
 
-</html>
+</html>

@@ -1,27 +1,55 @@
-/* Estilos específicos da simulação Modelo de Drude */
+/* =============================================================================
+   Estilos específicos da simulação Modelo de Drude
+   Design System 2.0
+   ============================================================================= */
 
+/* Canvas da Simulação preenchendo 100% da área útil */
 #drudeCanvas {
-  border: none;
-  display: block;
-  margin: 0 auto;
+    display: block;
+    width: 100%;
+    height: 100%;
+    cursor: default;
+    background-color: #070b16;
 }
 
-#btnZerar {
-  width: 100%;
-  margin-top: 10px;
-}
-
-/* Botões de Sentido do Campo Elétrico com símbolos KaTeX ampliados */
+/* Botões de Sentido do Campo Elétrico */
 #dirCampoControl .segment-btn {
-  font-size: 1.25rem;
-  padding: 6px 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 38px;
+    font-size: 1.15rem;
+    padding: 6px 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 38px;
 }
 
 #dirCampoControl .segment-btn .katex {
-  font-size: 1.3em;
-  line-height: 1;
+    font-size: 1.25em;
+    line-height: 1;
 }
+
+/* Bloco de citação bibliográfica */
+.biblio-ref {
+    margin-top: 10px;
+    padding: 10px 12px;
+    background: rgba(56, 189, 248, 0.08);
+    border-left: 3px solid var(--accent-color, #38bdf8);
+    border-radius: var(--radius-xs);
+    font-size: 0.82rem;
+    line-height: 1.45;
+    color: var(--text-muted, #94a3b8);
+}
+
+.biblio-ref strong {
+    color: var(--text-main, #f8fafc);
+}
+
+.biblio-ref a {
+    color: var(--accent-color, #38bdf8);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    transition: opacity 0.2s ease;
+}
+
+.biblio-ref a:hover {
+    opacity: 0.85;
+}
