@@ -73,6 +73,25 @@
                 </button>
             </div>
 
+            <!-- Controles Flutuantes de Zoom do Gráfico 2D -->
+            <div class="canvas-zoom-toolbar" id="canvasZoomToolbar" style="display: none;">
+                <button id="btn-zoom-in" class="zoom-btn" title="Aumentar Zoom (Scroll Up)">
+                    <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="12" y1="5" x2="12" y2="19"></line>
+                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                    </svg>
+                </button>
+                <span class="zoom-badge" id="lbl-zoom-level">100%</span>
+                <button id="btn-zoom-out" class="zoom-btn" title="Diminuir Zoom (Scroll Down)">
+                    <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                    </svg>
+                </button>
+                <button id="btn-zoom-reset" class="zoom-btn" title="Centralizar e Redefinir Zoom">
+                    <img src="../assets/icons/refresh.svg" class="icon-svg" alt="Reset">
+                </button>
+            </div>
+
             <!-- Dica Interativa Flutuante -->
             <div class="interactive-hint" id="canvasHint">
                 <img src="../assets/icons/lightbulb.svg" class="icon-svg icon-accent" alt="Dica">

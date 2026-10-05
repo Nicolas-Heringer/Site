@@ -138,6 +138,22 @@ class MovimentoSimulation {
         // Índice no Scrubber Temporal
         this.selectedTimeIndex = 0;
 
+        // Zoom e Rolagem (Pan) no Gráfico 2D
+        this.canvasZoomToolbar = document.getElementById('canvasZoomToolbar');
+        this.btnZoomIn = document.getElementById('btn-zoom-in');
+        this.btnZoomOut = document.getElementById('btn-zoom-out');
+        this.btnZoomReset = document.getElementById('btn-zoom-reset');
+        this.lblZoomLevel = document.getElementById('lbl-zoom-level');
+
+        this.graphZoom = 1.0;
+        this.graphPanX = 0;
+        this.graphPanY = 0;
+        this.panStartX = 0;
+        this.panStartY = 0;
+        this.initialPanX = 0;
+        this.initialPanY = 0;
+        this.hasPanned = false;
+
         // Animações Suaves de Transição
         this.transitionProgress = 0.0;
         this.targetTransition = 0.0;
@@ -434,6 +450,11 @@ class MovimentoSimulation {
         document.getElementById('btnPanelToggleViewEq2')?.addEventListener('click', () => this.toggleViewMode());
         this.btnToggleAxis?.addEventListener('click', () => this.toggleAxisView());
 
+        // Controles de Zoom do Gráfico 2D
+        this.btnZoomIn?.addEventListener('click', () => this.zoomIn());
+        this.btnZoomOut?.addEventListener('click', () => this.zoomOut());
+        this.btnZoomReset?.addEventListener('click', () => this.resetZoomPan());
+
         const getCanvasCoords = (e) => {
             const rect = this.canvas.getBoundingClientRect();
             const clientX = e.touches ? e.touches[0].clientX : e.clientX;
@@ -460,8 +481,14 @@ class MovimentoSimulation {
                     this.canvas.classList.add('cursor-grabbing');
                 }
             } else {
-                this.seekFromCanvasCoords(pos);
+                // Modo 2D: Pan e Arraste do Gráfico
+                this.panStartX = pos.x;
+                this.panStartY = pos.y;
+                this.initialPanX = this.graphPanX;
+                this.initialPanY = this.graphPanY;
                 this.isDragging = true;
+                this.hasPanned = false;
+                this.canvas.classList.add('cursor-grabbing');
             }
         };
 
@@ -484,18 +511,40 @@ class MovimentoSimulation {
                     }
                 }
             } else {
+                // Modo 2D: Panning contínuo se arrastar
                 if (this.isDragging) {
-                    this.seekFromCanvasCoords(pos);
+                    const dx = pos.x - this.panStartX;
+                    const dy = pos.y - this.panStartY;
+                    if (Math.hypot(dx, dy) > 3 || this.hasPanned) {
+                        this.hasPanned = true;
+                        this.graphPanX = this.initialPanX + dx;
+                        this.graphPanY = this.initialPanY + dy;
+                    }
                 }
             }
         };
 
-        const onEnd = () => {
-            this.isDragging = false;
-            this.canvas.classList.remove('cursor-grabbing');
-            if (this.isHoveringBallA && this.mode === '1D') {
+        const onEnd = (e) => {
+            if (this.mode !== '1D') {
+                if (this.isDragging && !this.hasPanned && e) {
+                    const pos = getCanvasCoords(e.changedTouches ? e.changedTouches[0] : e);
+                    if (pos && !isNaN(pos.x)) {
+                        this.seekFromCanvasCoords(pos);
+                    }
+                }
                 this.canvas.classList.add('cursor-grab');
+            } else {
+                if (this.motionType === 'manual' && !this.isPlaying) {
+                    this.vA = 0;
+                }
+                if (this.isHoveringBallA) {
+                    this.canvas.classList.add('cursor-grab');
+                }
             }
+
+            this.isDragging = false;
+            this.hasPanned = false;
+            this.canvas.classList.remove('cursor-grabbing');
         };
 
         this.canvas.addEventListener('mousedown', onStart);
@@ -505,6 +554,56 @@ class MovimentoSimulation {
         this.canvas.addEventListener('touchstart', onStart, { passive: true });
         this.canvas.addEventListener('touchmove', onMove, { passive: true });
         window.addEventListener('touchend', onEnd);
+
+        // Zoom com a roda do mouse (Wheel)
+        this.canvas.addEventListener('wheel', (e) => {
+            if (this.mode !== '1D') {
+                e.preventDefault();
+                const pos = getCanvasCoords(e);
+                const factor = e.deltaY < 0 ? 1.15 : (1 / 1.15);
+                this.setZoom(this.graphZoom * factor, pos.x, pos.y);
+            }
+        }, { passive: false });
+    }
+
+    setZoom(newZoom, cursorX, cursorY) {
+        const clampedZoom = Math.max(0.4, Math.min(6.0, newZoom));
+        if (Math.abs(clampedZoom - this.graphZoom) < 1e-4) return;
+
+        const margin = 70;
+        const w = this.width - margin * 2;
+        const h = this.height - margin * 2;
+        const cx = margin + w / 2;
+        const cy = margin + h / 2;
+
+        const pivotX = cursorX !== undefined ? cursorX : cx;
+        const pivotY = cursorY !== undefined ? cursorY : cy;
+
+        const ratio = clampedZoom / this.graphZoom;
+        this.graphPanX = (pivotX - cx) - ((pivotX - cx) - this.graphPanX) * ratio;
+        this.graphPanY = (pivotY - cy) - ((pivotY - cy) - this.graphPanY) * ratio;
+        this.graphZoom = clampedZoom;
+
+        if (this.lblZoomLevel) {
+            this.lblZoomLevel.textContent = `${Math.round(this.graphZoom * 100)}%`;
+        }
+    }
+
+    zoomIn() {
+        this.setZoom(this.graphZoom * 1.25);
+    }
+
+    zoomOut() {
+        this.setZoom(this.graphZoom / 1.25);
+    }
+
+    resetZoomPan() {
+        this.graphZoom = 1.0;
+        this.graphPanX = 0;
+        this.graphPanY = 0;
+        if (this.lblZoomLevel) {
+            this.lblZoomLevel.textContent = '100%';
+        }
     }
 
     onParamChangeA() {
@@ -532,6 +631,13 @@ class MovimentoSimulation {
         }
 
         this.motionType = type;
+
+        if (type === 'manual') {
+            this.aA = 0.0;
+            this.aB = 0.0;
+            this.vA = 0.0;
+            this.vB = 0.0;
+        }
 
         if (this.t === 0) {
             if (type === 'manual') {
@@ -846,21 +952,12 @@ class MovimentoSimulation {
         if (this.recordingA.length === 0) return;
 
         const margin = 70;
-        let normTime = 0;
-        const rot = this.axisRotateProgress;
-
-        if (rot < 0.5) {
-            const graphHeight = this.height - margin * 2;
-            const yFromBottom = (this.height - margin) - pos.y;
-            normTime = Math.max(0, Math.min(1, yFromBottom / graphHeight));
-        } else {
-            const graphWidth = this.width - margin * 2;
-            const xFromLeft = pos.x - margin;
-            normTime = Math.max(0, Math.min(1, xFromLeft / graphWidth));
-        }
+        const w = this.width - margin * 2;
+        const h = this.height - margin * 2;
+        const pt = this.mapCanvasToPoint(pos, margin, w, h, this.axisRotateProgress);
 
         const maxRecordedT = this.recordingA[this.recordingA.length - 1].t;
-        const targetT = normTime * maxRecordedT;
+        const targetT = Math.max(0, Math.min(maxRecordedT, pt.t));
 
         if (this.sliderScrubber) this.sliderScrubber.value = targetT.toFixed(2);
         if (this.lblScrubberVal) this.lblScrubberVal.textContent = `${targetT.toFixed(2)} s`;
@@ -872,8 +969,14 @@ class MovimentoSimulation {
         const isSingle = this.motionType === 'equation_1';
         const isManual = this.motionType === 'manual';
 
-        // 1. Visibilidade do Scrubber
+        // 1. Visibilidade do Scrubber e da Barra de Zoom
         this.groupScrubber.style.display = (this.mode !== '1D' && this.recordingA.length > 0) ? 'block' : 'none';
+        if (this.canvasZoomToolbar) {
+            this.canvasZoomToolbar.style.display = (this.mode !== '1D') ? 'flex' : 'none';
+        }
+        if (this.lblZoomLevel) {
+            this.lblZoomLevel.textContent = `${Math.round(this.graphZoom * 100)}%`;
+        }
 
         // 2. Dicas da Área do Canvas
         if (this.mode === '1D') {
@@ -894,7 +997,7 @@ class MovimentoSimulation {
                 if (btn) btn.disabled = !hasData;
             });
         } else {
-            this.canvasHintText.textContent = 'Arraste no gráfico para inspecionar posições e momentos de encontro em qualquer instante do passado.';
+            this.canvasHintText.textContent = 'Use o scroll para zoom e arraste a tela para rolar (pan). Clique no gráfico para inspecionar instantes.';
             this.lblToggleView.textContent = 'Voltar à Pista 1D';
             document.querySelectorAll('.lbl-panel-graph').forEach(el => el.textContent = 'Voltar à Pista 1D');
             this.btnToggleAxis.style.display = 'flex';
@@ -1057,11 +1160,16 @@ class MovimentoSimulation {
             }
         }
 
-        // 5. Desenho das Esferas e seus Vetores (v e a)
-        this.drawBallWithVectors(this.xA, laneA_Y, this.vA, this.aA, '#facc15', 'A', isDual ? 'Faixa A' : null);
+        const scaleX = effectiveWidth / (this.xMax - this.xMin);
+
+        // 5. Desenho das Esferas e seus Vetores (v e a) proporcionais à régua
+        const aA_draw = this.motionType === 'manual' ? 0 : this.aA;
+        const aB_draw = this.motionType === 'manual' ? 0 : this.aB;
+
+        this.drawBallWithVectors(this.xA, laneA_Y, this.vA, aA_draw, '#facc15', 'A', isDual ? 'Faixa A' : null, scaleX);
 
         if (isDual) {
-            this.drawBallWithVectors(this.xB, laneB_Y, this.vB, this.aB, '#38bdf8', 'B', 'Faixa B');
+            this.drawBallWithVectors(this.xB, laneB_Y, this.vB, aB_draw, '#38bdf8', 'B', 'Faixa B', scaleX);
         }
 
         ctx.restore();
@@ -1097,7 +1205,7 @@ class MovimentoSimulation {
         ctx.restore();
     }
 
-    drawBallWithVectors(physX, laneY, v, a, colorHex, label, laneLabel) {
+    drawBallWithVectors(physX, laneY, v, a, colorHex, label, laneLabel, scaleX = 20) {
         const ctx = this.ctx;
         const ballPos = this.getBallCanvasPos1D(physX, laneY);
 
@@ -1137,11 +1245,11 @@ class MovimentoSimulation {
             ctx.fillText(laneLabel, this.width - 76, laneY - 10);
         }
 
-        // 1. Vetor Velocidade (Verde Esmeralda)
-        if (Math.abs(v) > 0.05) {
-            const vLen = Math.max(16, Math.min(65, Math.abs(v) * 9)) * Math.sign(v);
-            const startX = ballPos.x + Math.sign(v) * (this.ballRadius + 2);
-            const endX = startX + vLen;
+        // 1. Vetor Velocidade (Verde Esmeralda) — Comprimento exatamente proporcional à escala da régua
+        if (Math.abs(v) > 0.01) {
+            const vPixelLength = v * scaleX;
+            const startX = ballPos.x;
+            const endX = startX + vPixelLength;
 
             ctx.strokeStyle = '#22c55e';
             ctx.lineWidth = 3;
@@ -1150,20 +1258,20 @@ class MovimentoSimulation {
             ctx.lineTo(endX, ballPos.y);
             ctx.stroke();
 
-            this.drawVectorArrowHead(endX, ballPos.y, Math.sign(v) > 0 ? 0 : Math.PI, '#22c55e');
+            this.drawVectorArrowHead(endX, ballPos.y, v > 0 ? 0 : Math.PI, '#22c55e');
 
             ctx.fillStyle = '#22c55e';
             ctx.font = '600 10px var(--font-mono, monospace)';
             ctx.textAlign = 'center';
-            ctx.fillText(`v = ${v >= 0 ? '+' : ''}${v.toFixed(1)}`, (startX + endX) / 2, ballPos.y - 12);
+            ctx.fillText(`v = ${v >= 0 ? '+' : ''}${v.toFixed(1)} m/s`, (startX + endX) / 2, ballPos.y - 14);
         }
 
-        // 2. Vetor Aceleração (Roxo / Púrpura)
-        if (Math.abs(a) > 0.05) {
-            const aLen = Math.max(16, Math.min(50, Math.abs(a) * 12)) * Math.sign(a);
+        // 2. Vetor Aceleração (Roxo / Púrpura) — Comprimento exatamente proporcional à escala da régua
+        if (Math.abs(a) > 0.01) {
+            const aPixelLength = a * scaleX;
             const aY = laneY + 22; // Abaixo da esfera
             const startX = ballPos.x;
-            const endX = startX + aLen;
+            const endX = startX + aPixelLength;
 
             ctx.strokeStyle = '#c084fc';
             ctx.lineWidth = 2.5;
@@ -1172,12 +1280,12 @@ class MovimentoSimulation {
             ctx.lineTo(endX, aY);
             ctx.stroke();
 
-            this.drawVectorArrowHead(endX, aY, Math.sign(a) > 0 ? 0 : Math.PI, '#c084fc');
+            this.drawVectorArrowHead(endX, aY, a > 0 ? 0 : Math.PI, '#c084fc');
 
             ctx.fillStyle = '#c084fc';
             ctx.font = '600 10px var(--font-mono, monospace)';
             ctx.textAlign = 'center';
-            ctx.fillText(`a = ${a >= 0 ? '+' : ''}${a.toFixed(1)}`, (startX + endX) / 2, aY + 12);
+            ctx.fillText(`a = ${a >= 0 ? '+' : ''}${a.toFixed(1)} m/s²`, (startX + endX) / 2, aY + 12);
         }
     }
 
@@ -1208,6 +1316,12 @@ class MovimentoSimulation {
         this.drawAxes2D(margin, w, h, rot);
 
         if (this.recordingA.length > 0) {
+            // Recorte de área útil para que zoom e pan não vazem para fora da grade
+            ctx.save();
+            ctx.beginPath();
+            ctx.rect(margin - 4, margin - 4, w + 8, h + 8);
+            ctx.clip();
+
             // Curva do Móvel A (Amarelo)
             this.drawTrajectoryCurve2D(this.recordingA, '#facc15', margin, w, h, rot);
 
@@ -1226,7 +1340,7 @@ class MovimentoSimulation {
             if (this.motionType === 'equation_2') {
                 const encounters = this.calculateIntersections();
                 encounters.forEach(enc => {
-                    if (enc.t <= this.tMax) {
+                    if (enc.t <= this.tMax * 2) {
                         const posEnc = this.mapPointToCanvas(enc, margin, w, h, rot);
 
                         ctx.fillStyle = '#ef4444';
@@ -1254,6 +1368,8 @@ class MovimentoSimulation {
             }
 
             this.drawScrubberIndicator2D(margin, w, h, rot);
+
+            ctx.restore();
         }
 
         ctx.restore();
@@ -1268,7 +1384,7 @@ class MovimentoSimulation {
         const originCanvas = this.mapPointToCanvas({ t: 0, x: 0 }, margin, w, h, rot);
 
         strobePoints.forEach(pt => {
-            if (pt.sec <= this.tMax) {
+            if (pt.sec <= this.tMax * 2) {
                 const pos = this.mapPointToCanvas({ t: pt.sec, x: pt.x }, margin, w, h, rot);
 
                 // Linhas de projeção pontilhadas aos eixos
@@ -1278,22 +1394,19 @@ class MovimentoSimulation {
                 ctx.setLineDash([3, 3]);
 
                 if (isConventional) {
-                    // Projeção ao eixo do tempo (horizontal em originCanvas.y)
                     ctx.beginPath();
                     ctx.moveTo(pos.x, pos.y);
                     ctx.lineTo(pos.x, originCanvas.y);
                     ctx.stroke();
 
-                    // Projeção ao eixo da posição (vertical em originCanvas.x)
                     ctx.beginPath();
                     ctx.moveTo(pos.x, pos.y);
                     ctx.lineTo(originCanvas.x, pos.y);
                     ctx.stroke();
                 } else {
-                    // Projeção na visão desdobrada
                     ctx.beginPath();
                     ctx.moveTo(pos.x, pos.y);
-                    ctx.lineTo(pos.x, this.height - margin);
+                    ctx.lineTo(pos.x, originCanvas.y);
                     ctx.stroke();
 
                     ctx.beginPath();
@@ -1335,33 +1448,25 @@ class MovimentoSimulation {
         ctx.save();
 
         const isConventional = rot >= 0.5;
-
-        // Ponto de Origem Cartesiana Real (0, 0)
         const originCanvas = this.mapPointToCanvas({ t: 0, x: 0 }, margin, w, h, rot);
 
         ctx.strokeStyle = 'rgba(248, 250, 252, 0.7)';
         ctx.lineWidth = 2.5;
 
         if (isConventional) {
-            // =========================================================================
-            // VISÃO CONVENCIONAL DE FÍSICA E MATEMÁTICA:
-            // Eixo Horizontal = Tempo t (passa exatamente na linha s = 0)
-            // Eixo Vertical = Posição s (passa na linha t = 0)
-            // Cruzamento RIGOROSO e EXATO na Origem (0, 0)!
-            // =========================================================================
             const yZero = originCanvas.y;
-            const xZero = margin; // t = 0
+            const xZero = originCanvas.x;
 
             // 1. Eixo Horizontal do Tempo t (linha s = 0)
             ctx.beginPath();
-            ctx.moveTo(xZero, yZero);
+            ctx.moveTo(margin - 10, yZero);
             ctx.lineTo(this.width - margin + 14, yZero);
             ctx.stroke();
             this.drawArrow(this.width - margin + 14, yZero, 0);
 
             // 2. Eixo Vertical da Posição s (linha t = 0)
             ctx.beginPath();
-            ctx.moveTo(xZero, this.height - margin + 6);
+            ctx.moveTo(xZero, this.height - margin + 10);
             ctx.lineTo(xZero, margin - 14);
             ctx.stroke();
             this.drawArrow(xZero, margin - 14, -Math.PI / 2);
@@ -1386,60 +1491,57 @@ class MovimentoSimulation {
             // Ticks no Eixo do Tempo (a cada 2s)
             ctx.font = '11px var(--font-sans, sans-serif)';
             const numTicksT = 5;
-            for (let i = 1; i <= numTicksT; i++) {
+            for (let i = 1; i <= numTicksT * 2; i++) {
                 const valT = (i / numTicksT) * this.tMax;
-                const px = margin + (valT / this.tMax) * w;
+                const posT = this.mapPointToCanvas({ t: valT, x: 0 }, margin, w, h, rot);
 
-                ctx.strokeStyle = 'rgba(148, 163, 184, 0.35)';
-                ctx.beginPath();
-                ctx.moveTo(px, yZero - 5);
-                ctx.lineTo(px, yZero + 5);
-                ctx.stroke();
+                if (posT.x >= margin - 5 && posT.x <= this.width - margin + 5) {
+                    ctx.strokeStyle = 'rgba(148, 163, 184, 0.35)';
+                    ctx.beginPath();
+                    ctx.moveTo(posT.x, yZero - 5);
+                    ctx.lineTo(posT.x, yZero + 5);
+                    ctx.stroke();
 
-                ctx.fillStyle = '#94a3b8';
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'top';
-                ctx.fillText(`${valT.toFixed(0)}s`, px, yZero + 8);
+                    ctx.fillStyle = '#94a3b8';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'top';
+                    ctx.fillText(`${valT.toFixed(0)}s`, posT.x, yZero + 8);
+                }
             }
 
-            // Ticks no Eixo da Posição (a cada 5m, positivos acima, negativos abaixo)
-            for (let s = -15; s <= 15; s += 5) {
-                if (s === 0) continue; // Origem já assinalada
-                const normS = (s - this.xMin) / (this.xMax - this.xMin);
-                const py = (this.height - margin) - normS * h;
+            // Ticks no Eixo da Posição (a cada 5m)
+            for (let s = -30; s <= 30; s += 5) {
+                if (s === 0) continue;
+                const posS = this.mapPointToCanvas({ t: 0, x: s }, margin, w, h, rot);
 
-                ctx.strokeStyle = 'rgba(148, 163, 184, 0.35)';
-                ctx.beginPath();
-                ctx.moveTo(xZero - 5, py);
-                ctx.lineTo(xZero + 5, py);
-                ctx.stroke();
+                if (posS.y >= margin - 5 && posS.y <= this.height - margin + 5) {
+                    ctx.strokeStyle = 'rgba(148, 163, 184, 0.35)';
+                    ctx.beginPath();
+                    ctx.moveTo(xZero - 5, posS.y);
+                    ctx.lineTo(xZero + 5, posS.y);
+                    ctx.stroke();
 
-                ctx.fillStyle = '#94a3b8';
-                ctx.textAlign = 'right';
-                ctx.textBaseline = 'middle';
-                ctx.fillText(`${s}m`, xZero - 8, py);
+                    ctx.fillStyle = '#94a3b8';
+                    ctx.textAlign = 'right';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText(`${s}m`, xZero - 8, posS.y);
+                }
             }
 
         } else {
-            // =========================================================================
-            // VISÃO DESDOBRADA (EXTRUDED):
-            // Eixo Horizontal = Posição s (passando em t = 0 na base)
-            // Eixo Vertical = Tempo t (passando em s = 0 no centro)
-            // Cruzamento na Origem (0, 0)!
-            // =========================================================================
             const xZero = originCanvas.x;
-            const yZero = this.height - margin;
+            const yZero = originCanvas.y;
 
             // 1. Eixo Horizontal da Posição s
             ctx.beginPath();
-            ctx.moveTo(margin, yZero);
+            ctx.moveTo(margin - 10, yZero);
             ctx.lineTo(this.width - margin + 14, yZero);
             ctx.stroke();
             this.drawArrow(this.width - margin + 14, yZero, 0);
 
             // 2. Eixo Vertical do Tempo t (linha s = 0)
             ctx.beginPath();
-            ctx.moveTo(xZero, yZero);
+            ctx.moveTo(xZero, this.height - margin + 10);
             ctx.lineTo(xZero, margin - 14);
             ctx.stroke();
             this.drawArrow(xZero, margin - 14, -Math.PI / 2);
@@ -1463,39 +1565,42 @@ class MovimentoSimulation {
 
             // Ticks de Posição
             ctx.font = '11px var(--font-sans, sans-serif)';
-            for (let s = -15; s <= 15; s += 5) {
+            for (let s = -30; s <= 30; s += 5) {
                 if (s === 0) continue;
-                const normS = (s - this.xMin) / (this.xMax - this.xMin);
-                const px = margin + normS * w;
+                const posS = this.mapPointToCanvas({ t: 0, x: s }, margin, w, h, rot);
 
-                ctx.strokeStyle = 'rgba(148, 163, 184, 0.35)';
-                ctx.beginPath();
-                ctx.moveTo(px, yZero - 5);
-                ctx.lineTo(px, yZero + 5);
-                ctx.stroke();
+                if (posS.x >= margin - 5 && posS.x <= this.width - margin + 5) {
+                    ctx.strokeStyle = 'rgba(148, 163, 184, 0.35)';
+                    ctx.beginPath();
+                    ctx.moveTo(posS.x, yZero - 5);
+                    ctx.lineTo(posS.x, yZero + 5);
+                    ctx.stroke();
 
-                ctx.fillStyle = '#94a3b8';
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'top';
-                ctx.fillText(`${s}m`, px, yZero + 8);
+                    ctx.fillStyle = '#94a3b8';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'top';
+                    ctx.fillText(`${s}m`, posS.x, yZero + 8);
+                }
             }
 
             // Ticks de Tempo
             const numTicksT = 5;
-            for (let i = 1; i <= numTicksT; i++) {
+            for (let i = 1; i <= numTicksT * 2; i++) {
                 const valT = (i / numTicksT) * this.tMax;
-                const py = yZero - (valT / this.tMax) * h;
+                const posT = this.mapPointToCanvas({ t: valT, x: 0 }, margin, w, h, rot);
 
-                ctx.strokeStyle = 'rgba(148, 163, 184, 0.35)';
-                ctx.beginPath();
-                ctx.moveTo(xZero - 5, py);
-                ctx.lineTo(xZero + 5, py);
-                ctx.stroke();
+                if (posT.y >= margin - 5 && posT.y <= this.height - margin + 5) {
+                    ctx.strokeStyle = 'rgba(148, 163, 184, 0.35)';
+                    ctx.beginPath();
+                    ctx.moveTo(xZero - 5, posT.y);
+                    ctx.lineTo(xZero + 5, posT.y);
+                    ctx.stroke();
 
-                ctx.fillStyle = '#94a3b8';
-                ctx.textAlign = 'right';
-                ctx.textBaseline = 'middle';
-                ctx.fillText(`${valT.toFixed(0)}s`, xZero - 8, py);
+                    ctx.fillStyle = '#94a3b8';
+                    ctx.textAlign = 'right';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText(`${valT.toFixed(0)}s`, xZero - 8, posT.y);
+                }
             }
         }
 
@@ -1503,19 +1608,48 @@ class MovimentoSimulation {
     }
 
     mapPointToCanvas(pt, margin, w, h, rot) {
-        const normX = (pt.x - this.xMin) / (this.xMax - this.xMin);
-        const normT = Math.min(1, pt.t / this.tMax);
+        const cx = margin + w / 2;
+        const cy = margin + h / 2;
 
-        let px, py;
+        const normX = (pt.x - this.xMin) / (this.xMax - this.xMin);
+        const normT = pt.t / this.tMax;
+
+        let rawPx, rawPy;
         if (rot < 0.5) {
-            px = margin + normX * w;
-            py = (this.height - margin) - normT * h;
+            rawPx = margin + normX * w;
+            rawPy = (this.height - margin) - normT * h;
         } else {
-            px = margin + normT * w;
-            py = (this.height - margin) - normX * h;
+            rawPx = margin + normT * w;
+            rawPy = (this.height - margin) - normX * h;
         }
 
+        const px = cx + (rawPx - cx) * this.graphZoom + this.graphPanX;
+        const py = cy + (rawPy - cy) * this.graphZoom + this.graphPanY;
+
         return { x: px, y: py };
+    }
+
+    mapCanvasToPoint(pos, margin, w, h, rot) {
+        const cx = margin + w / 2;
+        const cy = margin + h / 2;
+
+        const rawPx = (pos.x - this.graphPanX - cx) / this.graphZoom + cx;
+        const rawPy = (pos.y - this.graphPanY - cy) / this.graphZoom + cy;
+
+        let t = 0, x = 0;
+        if (rot < 0.5) {
+            const normX = (rawPx - margin) / w;
+            const normT = ((this.height - margin) - rawPy) / h;
+            x = this.xMin + normX * (this.xMax - this.xMin);
+            t = normT * this.tMax;
+        } else {
+            const normT = (rawPx - margin) / w;
+            const normX = ((this.height - margin) - rawPy) / h;
+            t = normT * this.tMax;
+            x = this.xMin + normX * (this.xMax - this.xMin);
+        }
+
+        return { t, x };
     }
 
     drawTrajectoryCurve2D(recording, colorHex, margin, w, h, rot) {

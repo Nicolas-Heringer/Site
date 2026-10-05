@@ -181,3 +181,62 @@
     border-left: 3px solid var(--accent-color);
     text-align: center;
 }
+
+/* Barra Flutuante de Zoom & Pan no Canvas (Gráfico 2D) */
+.canvas-zoom-toolbar {
+    position: absolute;
+    bottom: 60px;
+    right: 18px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    background: rgba(15, 23, 42, 0.88);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: var(--radius-lg);
+    padding: 4px 6px;
+    box-shadow: var(--shadow-md);
+    z-index: 10;
+    user-select: none;
+    transition: opacity var(--trans-fast), transform var(--trans-fast);
+}
+
+.zoom-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    background: transparent;
+    border: none;
+    border-radius: var(--radius-md);
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all var(--trans-fast);
+    padding: 0;
+}
+
+.zoom-btn:hover {
+    color: var(--text-primary);
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.zoom-btn:active {
+    transform: scale(0.92);
+}
+
+.zoom-btn .icon-svg {
+    width: 16px;
+    height: 16px;
+}
+
+.zoom-badge {
+    font-family: var(--font-mono);
+    font-size: 0.74rem;
+    font-weight: 700;
+    color: var(--accent-color);
+    padding: 0 6px;
+    min-width: 44px;
+    text-align: center;
+}
