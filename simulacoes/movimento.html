@@ -23,14 +23,25 @@
     <!-- Suporte a Fórmulas Matemáticas com KaTeX -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" crossorigin="anonymous">
     <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" crossorigin="anonymous"></script>
-    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" crossorigin="anonymous"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" crossorigin="anonymous"
+        onload="renderMathInElement(document.body, {
+            delimiters: [
+                {left: '$$', right: '$$', display: true},
+                {left: '$', right: '$', display: false},
+                {left: '\\(', right: '\\)', display: false},
+                {left: '\\[', right: '\\]', display: true}
+            ],
+            throwOnError: false
+        });"></script>
 </head>
 
 <body>
     <!-- Cabeçalho da Simulação -->
     <header class="sim-header">
         <a href="../index.html#secao-simulacoes" class="btn-back">
-            <svg class="icon-svg" viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+            <svg class="icon-svg" viewBox="0 0 24 24">
+                <path d="M19 12H5M12 19l-7-7 7-7" />
+            </svg>
             Voltar ao Hub
         </a>
         <h1 class="sim-title">Funções Horárias & Encontro de Móveis</h1>
@@ -45,15 +56,18 @@
 
             <!-- Grupo de Ações Flutuantes no Topo Direito -->
             <div class="canvas-top-actions">
-                <button id="btn-toggle-view" class="canvas-btn-floating" title="Alternar entre Pista 1D e Gráfico Espaço-Tempo">
+                <button id="btn-toggle-view" class="canvas-btn-floating"
+                    title="Alternar entre Pista 1D e Gráfico Espaço-Tempo">
                     <img src="../assets/icons/rotate.svg" class="icon-svg" alt="Gráfico">
                     <span class="btn-label-text" id="lbl-toggle-view">Ver Gráfico 2D</span>
                 </button>
-                <button id="btn-toggle-axis" class="canvas-btn-floating" style="display: none;" title="Alternar eixos: s(t) convencional ou t(s) desdobrado">
+                <button id="btn-toggle-axis" class="canvas-btn-floating" style="display: none;"
+                    title="Alternar eixos: s(t) convencional ou t(s) desdobrado">
                     <img src="../assets/icons/compass.svg" class="icon-svg" alt="Eixos">
                     <span class="btn-label-text" id="lbl-toggle-axis">Visão Convencional (t no X)</span>
                 </button>
-                <button id="btn-expand-sidebar" class="canvas-btn-expand-sidebar" title="Expandir Painel de Controles (F)">
+                <button id="btn-expand-sidebar" class="canvas-btn-expand-sidebar"
+                    title="Expandir Painel de Controles (F)">
                     <img src="../assets/icons/expand.svg" class="icon-svg" alt="Expandir">
                     <span class="btn-label-text">Controles</span>
                 </button>
@@ -62,7 +76,8 @@
             <!-- Dica Interativa Flutuante -->
             <div class="interactive-hint" id="canvasHint">
                 <img src="../assets/icons/lightbulb.svg" class="icon-svg icon-accent" alt="Dica">
-                <span id="canvasHintText">Arraste a esfera ao longo da reta ou inicie o tempo para ver o movimento e os vetores.</span>
+                <span id="canvasHintText">Arraste a esfera ao longo da reta ou inicie o tempo para ver o movimento e os
+                    vetores.</span>
             </div>
         </div>
 
@@ -103,12 +118,9 @@
                 <!-- Barra de Reprodução Físico-Temporal Universal -->
                 <div class="sim-transport-bar" id="sim-transport-bar">
                     <div class="transport-controls-row">
-                        <button class="btn-primary btn-toggle transport-btn-play" id="btn-play-sim"
-                                data-state="0"
-                                data-text-idle="Iniciar Tempo"
-                                data-text-active="Pausar Tempo"
-                                data-icon-idle="play"
-                                data-icon-active="pause">
+                        <button class="btn-primary btn-toggle transport-btn-play" id="btn-play-sim" data-state="0"
+                            data-text-idle="Iniciar Tempo" data-text-active="Pausar Tempo" data-icon-idle="play"
+                            data-icon-active="pause">
                             <img src="../assets/icons/play.svg" class="icon-svg" alt="Play">
                             <span class="btn-text">Iniciar Tempo</span>
                         </button>
@@ -122,7 +134,8 @@
 
                     <div class="transport-speed-row">
                         <span class="transport-speed-label">
-                            <img src="../assets/icons/rotate.svg" class="icon-svg" style="width: 14px; height: 14px;" alt="Velocidade">
+                            <img src="../assets/icons/rotate.svg" class="icon-svg" style="width: 14px; height: 14px;"
+                                alt="Velocidade">
                             Velocidade:
                         </span>
                         <div class="transport-speed-pills" id="sim-speed-pills">
@@ -140,7 +153,8 @@
                             <span>Instante Gravado ($t$):</span>
                             <strong id="lbl-scrubber-val" style="color: var(--accent-color);">0.00 s</strong>
                         </div>
-                        <input type="range" class="sim-slider" id="sliderScrubber" min="0" max="10" step="0.05" value="0.00">
+                        <input type="range" class="sim-slider" id="sliderScrubber" min="0" max="10" step="0.05"
+                            value="0.00">
                     </div>
                 </div>
 
@@ -150,7 +164,8 @@
                 <div id="panel-tab-manual">
                     <div class="tab-header">
                         <h3 class="tab-title">Movimento Livre</h3>
-                        <p class="tab-subtitle">Arraste a esfera diretamente na reta para observar a velocidade escalar instantânea.</p>
+                        <p class="tab-subtitle">Arraste a esfera diretamente na reta para observar a velocidade escalar
+                            instantânea.</p>
                     </div>
 
                     <div class="control-group">
@@ -159,7 +174,8 @@
                                 <span>Posição do Móvel ($s$):</span>
                                 <strong id="lbl-pos-manual" style="color: var(--accent-color);">0.0 m</strong>
                             </div>
-                            <input type="range" class="sim-slider" id="sliderPos" min="-15" max="15" step="0.5" value="0.0">
+                            <input type="range" class="sim-slider" id="sliderPos" min="-15" max="15" step="0.5"
+                                value="0.0">
                         </div>
                     </div>
 
@@ -201,7 +217,8 @@
                                     <span>Posição Inicial ($s_0$):</span>
                                     <strong id="lbl-s0A" style="color: var(--accent-color);">-5.0 m</strong>
                                 </div>
-                                <input type="range" class="sim-slider" id="sliderS0A" min="-15" max="15" step="0.5" value="-5.0">
+                                <input type="range" class="sim-slider" id="sliderS0A" min="-15" max="15" step="0.5"
+                                    value="-5.0">
                             </div>
 
                             <div class="clean-slider-item">
@@ -209,7 +226,8 @@
                                     <span>Velocidade ($v_0$):</span>
                                     <strong id="lbl-v0A" style="color: var(--color-emerald, #22c55e);">+3.0 m/s</strong>
                                 </div>
-                                <input type="range" class="sim-slider" id="sliderV0A" min="-10" max="10" step="0.5" value="3.0">
+                                <input type="range" class="sim-slider" id="sliderV0A" min="-10" max="10" step="0.5"
+                                    value="3.0">
                             </div>
 
                             <!-- Switch de Aceleração Opcional -->
@@ -225,7 +243,8 @@
                                     <span>Aceleração ($a$):</span>
                                     <strong id="lbl-aA" style="color: var(--color-purple, #c084fc);">0.0 m/s²</strong>
                                 </div>
-                                <input type="range" class="sim-slider" id="sliderAA" min="-5" max="5" step="0.2" value="0.0">
+                                <input type="range" class="sim-slider" id="sliderAA" min="-5" max="5" step="0.2"
+                                    value="0.0">
                             </div>
                         </div>
                     </div>
@@ -264,15 +283,18 @@
                                         <span>Posição Inicial ($s_{0A}$):</span>
                                         <strong id="lbl-s0A_dual" style="color: var(--accent-color);">-5.0 m</strong>
                                     </div>
-                                    <input type="range" class="sim-slider" id="sliderS0A_dual" min="-15" max="15" step="0.5" value="-5.0">
+                                    <input type="range" class="sim-slider" id="sliderS0A_dual" min="-15" max="15"
+                                        step="0.5" value="-5.0">
                                 </div>
 
                                 <div class="clean-slider-item">
                                     <div class="clean-slider-header">
                                         <span>Velocidade ($v_{0A}$):</span>
-                                        <strong id="lbl-v0A_dual" style="color: var(--color-emerald, #22c55e);">+3.0 m/s</strong>
+                                        <strong id="lbl-v0A_dual" style="color: var(--color-emerald, #22c55e);">+3.0
+                                            m/s</strong>
                                     </div>
-                                    <input type="range" class="sim-slider" id="sliderV0A_dual" min="-10" max="10" step="0.5" value="3.0">
+                                    <input type="range" class="sim-slider" id="sliderV0A_dual" min="-10" max="10"
+                                        step="0.5" value="3.0">
                                 </div>
 
                                 <div class="accel-toggle-row">
@@ -285,9 +307,11 @@
                                 <div class="clean-slider-item" id="group-accel-dual-a" style="display: none;">
                                     <div class="clean-slider-header">
                                         <span>Aceleração ($a_A$):</span>
-                                        <strong id="lbl-aA_dual" style="color: var(--color-purple, #c084fc);">0.0 m/s²</strong>
+                                        <strong id="lbl-aA_dual" style="color: var(--color-purple, #c084fc);">0.0
+                                            m/s²</strong>
                                     </div>
-                                    <input type="range" class="sim-slider" id="sliderAA_dual" min="-5" max="5" step="0.2" value="0.0">
+                                    <input type="range" class="sim-slider" id="sliderAA_dual" min="-5" max="5"
+                                        step="0.2" value="0.0">
                                 </div>
                             </div>
                         </div>
@@ -310,15 +334,18 @@
                                         <span>Posição Inicial ($s_{0B}$):</span>
                                         <strong id="lbl-s0B" style="color: var(--color-cyan, #38bdf8);">+5.0 m</strong>
                                     </div>
-                                    <input type="range" class="sim-slider" id="sliderS0B" min="-15" max="15" step="0.5" value="5.0">
+                                    <input type="range" class="sim-slider" id="sliderS0B" min="-15" max="15" step="0.5"
+                                        value="5.0">
                                 </div>
 
                                 <div class="clean-slider-item">
                                     <div class="clean-slider-header">
                                         <span>Velocidade ($v_{0B}$):</span>
-                                        <strong id="lbl-v0B" style="color: var(--color-emerald, #22c55e);">-2.0 m/s</strong>
+                                        <strong id="lbl-v0B" style="color: var(--color-emerald, #22c55e);">-2.0
+                                            m/s</strong>
                                     </div>
-                                    <input type="range" class="sim-slider" id="sliderV0B" min="-10" max="10" step="0.5" value="-2.0">
+                                    <input type="range" class="sim-slider" id="sliderV0B" min="-10" max="10" step="0.5"
+                                        value="-2.0">
                                 </div>
 
                                 <div class="accel-toggle-row">
@@ -331,9 +358,11 @@
                                 <div class="clean-slider-item" id="group-accel-dual-b" style="display: none;">
                                     <div class="clean-slider-header">
                                         <span>Aceleração ($a_B$):</span>
-                                        <strong id="lbl-aB" style="color: var(--color-purple, #c084fc);">0.0 m/s²</strong>
+                                        <strong id="lbl-aB" style="color: var(--color-purple, #c084fc);">0.0
+                                            m/s²</strong>
                                     </div>
-                                    <input type="range" class="sim-slider" id="sliderAB" min="-5" max="5" step="0.2" value="0.0">
+                                    <input type="range" class="sim-slider" id="sliderAB" min="-5" max="5" step="0.2"
+                                        value="0.0">
                                 </div>
                             </div>
                         </div>
@@ -358,7 +387,8 @@
 
                     <div class="theory-quick-card">
                         <h4>1. Movimento Retilíneo Uniforme (MRU)</h4>
-                        <p>No MRU, a velocidade escalar é constante e a aceleração é nula ($a = 0$). A posição varia como função afim:</p>
+                        <p>No MRU, a velocidade escalar é constante e a aceleração é nula ($a = 0$). A posição varia
+                            como função afim:</p>
                         <div class="theory-equation-highlight">$$s(t) = s_0 + v \cdot t$$</div>
                         <p>No gráfico $s \times t$, a trajetória é uma reta cuja inclinação é a velocidade escalar:</p>
                         <div class="theory-equation-highlight">$$v = \frac{\Delta s}{\Delta t} = \tan \theta$$</div>
@@ -366,9 +396,12 @@
 
                     <div class="theory-quick-card">
                         <h4>2. Movimento Uniformemente Variado (MRUV)</h4>
-                        <p>No MRUV, a aceleração $a$ é constante e não nula. A velocidade varia linearmente e a posição é quadrática:</p>
-                        <div class="theory-equation-highlight">$$s(t) = s_0 + v_0 \cdot t + \frac{1}{2} a \cdot t^2$$</div>
-                        <p>O gráfico $s \times t$ é um arco de parábola. Concavidade para cima indica $a > 0$; para baixo indica $a < 0$.</p>
+                        <p>No MRUV, a aceleração $a$ é constante e não nula. A velocidade varia linearmente e a posição
+                            é quadrática:</p>
+                        <div class="theory-equation-highlight">$$s(t) = s_0 + v_0 \cdot t + \frac{1}{2} a \cdot t^2$$
+                        </div>
+                        <p>O gráfico $s \times t$ é um arco de parábola. Concavidade para cima indica $a > 0$; para
+                            baixo indica $a < 0$.</p>
                     </div>
 
                     <div class="theory-quick-card">
@@ -415,8 +448,10 @@
                 <div class="theory-section">
                     <h4>1. O Conceito de Posição, Referencial e Espaço 1D</h4>
                     <p>
-                        Em mecânica clássica, descrever o movimento exige a escolha de um referencial e de uma reta métrica orientada.
-                        A posição instantânea fica completamente definida por uma única coordenada escalar $s(t)$ medida em relação à origem $O$ ($s = 0$).
+                        Em mecânica clássica, descrever o movimento exige a escolha de um referencial e de uma reta
+                        métrica orientada.
+                        A posição instantânea fica completamente definida por uma única coordenada escalar $s(t)$ medida
+                        em relação à origem $O$ ($s = 0$).
                     </p>
                     <ul>
                         <li>$v > 0$: Movimento Progressivo (o corpo avança no sentido positivo).</li>
@@ -436,7 +471,8 @@
                     $$s(t) = s_0 + v_0 \cdot t + \frac{1}{2} a \cdot t^2$$
                     $$v(t) = v_0 + a \cdot t$$
                     <p>
-                        A representação gráfica de $s(t)$ no MRUV é um arco de parábola. O vértice corresponde ao instante de inversão de sentido: $v(t_v) = 0 \implies t_v = -v_0 / a$.
+                        A representação gráfica de $s(t)$ no MRUV é um arco de parábola. O vértice corresponde ao
+                        instante de inversão de sentido: $v(t_v) = 0 \implies t_v = -v_0 / a$.
                     </p>
                 </div>
 
@@ -445,7 +481,8 @@
                     <p>Igualando $s_A(t) = s_B(t)$:</p>
                     $$\frac{1}{2}(a_A - a_B) t^2 + (v_{0A} - v_{0B}) t + (s_{0A} - s_{0B}) = 0$$
                     <p>
-                        No caso de MRUV, a resolução por Bhaskara pode produzir até dois instantes reais de encontro ($t_1$ e $t_2$), correspondendo a uma ultrapassagem inicial e posterior retomada de liderança.
+                        No caso de MRUV, a resolução por Bhaskara pode produzir até dois instantes reais de encontro
+                        ($t_1$ e $t_2$), correspondendo a uma ultrapassagem inicial e posterior retomada de liderança.
                     </p>
                 </div>
             </div>
