@@ -4,210 +4,461 @@
 <head>
     <!-- Metadados da Página -->
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Movimento 1D e 2D — Cinemática e Encontro de Corpos</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Funções Horárias & Encontro de Móveis — Cinemática Escalar 1D</title>
 
     <meta name="description"
-        content="Simulação cinemática de movimento unidimensional e bidimensional (MRU e MRUV). Acompanhe gráficos de posição x tempo, extrusão espaço-temporal e ponto de encontro de dois corpos.">
+        content="Simulação interativa de cinemática escalar em 1D: funções horárias da posição s(t) no MRU e MRUV, gráficos espaço-tempo (reta e parábola) e determinação analítica e visual do ponto de encontro de dois corpos.">
     <meta name="keywords"
-        content="cinemática, movimento 1D, movimento 2D, MRU, MRUV, encontro de corpos, gráfico posição tempo, velocidade, aceleração, simulação física">
+        content="funções horárias da posição, cinemática 1D, MRU, MRUV, encontro de móveis, ponto de encontro, física ensino médio, gráfico espaço tempo, velocidade, aceleração, bhaskara">
     <meta name="author" content="Nicolas Heringer">
 
     <!-- Favicon -->
     <link rel="icon" type="image/svg+xml" href="../favicon.svg">
 
-    <!-- Estilos CSS -->
-    <link rel="stylesheet" href="css/base.css">
+    <!-- Design System Unificado e Estilos Específicos -->
+    <link rel="stylesheet" href="css/design-system.css">
     <link rel="stylesheet" href="css/movimento.css">
 
-    <!-- Suporte a LaTeX com KaTeX -->
+    <!-- Suporte a Fórmulas Matemáticas com KaTeX -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" crossorigin="anonymous">
     <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" crossorigin="anonymous"></script>
-    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" crossorigin="anonymous"
-        onload="renderMathInElement(document.body, {
-            delimiters: [
-                {left: '$$', right: '$$', display: true},
-                {left: '$', right: '$', display: false},
-                {left: '\\(', right: '\\)', display: false},
-                {left: '\\[', right: '\\]', display: true}
-            ],
-            throwOnError: false
-        });"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" crossorigin="anonymous"></script>
 </head>
 
 <body>
     <!-- Cabeçalho da Simulação -->
     <header class="sim-header">
-        <a href="../index.html#secao-simulacoes" class="btn-back">← Voltar ao Hub</a>
-        <span class="sim-title">Movimento em 1D e 2D: Encontro de Corpos</span>
+        <a href="../index.html#secao-simulacoes" class="btn-back">
+            <svg class="icon-svg" viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+            Voltar ao Hub
+        </a>
+        <h1 class="sim-title">Funções Horárias & Encontro de Móveis</h1>
     </header>
 
-    <!-- Conteúdo Principal -->
+    <!-- Layout Grid Principal -->
     <main class="sim-layout">
-        <!-- Área de Visualização (Canvas) -->
+
+        <!-- 1. Área do Canvas Interativo (Pista 1D / Gráficos Espaço-Tempo) -->
         <div class="canvas-area">
             <canvas id="simCanvas"></canvas>
-            <div class="canvas-overlay-badge" id="modeBadge">Modo 1D: Posição no Eixo X</div>
-            <div class="canvas-instructions" id="canvasHint">Arraste a esfera amarela ao longo do eixo horizontal X
+
+            <!-- Grupo de Ações Flutuantes no Topo Direito -->
+            <div class="canvas-top-actions">
+                <button id="btn-toggle-view" class="canvas-btn-floating" title="Alternar entre Pista 1D e Gráfico Espaço-Tempo">
+                    <img src="../assets/icons/rotate.svg" class="icon-svg" alt="Gráfico">
+                    <span class="btn-label-text" id="lbl-toggle-view">Ver Gráfico 2D</span>
+                </button>
+                <button id="btn-toggle-axis" class="canvas-btn-floating" style="display: none;" title="Alternar eixos: s(t) convencional ou t(s) desdobrado">
+                    <img src="../assets/icons/compass.svg" class="icon-svg" alt="Eixos">
+                    <span class="btn-label-text" id="lbl-toggle-axis">Visão Convencional (t no X)</span>
+                </button>
+                <button id="btn-expand-sidebar" class="canvas-btn-expand-sidebar" title="Expandir Painel de Controles (F)">
+                    <img src="../assets/icons/expand.svg" class="icon-svg" alt="Expandir">
+                    <span class="btn-label-text">Controles</span>
+                </button>
+            </div>
+
+            <!-- Dica Interativa Flutuante -->
+            <div class="interactive-hint" id="canvasHint">
+                <img src="../assets/icons/lightbulb.svg" class="icon-svg icon-accent" alt="Dica">
+                <span id="canvasHintText">Arraste a esfera ao longo da reta ou inicie o tempo para ver o movimento e os vetores.</span>
             </div>
         </div>
 
-        <!-- Painel de Controles -->
+        <!-- 2. Painel Lateral de Controles (Layout Tripartido / Bottom Sheet no Mobile) -->
         <aside class="controls-panel">
-            <!-- Seletor de Tipo de Movimento -->
-            <div class="control-group">
-                <label>Tipo de Movimento</label>
-                <div class="motion-mode-toggle">
-                    <button id="tabManual" class="mode-tab active">Manual</button>
-                    <button id="tabEq1" class="mode-tab">1 Objeto</button>
-                    <button id="tabEq2" class="mode-tab">2 Objetos</button>
-                </div>
+
+            <!-- Alça de Arraste para Mobile / Tablet (Bottom Sheet) -->
+            <div class="sheet-drag-handle" id="sheet-drag-handle" title="Deslize ou toque para expandir/recolher">
+                <div class="sheet-drag-pill"></div>
             </div>
 
-            <!-- Painel de Leitura em Tempo Real -->
-            <div class="readout-card" id="readoutSingle">
-                <div class="readout-item">
-                    <span class="readout-label">Tempo (t)</span>
-                    <span class="readout-value highlight-yellow" id="valTime">0.00 s</span>
-                </div>
-                <div class="readout-item">
-                    <span class="readout-label">Posição (x)</span>
-                    <span class="readout-value highlight-cyan" id="valPos">0.00 m</span>
-                </div>
-                <div class="readout-item">
-                    <span class="readout-label">Velocidade (v)</span>
-                    <span class="readout-value highlight-green" id="valVel">0.00 m/s</span>
-                </div>
-                <div class="readout-item">
-                    <span class="readout-label">Aceleração (a)</span>
-                    <span class="readout-value highlight-purple" id="valAccel">0.00 m/s²</span>
-                </div>
+            <!-- Topo: Barra de Abas Expansíveis Separadas por Modo -->
+            <div class="tab-nav">
+                <button class="tab-btn active" id="tab-btn-manual" title="Modo Manual Livre">
+                    <img src="../assets/icons/rotate.svg" class="icon-svg" alt="Manual">
+                    <span class="tab-label">Manual</span>
+                </button>
+                <button class="tab-btn" id="tab-btn-eq1" title="1 Móvel por Função Horária">
+                    <img src="../assets/icons/step.svg" class="icon-svg" alt="1 Móvel">
+                    <span class="tab-label">1 Móvel</span>
+                </button>
+                <button class="tab-btn" id="tab-btn-eq2" title="2 Móveis e Encontro">
+                    <img src="../assets/icons/sparkles.svg" class="icon-svg" alt="2 Móveis">
+                    <span class="tab-label">2 Móveis</span>
+                </button>
+                <button class="tab-btn" id="tab-btn-theory" title="Fundamentação Teórica & Fórmulas">
+                    <img src="../assets/icons/compass.svg" class="icon-svg" alt="Teoria">
+                    <span class="tab-label">Teoria</span>
+                </button>
+                <button class="btn-collapse-sidebar" id="btn-collapse-sidebar" title="Modo Foco (F)">
+                    <img src="../assets/icons/collapse.svg" class="icon-svg" alt="Recolher">
+                </button>
             </div>
 
-            <!-- Painel de Leitura Dupla (Modo 2 Objetos) -->
-            <div class="readout-card dual-readout" id="readoutDual" style="display: none;">
-                <div class="readout-full-width">
-                    <span class="readout-label">Tempo Decorrido (t)</span>
-                    <span class="readout-value highlight-yellow" id="valTimeDual">0.00 s</span>
-                </div>
-                <div class="readout-item">
-                    <span class="readout-label">Objeto A (x<sub>A</sub>)</span>
-                    <span class="readout-value highlight-yellow" id="valPosA">0.00 m</span>
-                </div>
-                <div class="readout-item">
-                    <span class="readout-label">Objeto B (x<sub>B</sub>)</span>
-                    <span class="readout-value highlight-cyan" id="valPosB">0.00 m</span>
-                </div>
-                <div class="readout-item">
-                    <span class="readout-label">Velocidade A (v<sub>A</sub>)</span>
-                    <span class="readout-value highlight-yellow" id="valVelA">0.00 m/s</span>
-                </div>
-                <div class="readout-item">
-                    <span class="readout-label">Velocidade B (v<sub>B</sub>)</span>
-                    <span class="readout-value highlight-cyan" id="valVelB">0.00 m/s</span>
-                </div>
-            </div>
+            <!-- Centro: Corpo Rolável de Conteúdo -->
+            <div class="panel-body">
 
-            <!-- Card de Previsão do Ponto de Encontro (Modo 2 Objetos) -->
-            <div id="intersectionCard" class="intersection-card" style="display: none;">
-                <div class="intersection-header">Previsão do Ponto de Encontro</div>
-                <div class="intersection-body" id="intersectionValue">
-                    Calculando...
-                </div>
-            </div>
+                <!-- Barra de Reprodução Físico-Temporal Universal -->
+                <div class="sim-transport-bar" id="sim-transport-bar">
+                    <div class="transport-controls-row">
+                        <button class="btn-primary btn-toggle transport-btn-play" id="btn-play-sim"
+                                data-state="0"
+                                data-text-idle="Iniciar Tempo"
+                                data-text-active="Pausar Tempo"
+                                data-icon-idle="play"
+                                data-icon-active="pause">
+                            <img src="../assets/icons/play.svg" class="icon-svg" alt="Play">
+                            <span class="btn-text">Iniciar Tempo</span>
+                        </button>
+                        <button class="btn-icon" id="btn-step-sim" title="Avançar 0.1s (Δt)">
+                            <img src="../assets/icons/step.svg" class="icon-svg" alt="Passo">
+                        </button>
+                        <button class="btn-icon" id="btn-reset-sim" title="Reiniciar (t = 0)">
+                            <img src="../assets/icons/refresh.svg" class="icon-svg" alt="Reset">
+                        </button>
+                    </div>
 
-            <!-- Botões Principais de Controle -->
-            <div class="control-group main-controls">
-                <button id="btnPlayPause" class="sim-btn btn-play">Iniciar Tempo</button>
-                <button id="btnReset" class="sim-btn btn-reset">Reiniciar</button>
-            </div>
-
-            <div class="control-group">
-                <button id="btnViewGraph" class="sim-btn btn-graph" disabled>📈 Ver Movimento (Gráfico 2D)</button>
-                <button id="btnToggleAxis" class="sim-btn btn-axis-toggle" style="display: none;">Visão Convencional
-                    (t no X)</button>
-                <button id="btnBackTo1D" class="sim-btn btn-secondary" style="display: none;">⬅ Voltar à Gravação
-                    1D</button>
-            </div>
-
-            <!-- Painel de Equação para Objeto Único ou Objeto A -->
-            <div id="equationPanelA" class="equation-panel theme-yellow" style="display: none;">
-                <div class="panel-tag">Objeto A (Esfera Amarela)</div>
-                <div class="equation-box" id="equationDisplayA">
-                    S<sub>A</sub>(t) = 0.0 + 2.0t + 0.0t²
+                    <div class="transport-speed-row">
+                        <span class="transport-speed-label">
+                            <img src="../assets/icons/rotate.svg" class="icon-svg" style="width: 14px; height: 14px;" alt="Velocidade">
+                            Velocidade:
+                        </span>
+                        <div class="transport-speed-pills" id="sim-speed-pills">
+                            <button class="speed-btn" data-speed="0.5">0.5×</button>
+                            <button class="speed-btn active" data-speed="1.0">1.0×</button>
+                            <button class="speed-btn" data-speed="2.0">2.0×</button>
+                        </div>
+                    </div>
                 </div>
 
-                <div class="param-inputs-grid">
-                    <div class="control-group">
-                        <label for="inputS0A">Posição Inicial (S<sub>0A</sub> [m])</label>
-                        <input type="number" id="inputS0A" class="sim-input" value="-5.0" step="0.5">
+                <!-- Controle de Histórico Temporal (Modo Gráfico 2D) -->
+                <div class="control-group" id="groupScrubber" style="display: none;">
+                    <div class="clean-slider-item">
+                        <div class="clean-slider-header">
+                            <span>Instante Gravado ($t$):</span>
+                            <strong id="lbl-scrubber-val" style="color: var(--accent-color);">0.00 s</strong>
+                        </div>
+                        <input type="range" class="sim-slider" id="sliderScrubber" min="0" max="10" step="0.05" value="0.00">
+                    </div>
+                </div>
+
+                <!-- ======================================================= -->
+                <!-- ABA 1: MODO MANUAL LIVRE                                -->
+                <!-- ======================================================= -->
+                <div id="panel-tab-manual">
+                    <div class="tab-header">
+                        <h3 class="tab-title">Movimento Livre</h3>
+                        <p class="tab-subtitle">Arraste a esfera diretamente na reta para observar a velocidade escalar instantânea.</p>
                     </div>
 
                     <div class="control-group">
-                        <label for="inputV0A">Velocidade Inicial (v<sub>0A</sub> [m/s])</label>
-                        <input type="number" id="inputV0A" class="sim-input" value="3.0" step="0.5">
+                        <div class="clean-slider-item">
+                            <div class="clean-slider-header">
+                                <span>Posição do Móvel ($s$):</span>
+                                <strong id="lbl-pos-manual" style="color: var(--accent-color);">0.0 m</strong>
+                            </div>
+                            <input type="range" class="sim-slider" id="sliderPos" min="-15" max="15" step="0.5" value="0.0">
+                        </div>
                     </div>
 
                     <div class="control-group">
-                        <label for="inputAA">Aceleração (a<sub>A</sub> [m/s²])</label>
-                        <input type="number" id="inputAA" class="sim-input" value="0.0" step="0.5">
+                        <button id="btnPanelToggleViewManual" class="btn-secondary" style="width: 100%;">
+                            <img src="../assets/icons/rotate.svg" class="icon-svg" alt="Gráfico">
+                            <span class="lbl-panel-graph">Ver Gráfico Espaço-Tempo (2D)</span>
+                        </button>
                     </div>
                 </div>
-            </div>
 
-            <!-- Painel de Equação para Objeto B (Modo 2 Objetos) -->
-            <div id="equationPanelB" class="equation-panel theme-cyan" style="display: none;">
-                <div class="panel-tag">Objeto B (Esfera Ciano)</div>
-                <div class="equation-box cyan-box" id="equationDisplayB">
-                    S<sub>B</sub>(t) = 10.0 - 2.0t + 0.0t²
+                <!-- ======================================================= -->
+                <!-- ABA 2: 1 MÓVEL POR FUNÇÃO HORÁRIA                       -->
+                <!-- ======================================================= -->
+                <div id="panel-tab-eq1" style="display: none;">
+                    <div class="tab-header">
+                        <div class="tab-header-row">
+                            <h3 class="tab-title">Função Horária da Posição</h3>
+                            <div class="sim-badge badge-sm" id="badge-tipo-single">
+                                <span class="status-dot"></span>
+                                <span id="badge-tipo-text-single">MRU</span>
+                            </div>
+                        </div>
+                        <p class="tab-subtitle">Estudo de $s(t) = s_0 + v_0 t + \frac{1}{2}a t^2$.</p>
+                    </div>
+
+                    <!-- Caixa da Equação Horária -->
+                    <div class="control-group">
+                        <div class="equation-box" id="equationDisplayA">
+                            $$s_A(t) = -5.0 + 3.0t$$
+                        </div>
+                    </div>
+
+                    <!-- Sliders Minimalistas Móvel A -->
+                    <div class="control-group">
+                        <div class="clean-slider-group">
+                            <div class="clean-slider-item">
+                                <div class="clean-slider-header">
+                                    <span>Posição Inicial ($s_0$):</span>
+                                    <strong id="lbl-s0A" style="color: var(--accent-color);">-5.0 m</strong>
+                                </div>
+                                <input type="range" class="sim-slider" id="sliderS0A" min="-15" max="15" step="0.5" value="-5.0">
+                            </div>
+
+                            <div class="clean-slider-item">
+                                <div class="clean-slider-header">
+                                    <span>Velocidade ($v_0$):</span>
+                                    <strong id="lbl-v0A" style="color: var(--color-emerald, #22c55e);">+3.0 m/s</strong>
+                                </div>
+                                <input type="range" class="sim-slider" id="sliderV0A" min="-10" max="10" step="0.5" value="3.0">
+                            </div>
+
+                            <!-- Switch de Aceleração Opcional -->
+                            <div class="accel-toggle-row">
+                                <label class="accel-checkbox-label">
+                                    <input type="checkbox" id="chk-accel-single">
+                                    <span>Incluir Aceleração (MRUV)</span>
+                                </label>
+                            </div>
+
+                            <div class="clean-slider-item" id="group-accel-single" style="display: none;">
+                                <div class="clean-slider-header">
+                                    <span>Aceleração ($a$):</span>
+                                    <strong id="lbl-aA" style="color: var(--color-purple, #c084fc);">0.0 m/s²</strong>
+                                </div>
+                                <input type="range" class="sim-slider" id="sliderAA" min="-5" max="5" step="0.2" value="0.0">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="control-group">
+                        <button id="btnPanelToggleViewEq1" class="btn-secondary" style="width: 100%;">
+                            <img src="../assets/icons/rotate.svg" class="icon-svg" alt="Gráfico">
+                            <span class="lbl-panel-graph">Ver Gráfico Espaço-Tempo (2D)</span>
+                        </button>
+                    </div>
                 </div>
 
-                <div class="param-inputs-grid">
+                <!-- ======================================================= -->
+                <!-- ABA 3: 2 MÓVEIS (ENCONTRO DE CORPOS)                    -->
+                <!-- ======================================================= -->
+                <div id="panel-tab-eq2" style="display: none;">
+                    <div class="tab-header">
+                        <h3 class="tab-title">Encontro de Dois Móveis</h3>
+                        <p class="tab-subtitle">Compare as trajetórias e observe o ponto de cruzamento.</p>
+                    </div>
+
+                    <!-- Móvel A (Amarelo) -->
                     <div class="control-group">
-                        <label for="inputS0B">Posição Inicial (S<sub>0B</sub> [m])</label>
-                        <input type="number" id="inputS0B" class="sim-input" value="5.0" step="0.5">
+                        <div class="equation-panel theme-yellow">
+                            <div class="panel-tag-row">
+                                <span class="panel-tag">Móvel A (Faixa Superior)</span>
+                                <span class="sim-badge badge-sm" id="badge-tipo-a">MRU</span>
+                            </div>
+                            <div class="equation-box" id="equationDisplayA_dual">
+                                $$s_A(t) = -5.0 + 3.0t$$
+                            </div>
+
+                            <div class="clean-slider-group">
+                                <div class="clean-slider-item">
+                                    <div class="clean-slider-header">
+                                        <span>Posição Inicial ($s_{0A}$):</span>
+                                        <strong id="lbl-s0A_dual" style="color: var(--accent-color);">-5.0 m</strong>
+                                    </div>
+                                    <input type="range" class="sim-slider" id="sliderS0A_dual" min="-15" max="15" step="0.5" value="-5.0">
+                                </div>
+
+                                <div class="clean-slider-item">
+                                    <div class="clean-slider-header">
+                                        <span>Velocidade ($v_{0A}$):</span>
+                                        <strong id="lbl-v0A_dual" style="color: var(--color-emerald, #22c55e);">+3.0 m/s</strong>
+                                    </div>
+                                    <input type="range" class="sim-slider" id="sliderV0A_dual" min="-10" max="10" step="0.5" value="3.0">
+                                </div>
+
+                                <div class="accel-toggle-row">
+                                    <label class="accel-checkbox-label">
+                                        <input type="checkbox" id="chk-accel-dual-a">
+                                        <span>Incluir Aceleração ($a_A$)</span>
+                                    </label>
+                                </div>
+
+                                <div class="clean-slider-item" id="group-accel-dual-a" style="display: none;">
+                                    <div class="clean-slider-header">
+                                        <span>Aceleração ($a_A$):</span>
+                                        <strong id="lbl-aA_dual" style="color: var(--color-purple, #c084fc);">0.0 m/s²</strong>
+                                    </div>
+                                    <input type="range" class="sim-slider" id="sliderAA_dual" min="-5" max="5" step="0.2" value="0.0">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Móvel B (Ciano) -->
+                    <div class="control-group">
+                        <div class="equation-panel theme-cyan">
+                            <div class="panel-tag-row">
+                                <span class="panel-tag">Móvel B (Faixa Inferior)</span>
+                                <span class="sim-badge badge-sm" id="badge-tipo-b">MRU</span>
+                            </div>
+                            <div class="equation-box cyan-box" id="equationDisplayB">
+                                $$s_B(t) = 5.0 - 2.0t$$
+                            </div>
+
+                            <div class="clean-slider-group">
+                                <div class="clean-slider-item">
+                                    <div class="clean-slider-header">
+                                        <span>Posição Inicial ($s_{0B}$):</span>
+                                        <strong id="lbl-s0B" style="color: var(--color-cyan, #38bdf8);">+5.0 m</strong>
+                                    </div>
+                                    <input type="range" class="sim-slider" id="sliderS0B" min="-15" max="15" step="0.5" value="5.0">
+                                </div>
+
+                                <div class="clean-slider-item">
+                                    <div class="clean-slider-header">
+                                        <span>Velocidade ($v_{0B}$):</span>
+                                        <strong id="lbl-v0B" style="color: var(--color-emerald, #22c55e);">-2.0 m/s</strong>
+                                    </div>
+                                    <input type="range" class="sim-slider" id="sliderV0B" min="-10" max="10" step="0.5" value="-2.0">
+                                </div>
+
+                                <div class="accel-toggle-row">
+                                    <label class="accel-checkbox-label">
+                                        <input type="checkbox" id="chk-accel-dual-b">
+                                        <span>Incluir Aceleração ($a_B$)</span>
+                                    </label>
+                                </div>
+
+                                <div class="clean-slider-item" id="group-accel-dual-b" style="display: none;">
+                                    <div class="clean-slider-header">
+                                        <span>Aceleração ($a_B$):</span>
+                                        <strong id="lbl-aB" style="color: var(--color-purple, #c084fc);">0.0 m/s²</strong>
+                                    </div>
+                                    <input type="range" class="sim-slider" id="sliderAB" min="-5" max="5" step="0.2" value="0.0">
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
                     <div class="control-group">
-                        <label for="inputV0B">Velocidade Inicial (v<sub>0B</sub> [m/s])</label>
-                        <input type="number" id="inputV0B" class="sim-input" value="-2.0" step="0.5">
-                    </div>
-
-                    <div class="control-group">
-                        <label for="inputAB">Aceleração (a<sub>B</sub> [m/s²])</label>
-                        <input type="number" id="inputAB" class="sim-input" value="0.0" step="0.5">
+                        <button id="btnPanelToggleViewEq2" class="btn-secondary" style="width: 100%;">
+                            <img src="../assets/icons/rotate.svg" class="icon-svg" alt="Gráfico">
+                            <span class="lbl-panel-graph">Ver Gráfico Espaço-Tempo (2D)</span>
+                        </button>
                     </div>
                 </div>
+
+                <!-- ======================================================= -->
+                <!-- ABA 4: TEORIA E FUNDAMENTAÇÃO                           -->
+                <!-- ======================================================= -->
+                <div id="panel-tab-theory" style="display: none;">
+                    <div class="tab-header">
+                        <h3 class="tab-title">Fundamentação Teórica</h3>
+                        <p class="tab-subtitle">Cinemática Escalar para o Ensino Médio: Funções Horárias e Encontro.</p>
+                    </div>
+
+                    <div class="theory-quick-card">
+                        <h4>1. Movimento Retilíneo Uniforme (MRU)</h4>
+                        <p>No MRU, a velocidade escalar é constante e a aceleração é nula ($a = 0$). A posição varia como função afim:</p>
+                        <div class="theory-equation-highlight">$$s(t) = s_0 + v \cdot t$$</div>
+                        <p>No gráfico $s \times t$, a trajetória é uma reta cuja inclinação é a velocidade escalar:</p>
+                        <div class="theory-equation-highlight">$$v = \frac{\Delta s}{\Delta t} = \tan \theta$$</div>
+                    </div>
+
+                    <div class="theory-quick-card">
+                        <h4>2. Movimento Uniformemente Variado (MRUV)</h4>
+                        <p>No MRUV, a aceleração $a$ é constante e não nula. A velocidade varia linearmente e a posição é quadrática:</p>
+                        <div class="theory-equation-highlight">$$s(t) = s_0 + v_0 \cdot t + \frac{1}{2} a \cdot t^2$$</div>
+                        <p>O gráfico $s \times t$ é um arco de parábola. Concavidade para cima indica $a > 0$; para baixo indica $a < 0$.</p>
+                    </div>
+
+                    <div class="theory-quick-card">
+                        <h4>3. Condição de Encontro</h4>
+                        <p>O encontro físico ocorre quando ambos ocupam a mesma posição escalar no mesmo instante:</p>
+                        <div class="theory-equation-highlight">$$s_A(t_e) = s_B(t_e)$$</div>
+                    </div>
+
+                    <div style="margin-top: 16px;">
+                        <button class="btn-primary" id="btn-abrir-modal-teoria" style="width: 100%;">
+                            <img src="../assets/icons/compass.svg" class="icon-svg" alt="Teoria">
+                            <span>Ver Dedução Completa & Dicas ENEM</span>
+                        </button>
+                    </div>
+                </div>
+
             </div>
 
-            <!-- Controle Fino por Slider (Exibido no modo Manual) -->
-            <div class="control-group" id="groupPosSlider">
-                <label for="sliderPos">Posição Manual (x): <span id="lblPosSlider">0.0 m</span></label>
-                <input type="range" id="sliderPos" class="sim-slider" min="-10" max="10" step="0.1" value="0">
+            <!-- Base: Rodapé Fixo de Telemetria -->
+            <div class="panel-footer">
+                <div class="sim-badge" id="footer-status-badge">
+                    <span class="status-dot"></span>
+                    <span id="footer-status-text">Simulação Pronta</span>
+                </div>
+                <span class="footer-meta" id="footer-sim-timer">t = 0.00s</span>
             </div>
 
-            <!-- Navegação no Tempo (Modo 2D) -->
-            <div class="control-group" id="groupScrubber" style="display: none;">
-                <label for="sliderScrubber">Histórico Temporal: <span id="lblScrubberTime">0.00 s</span></label>
-                <input type="range" id="sliderScrubber" class="sim-slider" min="0" max="10" step="0.05" value="0">
-            </div>
-
-            <!-- Seção Explicativa e Guiada -->
-            <div class="info-section">
-                <h3 id="infoTitle">Como Funciona</h3>
-                <p id="infoText">
-                    1. Escolha <strong>2 Objetos (Encontro)</strong>.<br>
-                    2. Digite as equações S<sub>A</sub>(t) e S<sub>B</sub>(t) para ver quando as trajetórias se
-                    cruzam.<br>
-                    3. Clique em <strong>Iniciar Tempo</strong> e depois em <strong>Ver Movimento</strong> para
-                    localizar o ponto de encontro no gráfico 2D!
-                </p>
-            </div>
         </aside>
+
     </main>
 
-    <!-- Script da Simulação -->
-    <script src="scripts/movimento.js"></script>
+    <!-- Modal Didático de Teoria e Deduções Matemáticas -->
+    <div id="modal-teoria" class="sim-modal-overlay hidden" aria-hidden="true" role="dialog">
+        <div class="sim-modal-container">
+            <div class="sim-modal-header">
+                <div class="sim-modal-title">
+                    <img src="../assets/icons/compass.svg" class="icon-svg icon-accent" alt="Teoria">
+                    <span>Cinemática Escalar: Funções Horárias e Encontro de Móveis</span>
+                </div>
+                <button class="sim-modal-close" data-modal-close title="Fechar Modal (Esc)">✕</button>
+            </div>
+
+            <div class="sim-modal-body">
+                <div class="theory-section">
+                    <h4>1. O Conceito de Posição, Referencial e Espaço 1D</h4>
+                    <p>
+                        Em mecânica clássica, descrever o movimento exige a escolha de um referencial e de uma reta métrica orientada.
+                        A posição instantânea fica completamente definida por uma única coordenada escalar $s(t)$ medida em relação à origem $O$ ($s = 0$).
+                    </p>
+                    <ul>
+                        <li>$v > 0$: Movimento Progressivo (o corpo avança no sentido positivo).</li>
+                        <li>$v < 0$: Movimento Retrógrado (o corpo recua no sentido negativo).</li>
+                        <li>$v = 0$: Repouso instantâneo (inversão de sentido).</li>
+                    </ul>
+                </div>
+
+                <div class="theory-section">
+                    <h4>2. Função Horária da Posição no MRU</h4>
+                    $$s(t) = s_0 + v \cdot t$$
+                    <p>O coeficiente angular da reta $s \times t$ é a velocidade escalar $v$.</p>
+                </div>
+
+                <div class="theory-section">
+                    <h4>3. Funções Horárias no MRUV</h4>
+                    $$s(t) = s_0 + v_0 \cdot t + \frac{1}{2} a \cdot t^2$$
+                    $$v(t) = v_0 + a \cdot t$$
+                    <p>
+                        A representação gráfica de $s(t)$ no MRUV é um arco de parábola. O vértice corresponde ao instante de inversão de sentido: $v(t_v) = 0 \implies t_v = -v_0 / a$.
+                    </p>
+                </div>
+
+                <div class="theory-section">
+                    <h4>4. Resolução Analítica do Encontro</h4>
+                    <p>Igualando $s_A(t) = s_B(t)$:</p>
+                    $$\frac{1}{2}(a_A - a_B) t^2 + (v_{0A} - v_{0B}) t + (s_{0A} - s_{0B}) = 0$$
+                    <p>
+                        No caso de MRUV, a resolução por Bhaskara pode produzir até dois instantes reais de encontro ($t_1$ e $t_2$), correspondendo a uma ultrapassagem inicial e posterior retomada de liderança.
+                    </p>
+                </div>
+            </div>
+
+            <div class="sim-modal-footer">
+                <span class="sim-modal-hint">Pressione <kbd>Esc</kbd> para fechar</span>
+                <button class="btn-primary" data-modal-close style="min-width: 100px;">Entendido</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Script Principal da Simulação (ES Module) -->
+    <script type="module" src="scripts/movimento.js"></script>
 </body>
 
 </html>

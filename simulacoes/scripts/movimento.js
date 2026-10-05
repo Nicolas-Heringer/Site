@@ -1,116 +1,148 @@
-// =============================================================================
-// Autor: Nicolas Heringer
-// Coautor / Revisor: Gemini 3.6 Flash
-// Simulação: Movimento 1D e 2D (Posição × Tempo & Encontro de Dois Corpos)
-// Descrição: Simulação cinemática de movimento unidimensional e bidimensional,
-//            extrusão espaço-temporal, gráficos de trajetória e ponto de encontro.
-// =============================================================================
+/**
+ * =============================================================================
+ * Simulação: Funções Horárias & Encontro de Móveis (Cinemática Escalar 1D)
+ * Autor: Nicolas Heringer
+ * Design System 2.0 — Baixa Carga Cognitiva: Vetores, Estroboscopia e Pistas Paralelas
+ * =============================================================================
+ */
+
+import {
+    initToggleButton,
+    initSidebarCollapse,
+    initBottomSheet,
+    initModal,
+    inlineSVGImages
+} from './sim-ui.js';
 
 class MovimentoSimulation {
     constructor() {
-        // Elementos DOM
+        // Elementos do Canvas
         this.canvas = document.getElementById('simCanvas');
         this.ctx = this.canvas.getContext('2d');
 
-        this.readoutSingle = document.getElementById('readoutSingle');
-        this.valTime = document.getElementById('valTime');
-        this.valPos = document.getElementById('valPos');
-        this.valVel = document.getElementById('valVel');
-        this.valAccel = document.getElementById('valAccel');
-
-        this.readoutDual = document.getElementById('readoutDual');
-        this.valTimeDual = document.getElementById('valTimeDual');
-        this.valPosA = document.getElementById('valPosA');
-        this.valPosB = document.getElementById('valPosB');
-        this.valVelA = document.getElementById('valVelA');
-        this.valVelB = document.getElementById('valVelB');
-
-        this.intersectionCard = document.getElementById('intersectionCard');
-        this.intersectionValue = document.getElementById('intersectionValue');
-
-        this.modeBadge = document.getElementById('modeBadge');
         this.canvasHint = document.getElementById('canvasHint');
+        this.canvasHintText = document.getElementById('canvasHintText');
 
-        this.tabManual = document.getElementById('tabManual');
-        this.tabEq1 = document.getElementById('tabEq1');
-        this.tabEq2 = document.getElementById('tabEq2');
+        // Botões de Top Actions
+        this.btnToggleView = document.getElementById('btn-toggle-view');
+        this.lblToggleView = document.getElementById('lbl-toggle-view');
+        this.btnToggleAxis = document.getElementById('btn-toggle-axis');
+        this.lblToggleAxis = document.getElementById('lbl-toggle-axis');
 
-        this.btnPlayPause = document.getElementById('btnPlayPause');
-        this.btnReset = document.getElementById('btnReset');
-        this.btnViewGraph = document.getElementById('btnViewGraph');
-        this.btnToggleAxis = document.getElementById('btnToggleAxis');
-        this.btnBackTo1D = document.getElementById('btnBackTo1D');
+        // Abas de Modo (Navegação Principal)
+        this.tabBtnManual = document.getElementById('tab-btn-manual');
+        this.tabBtnEq1 = document.getElementById('tab-btn-eq1');
+        this.tabBtnEq2 = document.getElementById('tab-btn-eq2');
+        this.tabBtnTheory = document.getElementById('tab-btn-theory');
 
-        this.equationPanelA = document.getElementById('equationPanelA');
-        this.equationDisplayA = document.getElementById('equationDisplayA');
-        this.inputS0A = document.getElementById('inputS0A');
-        this.inputV0A = document.getElementById('inputV0A');
-        this.inputAA = document.getElementById('inputAA');
+        // Painéis das Abas
+        this.simTransportBar = document.getElementById('sim-transport-bar');
+        this.panelTabManual = document.getElementById('panel-tab-manual');
+        this.panelTabEq1 = document.getElementById('panel-tab-eq1');
+        this.panelTabEq2 = document.getElementById('panel-tab-eq2');
+        this.panelTabTheory = document.getElementById('panel-tab-theory');
 
-        this.equationPanelB = document.getElementById('equationPanelB');
-        this.equationDisplayB = document.getElementById('equationDisplayB');
-        this.inputS0B = document.getElementById('inputS0B');
-        this.inputV0B = document.getElementById('inputV0B');
-        this.inputAB = document.getElementById('inputAB');
-
-        this.groupPosSlider = document.getElementById('groupPosSlider');
+        // Sliders e Labels Minimalistas
+        // Manual
         this.sliderPos = document.getElementById('sliderPos');
-        this.lblPosSlider = document.getElementById('lblPosSlider');
+        this.lblPosManual = document.getElementById('lbl-pos-manual');
 
+        // 1 Móvel
+        this.equationDisplayA = document.getElementById('equationDisplayA');
+        this.badgeTipoSingle = document.getElementById('badge-tipo-single');
+        this.badgeTipoTextSingle = document.getElementById('badge-tipo-text-single');
+        this.sliderS0A = document.getElementById('sliderS0A');
+        this.lblS0A = document.getElementById('lbl-s0A');
+        this.sliderV0A = document.getElementById('sliderV0A');
+        this.lblV0A = document.getElementById('lbl-v0A');
+        this.chkAccelSingle = document.getElementById('chk-accel-single');
+        this.groupAccelSingle = document.getElementById('group-accel-single');
+        this.sliderAA = document.getElementById('sliderAA');
+        this.lblAA = document.getElementById('lbl-aA');
+
+        // 2 Móveis
+        this.equationDisplayA_dual = document.getElementById('equationDisplayA_dual');
+        this.badgeTipoA = document.getElementById('badge-tipo-a');
+        this.sliderS0A_dual = document.getElementById('sliderS0A_dual');
+        this.lblS0A_dual = document.getElementById('lbl-s0A_dual');
+        this.sliderV0A_dual = document.getElementById('sliderV0A_dual');
+        this.lblV0A_dual = document.getElementById('lbl-v0A_dual');
+        this.chkAccelDualA = document.getElementById('chk-accel-dual-a');
+        this.groupAccelDualA = document.getElementById('group-accel-dual-a');
+        this.sliderAA_dual = document.getElementById('sliderAA_dual');
+        this.lblAA_dual = document.getElementById('lbl-aA_dual');
+
+        this.equationDisplayB = document.getElementById('equationDisplayB');
+        this.badgeTipoB = document.getElementById('badge-tipo-b');
+        this.sliderS0B = document.getElementById('sliderS0B');
+        this.lblS0B = document.getElementById('lbl-s0B');
+        this.sliderV0B = document.getElementById('sliderV0B');
+        this.lblV0B = document.getElementById('lbl-v0B');
+        this.chkAccelDualB = document.getElementById('chk-accel-dual-b');
+        this.groupAccelDualB = document.getElementById('group-accel-dual-b');
+        this.sliderAB = document.getElementById('sliderAB');
+        this.lblAB = document.getElementById('lbl-aB');
+
+        // Scrubber
         this.groupScrubber = document.getElementById('groupScrubber');
         this.sliderScrubber = document.getElementById('sliderScrubber');
-        this.lblScrubberTime = document.getElementById('lblScrubberTime');
+        this.lblScrubberVal = document.getElementById('lbl-scrubber-val');
 
-        this.infoTitle = document.getElementById('infoTitle');
-        this.infoText = document.getElementById('infoText');
+        // Rodapé de Telemetria
+        this.footerStatusBadge = document.getElementById('footer-status-badge');
+        this.footerStatusText = document.getElementById('footer-status-text');
+        this.footerSimTimer = document.getElementById('footer-sim-timer');
 
-        // Modos de Simulação
-        // Mode: '1D' | '2D_EXTRUDED' | '2D_CONVENTIONAL'
+        // Modos de Exibição
+        // mode: '1D' | '2D_EXTRUDED' | '2D_CONVENTIONAL'
         this.mode = '1D';
 
-        // Tipo de Movimento: 'manual' | 'equation_1' | 'equation_2'
+        // motionType: 'manual' | 'equation_1' | 'equation_2'
         this.motionType = 'manual';
 
-        // Parâmetros do Objeto A
+        // Parâmetros Físicos do Móvel A (Amarelo)
         this.s0A = -5.0;
         this.v0A = 3.0;
         this.aA = 0.0;
         this.xA = -5.0;
         this.vA = 3.0;
 
-        // Parâmetros do Objeto B
+        // Parâmetros Físicos do Móvel B (Ciano)
         this.s0B = 5.0;
         this.v0B = -2.0;
         this.aB = 0.0;
         this.xB = 5.0;
         this.vB = -2.0;
 
-        // Tempo Instantâneo
-        this.t = 0;
-
+        // Relógio e Execução
+        this.t = 0.0;
+        this.simSpeed = 1.0;
         this.isPlaying = false;
         this.isDragging = false;
+        this.isHoveringBallA = false;
 
-        // Histórico de Gravados
+        // Histórico Contínuo e Estroboscopia (Marcas a cada 1s)
         this.recordingA = [];
         this.recordingB = [];
+        this.strobePointsA = [];
+        this.strobePointsB = [];
+        this.lastStrobeSec = 0;
         this.lastFrameTimestamp = 0;
         this.prevXA = 0;
 
-        // Limites de Exibição do Eixo X
-        this.xMin = -10;
-        this.xMax = 10;
+        // Limites de Exibição do Eixo
+        this.xMin = -15;
+        this.xMax = 15;
         this.tMax = 10;
 
-        // Tempo Selecionado no Scrubber (Modos 2D)
+        // Índice no Scrubber Temporal
         this.selectedTimeIndex = 0;
 
-        // Animações de Transição
-        this.transitionProgress = 0;
-        this.targetTransition = 0;
-
-        this.axisRotateProgress = 0;
-        this.targetAxisRotate = 0;
+        // Animações Suaves de Transição
+        this.transitionProgress = 0.0;
+        this.targetTransition = 0.0;
+        this.axisRotateProgress = 0.0;
+        this.targetAxisRotate = 0.0;
 
         this.ballRadius = 16;
 
@@ -121,11 +153,12 @@ class MovimentoSimulation {
         this.resize();
         window.addEventListener('resize', () => this.resize());
 
-        if (window.ResizeObserver) {
-            const ro = new ResizeObserver(() => this.resize());
-            ro.observe(this.canvas.parentElement);
+        if (window.ResizeObserver && this.canvas.parentElement) {
+            new ResizeObserver(() => this.resize()).observe(this.canvas.parentElement);
         }
 
+        this.setupDesignSystemControls();
+        this.setupSliderEvents();
         this.setupEvents();
         this.updateEquationDisplays();
         this.updateUI();
@@ -134,80 +167,273 @@ class MovimentoSimulation {
     }
 
     resize() {
-        const rect = this.canvas.parentElement.getBoundingClientRect();
-        const dpr = window.devicePixelRatio || 1;
+        const parent = this.canvas.parentElement;
+        if (!parent) return;
 
+        const rect = parent.getBoundingClientRect();
+        if (rect.width === 0 || rect.height === 0) return;
+
+        const dpr = Math.min(window.devicePixelRatio || 1, 2);
         this.width = rect.width;
         this.height = rect.height;
 
         this.canvas.width = this.width * dpr;
         this.canvas.height = this.height * dpr;
 
+        this.ctx.setTransform(1, 0, 0, 1, 0, 0);
         this.ctx.scale(dpr, dpr);
     }
 
+    setupDesignSystemControls() {
+        // 1. Botão de Play/Pause com Toggle Controller
+        this.playControl = initToggleButton('#btn-play-sim', (active) => {
+            if (active) {
+                this.start();
+            } else {
+                this.pause();
+            }
+        });
+
+        // 2. Botão de Passo Único (+0.1s)
+        document.getElementById('btn-step-sim')?.addEventListener('click', () => {
+            if (this.isPlaying) {
+                this.playControl?.setState(0);
+                this.pause();
+            }
+            this.step(0.1);
+        });
+
+        // 3. Botão de Reiniciar
+        document.getElementById('btn-reset-sim')?.addEventListener('click', () => {
+            this.reset();
+        });
+
+        // 4. Seletor de Velocidade Temporal (Pills)
+        document.querySelectorAll('#sim-speed-pills .speed-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('#sim-speed-pills .speed-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                this.simSpeed = parseFloat(btn.dataset.speed || '1.0');
+            });
+        });
+
+        // 5. Navegação entre as 4 Abas Principais
+        this.tabBtnManual?.addEventListener('click', () => this.switchTab('manual'));
+        this.tabBtnEq1?.addEventListener('click', () => this.switchTab('equation_1'));
+        this.tabBtnEq2?.addEventListener('click', () => this.switchTab('equation_2'));
+        this.tabBtnTheory?.addEventListener('click', () => this.switchTab('theory'));
+
+        // 6. Modal de Teoria Didática
+        const modalTeoria = initModal('#modal-teoria');
+        document.getElementById('btn-abrir-modal-teoria')?.addEventListener('click', () => {
+            modalTeoria?.open();
+        });
+
+        // 7. Modo Foco (Sidebar Collapse)
+        initSidebarCollapse({
+            layoutSelector: '.sim-layout',
+            collapseBtnSelector: '#btn-collapse-sidebar',
+            expandBtnSelector: '#btn-expand-sidebar',
+            onResize: () => this.resize()
+        });
+
+        // 8. Mobile Bottom Sheet
+        initBottomSheet({
+            panelSelector: '.controls-panel',
+            handleSelector: '#sheet-drag-handle',
+            tabNavSelector: '.tab-nav',
+            collapseBtnSelector: '#btn-collapse-sidebar',
+            defaultState: 'peek'
+        });
+
+        // 9. Inline SVGs
+        inlineSVGImages();
+    }
+
+    setupSliderEvents() {
+        // Slider Manual
+        this.sliderPos?.addEventListener('input', (e) => {
+            const val = parseFloat(e.target.value);
+            this.setPos(val);
+            if (this.lblPosManual) this.lblPosManual.textContent = `${val.toFixed(1)} m`;
+        });
+
+        // Sliders Móvel A (1 Móvel)
+        this.sliderS0A?.addEventListener('input', (e) => {
+            const val = parseFloat(e.target.value);
+            this.setParamS0A(val);
+        });
+        this.sliderV0A?.addEventListener('input', (e) => {
+            const val = parseFloat(e.target.value);
+            this.setParamV0A(val);
+        });
+        this.sliderAA?.addEventListener('input', (e) => {
+            const val = parseFloat(e.target.value);
+            this.setParamAA(val);
+        });
+
+        // Sliders Móvel A (2 Móveis)
+        this.sliderS0A_dual?.addEventListener('input', (e) => {
+            const val = parseFloat(e.target.value);
+            this.setParamS0A(val);
+        });
+        this.sliderV0A_dual?.addEventListener('input', (e) => {
+            const val = parseFloat(e.target.value);
+            this.setParamV0A(val);
+        });
+        this.sliderAA_dual?.addEventListener('input', (e) => {
+            const val = parseFloat(e.target.value);
+            this.setParamAA(val);
+        });
+
+        // Sliders Móvel B (2 Móveis)
+        this.sliderS0B?.addEventListener('input', (e) => {
+            const val = parseFloat(e.target.value);
+            this.setParamS0B(val);
+        });
+        this.sliderV0B?.addEventListener('input', (e) => {
+            const val = parseFloat(e.target.value);
+            this.setParamV0B(val);
+        });
+        this.sliderAB?.addEventListener('input', (e) => {
+            const val = parseFloat(e.target.value);
+            this.setParamAB(val);
+        });
+
+        // Scrubber 2D
+        this.sliderScrubber?.addEventListener('input', (e) => {
+            const val = parseFloat(e.target.value);
+            this.seekToTime(val);
+            if (this.lblScrubberVal) this.lblScrubberVal.textContent = `${val.toFixed(2)} s`;
+        });
+
+        // Switches de Aceleração Opcional (MRUV)
+        this.chkAccelSingle?.addEventListener('change', (e) => {
+            const checked = e.target.checked;
+            this.groupAccelSingle.style.display = checked ? 'flex' : 'none';
+            if (!checked) {
+                this.setParamAA(0.0);
+            }
+        });
+
+        this.chkAccelDualA?.addEventListener('change', (e) => {
+            const checked = e.target.checked;
+            this.groupAccelDualA.style.display = checked ? 'flex' : 'none';
+            if (!checked) {
+                this.setParamAA(0.0);
+            }
+        });
+
+        this.chkAccelDualB?.addEventListener('change', (e) => {
+            const checked = e.target.checked;
+            this.groupAccelDualB.style.display = checked ? 'flex' : 'none';
+            if (!checked) {
+                this.setParamAB(0.0);
+            }
+        });
+    }
+
+    setParamS0A(val) {
+        this.s0A = val;
+        if (this.sliderS0A) this.sliderS0A.value = val;
+        if (this.sliderS0A_dual) this.sliderS0A_dual.value = val;
+        const text = `${val >= 0 ? '+' : ''}${val.toFixed(1)} m`;
+        if (this.lblS0A) this.lblS0A.textContent = text;
+        if (this.lblS0A_dual) this.lblS0A_dual.textContent = text;
+        this.onParamChangeA();
+    }
+
+    setParamV0A(val) {
+        this.v0A = val;
+        if (this.sliderV0A) this.sliderV0A.value = val;
+        if (this.sliderV0A_dual) this.sliderV0A_dual.value = val;
+        const text = `${val >= 0 ? '+' : ''}${val.toFixed(1)} m/s`;
+        if (this.lblV0A) this.lblV0A.textContent = text;
+        if (this.lblV0A_dual) this.lblV0A_dual.textContent = text;
+        this.onParamChangeA();
+    }
+
+    setParamAA(val) {
+        this.aA = val;
+        if (this.sliderAA) this.sliderAA.value = val;
+        if (this.sliderAA_dual) this.sliderAA_dual.value = val;
+        const text = `${val >= 0 ? '+' : ''}${val.toFixed(1)} m/s²`;
+        if (this.lblAA) this.lblAA.textContent = text;
+        if (this.lblAA_dual) this.lblAA_dual.textContent = text;
+        this.onParamChangeA();
+    }
+
+    setParamS0B(val) {
+        this.s0B = val;
+        if (this.sliderS0B) this.sliderS0B.value = val;
+        if (this.lblS0B) this.lblS0B.textContent = `${val >= 0 ? '+' : ''}${val.toFixed(1)} m`;
+        this.onParamChangeB();
+    }
+
+    setParamV0B(val) {
+        this.v0B = val;
+        if (this.sliderV0B) this.sliderV0B.value = val;
+        if (this.lblV0B) this.lblV0B.textContent = `${val >= 0 ? '+' : ''}${val.toFixed(1)} m/s`;
+        this.onParamChangeB();
+    }
+
+    setParamAB(val) {
+        this.aB = val;
+        if (this.sliderAB) this.sliderAB.value = val;
+        if (this.lblAB) this.lblAB.textContent = `${val >= 0 ? '+' : ''}${val.toFixed(1)} m/s²`;
+        this.onParamChangeB();
+    }
+
+    switchTab(tabKey) {
+        [this.tabBtnManual, this.tabBtnEq1, this.tabBtnEq2, this.tabBtnTheory].forEach(btn => btn?.classList.remove('active'));
+
+        this.panelTabManual.style.display = 'none';
+        this.panelTabEq1.style.display = 'none';
+        this.panelTabEq2.style.display = 'none';
+        this.panelTabTheory.style.display = 'none';
+
+        if (tabKey === 'manual') {
+            this.tabBtnManual?.classList.add('active');
+            this.panelTabManual.style.display = 'block';
+            this.simTransportBar.style.display = 'block';
+            this.setMotionType('manual');
+        } else if (tabKey === 'equation_1') {
+            this.tabBtnEq1?.classList.add('active');
+            this.panelTabEq1.style.display = 'block';
+            this.simTransportBar.style.display = 'block';
+            this.setMotionType('equation_1');
+        } else if (tabKey === 'equation_2') {
+            this.tabBtnEq2?.classList.add('active');
+            this.panelTabEq2.style.display = 'block';
+            this.simTransportBar.style.display = 'block';
+            this.setMotionType('equation_2');
+        } else if (tabKey === 'theory') {
+            this.tabBtnTheory?.classList.add('active');
+            this.panelTabTheory.style.display = 'block';
+            this.simTransportBar.style.display = 'none';
+            this.renderKaTeXIn(this.panelTabTheory);
+        }
+    }
+
+    renderKaTeXIn(element) {
+        if (window.renderMathInElement && element) {
+            window.renderMathInElement(element, {
+                delimiters: [
+                    { left: '$$', right: '$$', display: true },
+                    { left: '$', right: '$', display: false }
+                ],
+                throwOnError: false
+            });
+        }
+    }
+
     setupEvents() {
-        this.tabManual.addEventListener('click', () => this.setMotionType('manual'));
-        this.tabEq1.addEventListener('click', () => this.setMotionType('equation_1'));
-        this.tabEq2.addEventListener('click', () => this.setMotionType('equation_2'));
+        this.btnToggleView?.addEventListener('click', () => this.toggleViewMode());
+        document.getElementById('btnPanelToggleViewManual')?.addEventListener('click', () => this.toggleViewMode());
+        document.getElementById('btnPanelToggleViewEq1')?.addEventListener('click', () => this.toggleViewMode());
+        document.getElementById('btnPanelToggleViewEq2')?.addEventListener('click', () => this.toggleViewMode());
+        this.btnToggleAxis?.addEventListener('click', () => this.toggleAxisView());
 
-        this.btnPlayPause.addEventListener('click', () => this.togglePlay());
-        this.btnReset.addEventListener('click', () => this.reset());
-        this.btnViewGraph.addEventListener('click', () => this.enter2DMode());
-        this.btnToggleAxis.addEventListener('click', () => this.toggleAxisView());
-        this.btnBackTo1D.addEventListener('click', () => this.backTo1DMode());
-
-        // Entradas do Objeto A
-        const onParamChangeA = () => {
-            this.s0A = parseFloat(this.inputS0A.value) || 0;
-            this.v0A = parseFloat(this.inputV0A.value) || 0;
-            this.aA = parseFloat(this.inputAA.value) || 0;
-
-            this.updateEquationDisplays();
-            if (this.motionType !== 'manual' && !this.isPlaying && this.t === 0) {
-                this.xA = this.s0A;
-                this.vA = this.v0A;
-            }
-            this.updateUI();
-        };
-
-        this.inputS0A.addEventListener('input', onParamChangeA);
-        this.inputV0A.addEventListener('input', onParamChangeA);
-        this.inputAA.addEventListener('input', onParamChangeA);
-
-        // Entradas do Objeto B
-        const onParamChangeB = () => {
-            this.s0B = parseFloat(this.inputS0B.value) || 0;
-            this.v0B = parseFloat(this.inputV0B.value) || 0;
-            this.aB = parseFloat(this.inputAB.value) || 0;
-
-            this.updateEquationDisplays();
-            if (this.motionType === 'equation_2' && !this.isPlaying && this.t === 0) {
-                this.xB = this.s0B;
-                this.vB = this.v0B;
-            }
-            this.updateUI();
-        };
-
-        this.inputS0B.addEventListener('input', onParamChangeB);
-        this.inputV0B.addEventListener('input', onParamChangeB);
-        this.inputAB.addEventListener('input', onParamChangeB);
-
-        // Slider de Posição Manual (1D)
-        this.sliderPos.addEventListener('input', (e) => {
-            if (this.motionType === 'manual') {
-                const val = parseFloat(e.target.value);
-                this.setPos(val);
-            }
-        });
-
-        // Scrubber de Tempo (2D)
-        this.sliderScrubber.addEventListener('input', (e) => {
-            const timeVal = parseFloat(e.target.value);
-            this.seekToTime(timeVal);
-        });
-
-        // Eventos de Canvas (Mouse & Touch)
         const getCanvasCoords = (e) => {
             const rect = this.canvas.getBoundingClientRect();
             const clientX = e.touches ? e.touches[0].clientX : e.clientX;
@@ -222,7 +448,7 @@ class MovimentoSimulation {
             const pos = getCanvasCoords(e);
             if (this.mode === '1D') {
                 if (this.motionType === 'manual') {
-                    const ballCanvasPos = this.getBallCanvasPos1D(this.xA);
+                    const ballCanvasPos = this.getBallCanvasPos1D(this.xA, this.height / 2);
                     const dist = Math.hypot(pos.x - ballCanvasPos.x, pos.y - ballCanvasPos.y);
 
                     if (dist <= this.ballRadius * 2.5) {
@@ -231,6 +457,7 @@ class MovimentoSimulation {
                         this.isDragging = true;
                         this.updatePosFromCanvasX(pos.x);
                     }
+                    this.canvas.classList.add('cursor-grabbing');
                 }
             } else {
                 this.seekFromCanvasCoords(pos);
@@ -239,20 +466,36 @@ class MovimentoSimulation {
         };
 
         const onMove = (e) => {
-            if (!this.isDragging) return;
             const pos = getCanvasCoords(e);
 
             if (this.mode === '1D') {
                 if (this.motionType === 'manual') {
-                    this.updatePosFromCanvasX(pos.x);
+                    const ballCanvasPos = this.getBallCanvasPos1D(this.xA, this.height / 2);
+                    const dist = Math.hypot(pos.x - ballCanvasPos.x, pos.y - ballCanvasPos.y);
+                    const isHover = dist <= this.ballRadius * 2.5;
+
+                    if (isHover !== this.isHoveringBallA && !this.isDragging) {
+                        this.isHoveringBallA = isHover;
+                        this.canvas.classList.toggle('cursor-grab', isHover);
+                    }
+
+                    if (this.isDragging) {
+                        this.updatePosFromCanvasX(pos.x);
+                    }
                 }
             } else {
-                this.seekFromCanvasCoords(pos);
+                if (this.isDragging) {
+                    this.seekFromCanvasCoords(pos);
+                }
             }
         };
 
         const onEnd = () => {
             this.isDragging = false;
+            this.canvas.classList.remove('cursor-grabbing');
+            if (this.isHoveringBallA && this.mode === '1D') {
+                this.canvas.classList.add('cursor-grab');
+            }
         };
 
         this.canvas.addEventListener('mousedown', onStart);
@@ -264,18 +507,37 @@ class MovimentoSimulation {
         window.addEventListener('touchend', onEnd);
     }
 
+    onParamChangeA() {
+        this.updateEquationDisplays();
+        if (this.motionType !== 'manual' && !this.isPlaying && this.t === 0) {
+            this.xA = this.s0A;
+            this.vA = this.v0A;
+        }
+        this.updateUI();
+    }
+
+    onParamChangeB() {
+        this.updateEquationDisplays();
+        if (this.motionType === 'equation_2' && !this.isPlaying && this.t === 0) {
+            this.xB = this.s0B;
+            this.vB = this.v0B;
+        }
+        this.updateUI();
+    }
+
     setMotionType(type) {
-        if (this.isPlaying) this.togglePlay();
+        if (this.isPlaying) {
+            this.playControl?.setState(0);
+            this.pause();
+        }
 
         this.motionType = type;
 
-        this.tabManual.classList.toggle('active', type === 'manual');
-        this.tabEq1.classList.toggle('active', type === 'equation_1');
-        this.tabEq2.classList.toggle('active', type === 'equation_2');
-
         if (this.t === 0) {
             if (type === 'manual') {
-                this.xA = 0;
+                this.xA = 0.0;
+                if (this.sliderPos) this.sliderPos.value = 0.0;
+                if (this.lblPosManual) this.lblPosManual.textContent = '0.0 m';
             } else if (type === 'equation_1') {
                 this.xA = this.s0A;
                 this.vA = this.v0A;
@@ -291,28 +553,42 @@ class MovimentoSimulation {
     }
 
     updateEquationDisplays() {
-        this.equationDisplayA.innerHTML = this.formatEquationString('S<sub>A</sub>', this.s0A, this.v0A, this.aA);
-        this.equationDisplayB.innerHTML = this.formatEquationString('S<sub>B</sub>', this.s0B, this.v0B, this.aB);
+        const texA = this.formatEquationKaTeX('s_A', this.s0A, this.v0A, this.aA);
+        const texB = this.formatEquationKaTeX('s_B', this.s0B, this.v0B, this.aB);
+
+        if (this.equationDisplayA) this.equationDisplayA.innerHTML = texA;
+        if (this.equationDisplayA_dual) this.equationDisplayA_dual.innerHTML = texA;
+        if (this.equationDisplayB) this.equationDisplayB.innerHTML = texB;
+
+        const isMRUVA = Math.abs(this.aA) > 1e-4;
+        const isMRUVB = Math.abs(this.aB) > 1e-4;
+
+        if (this.badgeTipoA) this.badgeTipoA.textContent = isMRUVA ? 'MRUV' : 'MRU';
+        if (this.badgeTipoTextSingle) this.badgeTipoTextSingle.textContent = isMRUVA ? 'MRUV' : 'MRU';
+        if (this.badgeTipoB) this.badgeTipoB.textContent = isMRUVB ? 'MRUV' : 'MRU';
+
+        if (this.equationDisplayA) this.renderKaTeXIn(this.equationDisplayA);
+        if (this.equationDisplayA_dual) this.renderKaTeXIn(this.equationDisplayA_dual);
+        if (this.equationDisplayB) this.renderKaTeXIn(this.equationDisplayB);
     }
 
-    formatEquationString(prefix, s0, v0, a) {
-        let str = `${prefix}(t) = ${s0.toFixed(1)}`;
+    formatEquationKaTeX(prefix, s0, v0, a) {
+        let tex = `$$${prefix}(t) = ${s0 >= 0 ? s0.toFixed(1) : `- ${Math.abs(s0).toFixed(1)}`}`;
 
-        if (v0 >= 0) str += ` + ${v0.toFixed(1)}t`;
-        else str += ` - ${Math.abs(v0).toFixed(1)}t`;
+        if (v0 >= 0) tex += ` + ${v0.toFixed(1)}t`;
+        else tex += ` - ${Math.abs(v0).toFixed(1)}t`;
 
         const halfA = 0.5 * a;
-        if (halfA !== 0) {
-            if (halfA > 0) str += ` + ${halfA.toFixed(2)}t²`;
-            else str += ` - ${Math.abs(halfA).toFixed(2)}t²`;
+        if (Math.abs(halfA) > 1e-4) {
+            if (halfA > 0) tex += ` + ${halfA.toFixed(2)}t^2`;
+            else tex += ` - ${Math.abs(halfA).toFixed(2)}t^2`;
         }
 
-        return str;
+        tex += `$$`;
+        return tex;
     }
 
-    calculateIntersection() {
-        // Resolve S_A(t) = S_B(t)
-        // 0.5*(aA - aB)*t^2 + (v0A - v0B)*t + (s0A - s0B) = 0
+    calculateIntersections() {
         const A = 0.5 * (this.aA - this.aB);
         const B = this.v0A - this.v0B;
         const C = this.s0A - this.s0B;
@@ -320,37 +596,39 @@ class MovimentoSimulation {
         let intersectionTimes = [];
 
         if (Math.abs(A) < 1e-6) {
-            // Equação de 1º Grau (MRU)
             if (Math.abs(B) > 1e-6) {
                 const t = -C / B;
                 if (t >= 0) intersectionTimes.push(t);
             }
         } else {
-            // Equação de 2º Grau (MRUV)
             const delta = B * B - 4 * A * C;
-            if (delta >= 0) {
-                const t1 = (-B + Math.sqrt(delta)) / (2 * A);
-                const t2 = (-B - Math.sqrt(delta)) / (2 * A);
+            if (delta >= -1e-6) {
+                const safeDelta = Math.max(0, delta);
+                const sqrtDelta = Math.sqrt(safeDelta);
+                const t1 = (-B - sqrtDelta) / (2 * A);
+                const t2 = (-B + sqrtDelta) / (2 * A);
 
                 if (t1 >= 0) intersectionTimes.push(t1);
-                if (t2 >= 0) intersectionTimes.push(t2);
+                if (t2 >= 0 && Math.abs(t2 - t1) > 0.01) intersectionTimes.push(t2);
             }
         }
 
-        if (intersectionTimes.length === 0) return null;
+        if (intersectionTimes.length === 0) return [];
 
-        // Pega o menor tempo futuro
         intersectionTimes.sort((a, b) => a - b);
-        const tEnc = intersectionTimes[0];
-        const xEnc = this.s0A + this.v0A * tEnc + 0.5 * this.aA * tEnc * tEnc;
 
-        return { t: tEnc, x: xEnc };
+        return intersectionTimes.map((tEnc, i) => {
+            const xEnc = this.s0A + this.v0A * tEnc + 0.5 * this.aA * tEnc * tEnc;
+            return {
+                t: tEnc,
+                x: xEnc,
+                index: i + 1
+            };
+        });
     }
 
     setPos(val) {
         this.xA = Math.max(this.xMin, Math.min(this.xMax, val));
-        this.sliderPos.value = this.xA.toFixed(1);
-        this.lblPosSlider.textContent = `${this.xA.toFixed(1)} m`;
 
         if (this.isPlaying) {
             this.recordCurrentPoint();
@@ -359,62 +637,105 @@ class MovimentoSimulation {
     }
 
     updatePosFromCanvasX(canvasX) {
-        let margin = 60;
-        if (this.mode !== '1D') margin = 80;
-
+        const margin = this.mode === '1D' ? 70 : 80;
         const effectiveWidth = this.width - margin * 2;
         const norm = (canvasX - margin) / effectiveWidth;
         const physicsX = this.xMin + norm * (this.xMax - this.xMin);
 
         this.setPos(physicsX);
+        if (this.sliderPos) this.sliderPos.value = parseFloat(this.xA.toFixed(1));
+        if (this.lblPosManual) this.lblPosManual.textContent = `${this.xA.toFixed(1)} m`;
     }
 
-    togglePlay() {
-        this.isPlaying = !this.isPlaying;
-        if (this.isPlaying) {
-            this.btnPlayPause.classList.add('is-playing');
-            this.btnPlayPause.innerHTML = 'Pausar Tempo';
+    start() {
+        this.isPlaying = true;
+        this.footerStatusText.textContent = 'Simulação em Andamento';
+        this.footerStatusBadge.className = 'sim-badge badge-active';
 
-            if (this.recordingA.length === 0) {
-                if (this.motionType !== 'manual') {
-                    this.xA = this.s0A;
-                    this.vA = this.v0A;
-                    this.xB = this.s0B;
-                    this.vB = this.v0B;
-                }
-                this.recordCurrentPoint();
+        if (this.recordingA.length === 0) {
+            if (this.motionType !== 'manual') {
+                this.xA = this.s0A;
+                this.vA = this.v0A;
+                this.xB = this.s0B;
+                this.vB = this.v0B;
             }
-        } else {
-            this.btnPlayPause.classList.remove('is-playing');
-            this.btnPlayPause.innerHTML = 'Continuar Tempo';
+            this.recordCurrentPoint();
         }
+        this.updateUI();
+    }
+
+    pause() {
+        this.isPlaying = false;
+        this.footerStatusText.textContent = 'Pausado';
+        this.footerStatusBadge.className = 'sim-badge';
+        this.updateUI();
+    }
+
+    step(dt = 0.1) {
+        this.advancePhysics(dt);
         this.updateUI();
     }
 
     reset() {
         this.isPlaying = false;
-        this.t = 0;
+        this.playControl?.setState(0);
 
-        this.xA = this.motionType !== 'manual' ? this.s0A : 0;
-        this.vA = this.motionType !== 'manual' ? this.v0A : 0;
+        this.t = 0.0;
+        this.xA = this.motionType !== 'manual' ? this.s0A : 0.0;
+        this.vA = this.motionType !== 'manual' ? this.v0A : 0.0;
         this.xB = this.s0B;
         this.vB = this.v0B;
 
         this.recordingA = [];
         this.recordingB = [];
+        this.strobePointsA = [];
+        this.strobePointsB = [];
+        this.lastStrobeSec = 0;
         this.selectedTimeIndex = 0;
         this.tMax = 10;
-        this.xMin = -10;
-        this.xMax = 10;
+        this.xMin = -15;
+        this.xMax = 15;
 
         this.mode = '1D';
-        this.targetTransition = 0;
-        this.targetAxisRotate = 0;
+        this.targetTransition = 0.0;
+        this.targetAxisRotate = 0.0;
 
-        this.btnPlayPause.classList.remove('is-playing');
-        this.btnPlayPause.innerHTML = 'Iniciar Tempo';
+        this.footerStatusText.textContent = 'Simulação Pronta';
+        this.footerStatusBadge.className = 'sim-badge';
 
+        if (this.sliderPos) this.sliderPos.value = this.xA;
+        if (this.lblPosManual) this.lblPosManual.textContent = `${this.xA.toFixed(1)} m`;
         this.updateUI();
+    }
+
+    advancePhysics(dt) {
+        this.t += dt;
+
+        if (this.motionType === 'manual') {
+            if (dt > 0) this.vA = (this.xA - this.prevXA) / dt;
+        } else if (this.motionType === 'equation_1') {
+            this.xA = this.s0A + this.v0A * this.t + 0.5 * this.aA * (this.t * this.t);
+            this.vA = this.v0A + this.aA * this.t;
+        } else if (this.motionType === 'equation_2') {
+            this.xA = this.s0A + this.v0A * this.t + 0.5 * this.aA * (this.t * this.t);
+            this.vA = this.v0A + this.aA * this.t;
+
+            this.xB = this.s0B + this.v0B * this.t + 0.5 * this.aB * (this.t * this.t);
+            this.vB = this.v0B + this.aB * this.t;
+        }
+
+        this.prevXA = this.xA;
+        this.recordCurrentPoint();
+
+        // Registro Estroboscópico a cada 1 segundo exato
+        const currentSec = Math.floor(this.t);
+        if (currentSec > 0 && currentSec !== this.lastStrobeSec) {
+            this.lastStrobeSec = currentSec;
+            this.strobePointsA.push({ sec: currentSec, x: this.xA });
+            if (this.motionType === 'equation_2') {
+                this.strobePointsB.push({ sec: currentSec, x: this.xB });
+            }
+        }
     }
 
     recordCurrentPoint() {
@@ -440,7 +761,6 @@ class MovimentoSimulation {
                 this.tMax = Math.ceil(this.t / 5) * 5;
             }
 
-            // Expande eixos dinamicamente se qualquer objeto sair
             const maxX = Math.max(this.xA, this.motionType === 'equation_2' ? this.xB : -Infinity);
             const minX = Math.min(this.xA, this.motionType === 'equation_2' ? this.xB : Infinity);
 
@@ -449,20 +769,35 @@ class MovimentoSimulation {
         }
     }
 
+    toggleViewMode() {
+        if (this.mode === '1D') {
+            this.enter2DMode();
+        } else {
+            this.backTo1DMode();
+        }
+    }
+
     enter2DMode() {
         if (this.recordingA.length === 0) return;
 
-        this.isPlaying = false;
-        this.btnPlayPause.classList.remove('is-playing');
-        this.btnPlayPause.innerHTML = 'Iniciar Tempo';
+        if (this.isPlaying) {
+            this.playControl?.setState(0);
+            this.pause();
+        }
 
-        this.mode = '2D_EXTRUDED';
-        this.targetTransition = 1;
-        this.targetAxisRotate = 0;
+        this.mode = '2D_CONVENTIONAL';
+        this.targetTransition = 1.0;
+        this.targetAxisRotate = 1.0;
+        this.axisRotateProgress = 1.0;
         this.selectedTimeIndex = this.recordingA.length - 1;
 
-        this.sliderScrubber.max = this.t.toFixed(2);
-        this.sliderScrubber.value = this.t.toFixed(2);
+        if (this.sliderScrubber) {
+            this.sliderScrubber.max = this.t.toFixed(2);
+            this.sliderScrubber.value = this.t.toFixed(2);
+        }
+        if (this.lblScrubberVal) {
+            this.lblScrubberVal.textContent = `${this.t.toFixed(2)} s`;
+        }
 
         this.updateUI();
     }
@@ -470,18 +805,18 @@ class MovimentoSimulation {
     toggleAxisView() {
         if (this.mode === '2D_EXTRUDED') {
             this.mode = '2D_CONVENTIONAL';
-            this.targetAxisRotate = 1;
+            this.targetAxisRotate = 1.0;
         } else if (this.mode === '2D_CONVENTIONAL') {
             this.mode = '2D_EXTRUDED';
-            this.targetAxisRotate = 0;
+            this.targetAxisRotate = 0.0;
         }
         this.updateUI();
     }
 
     backTo1DMode() {
         this.mode = '1D';
-        this.targetTransition = 0;
-        this.targetAxisRotate = 0;
+        this.targetTransition = 0.0;
+        this.targetAxisRotate = 0.0;
         this.updateUI();
     }
 
@@ -501,25 +836,10 @@ class MovimentoSimulation {
 
         this.selectedTimeIndex = closestIdx;
         const ptA = this.recordingA[closestIdx];
-        const ptB = this.recordingB[closestIdx];
-
-        this.valTime.textContent = `${ptA.t.toFixed(2)} s`;
-        this.valTimeDual.textContent = `${ptA.t.toFixed(2)} s`;
-
-        this.valPos.textContent = `${ptA.x.toFixed(2)} m`;
-        this.valVel.textContent = `${ptA.v.toFixed(2)} m/s`;
 
         if (ptA) {
-            this.valPosA.textContent = `${ptA.x.toFixed(2)} m`;
-            this.valVelA.textContent = `${ptA.v.toFixed(2)} m/s`;
+            this.footerSimTimer.textContent = `t = ${ptA.t.toFixed(2)}s`;
         }
-
-        if (ptB) {
-            this.valPosB.textContent = `${ptB.x.toFixed(2)} m`;
-            this.valVelB.textContent = `${ptB.v.toFixed(2)} m/s`;
-        }
-
-        this.lblScrubberTime.textContent = `${ptA.t.toFixed(2)} s`;
     }
 
     seekFromCanvasCoords(pos) {
@@ -527,7 +847,6 @@ class MovimentoSimulation {
 
         const margin = 70;
         let normTime = 0;
-
         const rot = this.axisRotateProgress;
 
         if (rot < 0.5) {
@@ -543,163 +862,69 @@ class MovimentoSimulation {
         const maxRecordedT = this.recordingA[this.recordingA.length - 1].t;
         const targetT = normTime * maxRecordedT;
 
-        this.sliderScrubber.value = targetT.toFixed(2);
+        if (this.sliderScrubber) this.sliderScrubber.value = targetT.toFixed(2);
+        if (this.lblScrubberVal) this.lblScrubberVal.textContent = `${targetT.toFixed(2)} s`;
         this.seekToTime(targetT);
     }
 
     updateUI() {
         const isDual = this.motionType === 'equation_2';
+        const isSingle = this.motionType === 'equation_1';
+        const isManual = this.motionType === 'manual';
 
+        // 1. Visibilidade do Scrubber
+        this.groupScrubber.style.display = (this.mode !== '1D' && this.recordingA.length > 0) ? 'block' : 'none';
+
+        // 2. Dicas da Área do Canvas
         if (this.mode === '1D') {
-            if (this.motionType === 'manual') {
-                this.equationPanelA.style.display = 'none';
-                this.equationPanelB.style.display = 'none';
-                this.intersectionCard.style.display = 'none';
-                this.groupPosSlider.style.display = 'flex';
-                this.modeBadge.textContent = 'Modo 1D: Manual (Livre)';
-                this.canvasHint.innerHTML = 'Arraste a esfera amarela ao longo do eixo X';
-            } else if (this.motionType === 'equation_1') {
-                this.equationPanelA.style.display = 'flex';
-                this.equationPanelB.style.display = 'none';
-                this.intersectionCard.style.display = 'none';
-                this.groupPosSlider.style.display = 'none';
-                this.modeBadge.textContent = 'Modo 1D: Função horária da posição';
-                this.canvasHint.innerHTML = 'Digite os parâmetros e clique em Iniciar Tempo';
-            } else {
-                this.equationPanelA.style.display = 'flex';
-                this.equationPanelB.style.display = 'flex';
-                this.intersectionCard.style.display = 'flex';
-                this.groupPosSlider.style.display = 'none';
-                this.modeBadge.textContent = 'Modo 1D: Encontro de 2 Objetos';
-                this.canvasHint.innerHTML = 'Digite as equações S<sub>A</sub> e S<sub>B</sub> para ver o ponto de encontro';
+            this.canvasHintText.textContent = isManual
+                ? 'Arraste a esfera livremente na pista para observar a velocidade escalar instantânea.'
+                : isSingle
+                    ? 'Inicie o tempo para ver o móvel se deslocar, os vetores de velocidade/aceleração e as marcas estroboscópicas a cada 1s.'
+                    : 'Observe as duas faixas paralelas: a linha vertical vermelha conecta os móveis no instante exato do encontro!';
 
-                // Atualiza Previsão do Encontro
-                const meeting = this.calculateIntersection();
-                if (meeting) {
-                    this.intersectionValue.innerHTML = `<span class="highlight-yellow">t = ${meeting.t.toFixed(2)}s</span> &nbsp;|&nbsp; <span class="highlight-cyan">x = ${meeting.x.toFixed(2)}m</span>`;
-                } else {
-                    this.intersectionValue.innerHTML = `<span style="color: #94a3b8;">Nenhum ponto de encontro futuro no mesmo sentido.</span>`;
-                }
-            }
-
-            this.readoutSingle.style.display = isDual ? 'none' : 'grid';
-            this.readoutDual.style.display = isDual ? 'grid' : 'none';
-
-            this.btnViewGraph.style.display = 'inline-block';
+            this.lblToggleView.textContent = 'Ver Gráfico 2D';
+            document.querySelectorAll('.lbl-panel-graph').forEach(el => el.textContent = 'Ver Gráfico Espaço-Tempo (2D)');
             this.btnToggleAxis.style.display = 'none';
-            this.btnBackTo1D.style.display = 'none';
-            this.groupScrubber.style.display = 'none';
-            this.btnViewGraph.disabled = this.recordingA.length < 2;
 
-            if (this.motionType === 'manual') {
-                this.infoTitle.textContent = 'Etapa 1: Movimento Livre (1D)';
-                this.infoText.innerHTML = `
-                    1. Arraste a esfera amarela livremente ao longo do eixo horizontal X.<br>
-                    2. Clique em <strong>Iniciar Tempo</strong> para gravar a posição a cada segundo.<br>
-                    3. Pause e clique em <strong>Ver Movimento</strong> para revelar o gráfico!
-                `;
-            } else if (this.motionType === 'equation_1') {
-                this.infoTitle.textContent = 'Etapa 2: Movimento por Equação';
-                this.infoText.innerHTML = `
-                    1. Digite a posição inicial (S<sub>0</sub>), velocidade (v<sub>0</sub>) e aceleração (a).<br>
-                    2. Clique em <strong>Iniciar Tempo</strong> para ver a esfera se mover por S(t).<br>
-                    3. Clique em <strong>Ver Movimento</strong> para analisar a reta ou parábola!
-                `;
-            } else {
-                this.infoTitle.textContent = 'Etapa 3: Encontro de 2 Corpos';
-                this.infoText.innerHTML = `
-                    1. Preencha os parâmetros das equações S<sub>A</sub>(t) e S<sub>B</sub>(t) nos painéis.<br>
-                    2. Confira o instante e posição previstos no card <strong> Ponto de Encontro</strong>.<br>
-                    3. Clique em <strong>Iniciar Tempo</strong> e veja o cruzamento das esferas!
-                `;
-            }
-        } else if (this.mode === '2D_EXTRUDED' || this.mode === '2D_CONVENTIONAL') {
-            this.equationPanelA.style.display = 'none';
-            this.equationPanelB.style.display = 'none';
-            this.intersectionCard.style.display = isDual ? 'flex' : 'none';
-            this.groupPosSlider.style.display = 'none';
+            const hasData = this.recordingA.length > 2;
+            this.btnToggleView.disabled = !hasData;
+            document.querySelectorAll('.lbl-panel-graph').forEach(el => {
+                const btn = el.closest('button');
+                if (btn) btn.disabled = !hasData;
+            });
+        } else {
+            this.canvasHintText.textContent = 'Arraste no gráfico para inspecionar posições e momentos de encontro em qualquer instante do passado.';
+            this.lblToggleView.textContent = 'Voltar à Pista 1D';
+            document.querySelectorAll('.lbl-panel-graph').forEach(el => el.textContent = 'Voltar à Pista 1D');
+            this.btnToggleAxis.style.display = 'flex';
+            this.lblToggleAxis.textContent = this.mode === '2D_EXTRUDED'
+                ? 'Visão Convencional (t no X)'
+                : 'Visão Desdobrada (t no Y)';
 
-            this.readoutSingle.style.display = isDual ? 'none' : 'grid';
-            this.readoutDual.style.display = isDual ? 'grid' : 'none';
-
-            this.btnViewGraph.style.display = 'none';
-            this.btnToggleAxis.style.display = 'inline-block';
-            this.btnToggleAxis.textContent = this.mode === '2D_EXTRUDED' ? 'Visão Convencional (t no X)' : 'Visão Desdobrada (t no Y)';
-            this.btnBackTo1D.style.display = 'inline-block';
-            this.groupScrubber.style.display = 'flex';
-
-            if (isDual) {
-                const meeting = this.calculateIntersection();
-                if (meeting) {
-                    this.intersectionValue.innerHTML = `<span class="highlight-yellow">t = ${meeting.t.toFixed(2)}s</span> &nbsp;|&nbsp; <span class="highlight-cyan">x = ${meeting.x.toFixed(2)}m</span>`;
-                } else {
-                    this.intersectionValue.innerHTML = `<span style="color: #94a3b8;">Sem cruzamento no gráfico</span>`;
-                }
-            }
-
-            if (this.mode === '2D_EXTRUDED') {
-                this.infoTitle.textContent = 'Visão 2D: Eixo do Tempo (T)';
-                this.infoText.innerHTML = `
-                    1. Observe o eixo do tempo ($T$) se desdobrando na vertical a partir de $X$.<br>
-                    2. Arraste o slider <strong>Histórico Temporal</strong> para inspecionar instantes passados.<br>
-                    3. Clique em <strong>Visão Convencional</strong> para ver o gráfico padrão!
-                `;
-            } else {
-                this.infoTitle.textContent = 'Visão 2D: Gráfico Convencional x(t)';
-                this.infoText.innerHTML = `
-                    1. Veja o gráfico padrão: <strong>Tempo (t)</strong> na horizontal e <strong>Posição (x)</strong> na vertical.<br>
-                    2. Deslize no histórico para acompanhar as posições e velocidades.<br>
-                    3. Localize o ponto exato onde as curvas se cruzam!
-                `;
-            }
+            this.btnToggleView.disabled = false;
+            document.querySelectorAll('.lbl-panel-graph').forEach(el => {
+                const btn = el.closest('button');
+                if (btn) btn.disabled = false;
+            });
         }
 
-        if (this.mode === '1D') {
-            this.valTime.textContent = `${this.t.toFixed(2)} s`;
-            this.valTimeDual.textContent = `${this.t.toFixed(2)} s`;
-            this.valPos.textContent = `${this.xA.toFixed(2)} m`;
-            this.valVel.textContent = `${this.vA.toFixed(2)} m/s`;
-            this.valPosA.textContent = `${this.xA.toFixed(2)} m`;
-            this.valPosB.textContent = `${this.xB.toFixed(2)} m`;
-            this.valVelA.textContent = `${this.vA.toFixed(2)} m/s`;
-            this.valVelB.textContent = `${this.vB.toFixed(2)} m/s`;
-        }
+        // 3. Telemetria no Rodapé
+        this.footerSimTimer.textContent = `t = ${this.t.toFixed(2)}s`;
     }
 
     loop(timestamp) {
         if (!this.lastFrameTimestamp) this.lastFrameTimestamp = timestamp;
-        const dt = (timestamp - this.lastFrameTimestamp) / 1000;
+        const dt = ((timestamp - this.lastFrameTimestamp) / 1000) * this.simSpeed;
         this.lastFrameTimestamp = timestamp;
 
         if (this.isPlaying && this.mode === '1D') {
-            this.t += dt;
-
-            if (this.motionType === 'manual') {
-                if (dt > 0) this.vA = (this.xA - this.prevXA) / dt;
-            } else if (this.motionType === 'equation_1') {
-                this.xA = this.s0A + this.v0A * this.t + 0.5 * this.aA * (this.t * this.t);
-                this.vA = this.v0A + this.aA * this.t;
-            } else if (this.motionType === 'equation_2') {
-                this.xA = this.s0A + this.v0A * this.t + 0.5 * this.aA * (this.t * this.t);
-                this.vA = this.v0A + this.aA * this.t;
-
-                this.xB = this.s0B + this.v0B * this.t + 0.5 * this.aB * (this.t * this.t);
-                this.vB = this.v0B + this.aB * this.t;
-            }
-
-            this.prevXA = this.xA;
-            this.recordCurrentPoint();
-
-            this.valTime.textContent = `${this.t.toFixed(2)} s`;
-            this.valTimeDual.textContent = `${this.t.toFixed(2)} s`;
-            this.valPosA.textContent = `${this.xA.toFixed(2)} m`;
-            this.valPosB.textContent = `${this.xB.toFixed(2)} m`;
-            this.valVelA.textContent = `${this.vA.toFixed(2)} m/s`;
-            this.valVelB.textContent = `${this.vB.toFixed(2)} m/s`;
+            this.advancePhysics(dt);
+            this.updateUI();
         }
 
-        this.transitionProgress += (this.targetTransition - this.transitionProgress) * 0.1;
-        this.axisRotateProgress += (this.targetAxisRotate - this.axisRotateProgress) * 0.1;
+        this.transitionProgress += (this.targetTransition - this.transitionProgress) * 0.12;
+        this.axisRotateProgress += (this.targetAxisRotate - this.axisRotateProgress) * 0.12;
 
         this.ctx.clearRect(0, 0, this.width, this.height);
         this.render();
@@ -707,13 +932,13 @@ class MovimentoSimulation {
         requestAnimationFrame((ts) => this.loop(ts));
     }
 
-    getBallCanvasPos1D(physX) {
+    getBallCanvasPos1D(physX, yPos) {
         const margin = 70;
         const effectiveWidth = this.width - margin * 2;
         const normX = (physX - this.xMin) / (this.xMax - this.xMin);
 
         const canvasX = margin + normX * effectiveWidth;
-        const canvasY = this.height / 2;
+        const canvasY = yPos !== undefined ? yPos : this.height / 2;
 
         return { x: canvasX, y: canvasY };
     }
@@ -722,8 +947,6 @@ class MovimentoSimulation {
         const p = this.transitionProgress;
         const rot = this.axisRotateProgress;
 
-        this.drawGrid(p, rot);
-
         if (p < 0.99) {
             this.drawMode1D(1 - p);
         }
@@ -731,29 +954,6 @@ class MovimentoSimulation {
         if (p > 0.01) {
             this.drawMode2D(p, rot);
         }
-    }
-
-    drawGrid(p, rot) {
-        const ctx = this.ctx;
-        ctx.save();
-        ctx.strokeStyle = 'rgba(255, 255, 255, 0.04)';
-        ctx.lineWidth = 1;
-
-        const gridSize = 40;
-        for (let x = 0; x < this.width; x += gridSize) {
-            ctx.beginPath();
-            ctx.moveTo(x, 0);
-            ctx.lineTo(x, this.height);
-            ctx.stroke();
-        }
-
-        for (let y = 0; y < this.height; y += gridSize) {
-            ctx.beginPath();
-            ctx.moveTo(0, y);
-            ctx.lineTo(this.width, y);
-            ctx.stroke();
-        }
-        ctx.restore();
     }
 
     drawMode1D(alpha) {
@@ -765,86 +965,155 @@ class MovimentoSimulation {
         const margin = 70;
         const axisY = this.height / 2;
         const effectiveWidth = this.width - margin * 2;
+        const isDual = this.motionType === 'equation_2';
 
-        // Eixo X
+        const laneA_Y = isDual ? axisY - 38 : axisY;
+        const laneB_Y = isDual ? axisY + 38 : axisY;
+
+        // 1. Linhas de Faixas Sutis (quando houver 2 móveis)
+        if (isDual) {
+            ctx.strokeStyle = 'rgba(250, 204, 21, 0.12)';
+            ctx.lineWidth = 1;
+            ctx.setLineDash([6, 6]);
+            ctx.beginPath();
+            ctx.moveTo(margin, laneA_Y);
+            ctx.lineTo(this.width - margin, laneA_Y);
+            ctx.stroke();
+
+            ctx.strokeStyle = 'rgba(56, 189, 248, 0.12)';
+            ctx.beginPath();
+            ctx.moveTo(margin, laneB_Y);
+            ctx.lineTo(this.width - margin, laneB_Y);
+            ctx.stroke();
+            ctx.setLineDash([]);
+        }
+
+        // 2. Reta Métrica Central (Régua Limpa)
         ctx.strokeStyle = 'rgba(248, 250, 252, 0.6)';
-        ctx.lineWidth = 3;
+        ctx.lineWidth = 2.5;
         ctx.beginPath();
         ctx.moveTo(margin, axisY);
         ctx.lineTo(this.width - margin, axisY);
         ctx.stroke();
 
-        this.drawArrow(this.width - margin + 15, axisY, 0);
+        this.drawArrow(this.width - margin + 14, axisY, 0);
 
-        ctx.fillStyle = '#94a3b8';
-        ctx.font = '12px Inter, sans-serif';
+        // Marcações Limpas na Régua (a cada 5m)
+        ctx.font = '500 11px var(--font-sans, sans-serif)';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'top';
 
-        const step = Math.max(2, Math.ceil((this.xMax - this.xMin) / 10));
-        for (let meter = Math.ceil(this.xMin); meter <= this.xMax; meter += step) {
+        const step = 5;
+        for (let meter = -15; meter <= 15; meter += step) {
             const norm = (meter - this.xMin) / (this.xMax - this.xMin);
             const tickX = margin + norm * effectiveWidth;
 
-            ctx.strokeStyle = 'rgba(148, 163, 184, 0.5)';
-            ctx.lineWidth = 1.5;
+            const isOrigin = meter === 0;
+            ctx.strokeStyle = isOrigin ? 'var(--accent-color, #facc15)' : 'rgba(148, 163, 184, 0.4)';
+            ctx.lineWidth = isOrigin ? 2 : 1;
             ctx.beginPath();
-            ctx.moveTo(tickX, axisY - 8);
-            ctx.lineTo(tickX, axisY + 8);
+            ctx.moveTo(tickX, axisY - (isOrigin ? 8 : 5));
+            ctx.lineTo(tickX, axisY + (isOrigin ? 8 : 5));
             ctx.stroke();
 
-            ctx.fillText(`${meter}m`, tickX, axisY + 12);
+            ctx.fillStyle = isOrigin ? 'var(--accent-color, #facc15)' : '#94a3b8';
+            ctx.fillText(`${meter}m`, tickX, axisY + 9);
         }
 
-        ctx.font = 'bold 14px Inter, sans-serif';
+        ctx.font = '600 12px var(--font-sans, sans-serif)';
         ctx.fillStyle = '#38bdf8';
         ctx.textAlign = 'left';
-        ctx.fillText('Eixo X (Posição)', this.width - margin + 25, axisY - 5);
+        ctx.fillText('Eixo s [m]', this.width - margin + 22, axisY - 6);
 
-        // Desenhar Objeto A (Amarelo)
-        this.drawBall1D(this.xA, '#facc15', 'A');
+        // 3. Rastro Estroboscópico (Marcadores a cada 1s)
+        this.drawStrobeTrail(this.strobePointsA, '#facc15', laneA_Y);
+        if (isDual) {
+            this.drawStrobeTrail(this.strobePointsB, '#38bdf8', laneB_Y);
+        }
 
-        // Desenhar Objeto B (Ciano) se estiver no modo 2 objetos
-        if (this.motionType === 'equation_2') {
-            this.drawBall1D(this.xB, '#38bdf8', 'B');
+        // 4. Linha Vertical e Alerta de Encontro entre Faixas Paralelas
+        if (isDual) {
+            const dist = Math.abs(this.xA - this.xB);
+            if (dist < 0.45) {
+                const posA = this.getBallCanvasPos1D(this.xA, laneA_Y);
+                const posB = this.getBallCanvasPos1D(this.xB, laneB_Y);
 
-            // Destaque de Encontro se os corpos se cruzarem (distância < 0.4m)
-            if (Math.abs(this.xA - this.xB) < 0.4) {
-                const posA = this.getBallCanvasPos1D(this.xA);
+                // Feixe vertical luminoso conectando os móveis
                 ctx.strokeStyle = '#ef4444';
                 ctx.lineWidth = 3;
+                ctx.shadowColor = '#ef4444';
+                ctx.shadowBlur = 15;
                 ctx.beginPath();
-                ctx.arc(posA.x, posA.y, this.ballRadius * 2.2, 0, Math.PI * 2);
+                ctx.moveTo(posA.x, posA.y);
+                ctx.lineTo(posB.x, posB.y);
                 ctx.stroke();
+                ctx.shadowBlur = 0;
 
+                // Badge de Encontro Flutuante
                 ctx.fillStyle = '#ef4444';
-                ctx.font = 'bold 12px Inter, sans-serif';
+                ctx.font = '700 12px var(--font-sans, sans-serif)';
                 ctx.textAlign = 'center';
-                ctx.fillText('⚡ ENCONTRO!', posA.x, posA.y - 30);
+                ctx.fillText(`⚡ ENCONTRO (s = ${this.xA.toFixed(1)}m)`, (posA.x + posB.x) / 2, laneA_Y - 32);
             }
+        }
+
+        // 5. Desenho das Esferas e seus Vetores (v e a)
+        this.drawBallWithVectors(this.xA, laneA_Y, this.vA, this.aA, '#facc15', 'A', isDual ? 'Faixa A' : null);
+
+        if (isDual) {
+            this.drawBallWithVectors(this.xB, laneB_Y, this.vB, this.aB, '#38bdf8', 'B', 'Faixa B');
         }
 
         ctx.restore();
     }
 
-    drawBall1D(physX, colorHex, label) {
+    drawStrobeTrail(points, colorHex, laneY) {
         const ctx = this.ctx;
-        const ballPos = this.getBallCanvasPos1D(physX);
+        ctx.save();
 
-        // Glow
-        const gradient = ctx.createRadialGradient(ballPos.x, ballPos.y, 2, ballPos.x, ballPos.y, this.ballRadius * 2);
+        points.forEach(pt => {
+            const pos = this.getBallCanvasPos1D(pt.x, laneY);
+
+            // Círculo estroboscópico semitransparente
+            ctx.fillStyle = colorHex;
+            ctx.globalAlpha = 0.25;
+            ctx.beginPath();
+            ctx.arc(pos.x, pos.y, 7, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.strokeStyle = colorHex;
+            ctx.globalAlpha = 0.5;
+            ctx.lineWidth = 1;
+            ctx.stroke();
+
+            // Rótulo do segundo (ex: "1s", "2s")
+            ctx.globalAlpha = 0.7;
+            ctx.font = '500 9px var(--font-mono, monospace)';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(`${pt.sec}s`, pos.x, pos.y);
+        });
+
+        ctx.restore();
+    }
+
+    drawBallWithVectors(physX, laneY, v, a, colorHex, label, laneLabel) {
+        const ctx = this.ctx;
+        const ballPos = this.getBallCanvasPos1D(physX, laneY);
+
+        // Halo de Brilho
+        const gradient = ctx.createRadialGradient(ballPos.x, ballPos.y, 2, ballPos.x, ballPos.y, this.ballRadius * 1.8);
         gradient.addColorStop(0, colorHex);
         gradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
-
         ctx.fillStyle = gradient;
         ctx.beginPath();
-        ctx.arc(ballPos.x, ballPos.y, this.ballRadius * 2, 0, Math.PI * 2);
+        ctx.arc(ballPos.x, ballPos.y, this.ballRadius * 1.8, 0, Math.PI * 2);
         ctx.fill();
 
-        // Corpo
+        // Corpo da Esfera
         ctx.fillStyle = colorHex;
         ctx.shadowColor = colorHex;
-        ctx.shadowBlur = 12;
+        ctx.shadowBlur = 10;
         ctx.beginPath();
         ctx.arc(ballPos.x, ballPos.y, this.ballRadius, 0, Math.PI * 2);
         ctx.fill();
@@ -855,10 +1124,76 @@ class MovimentoSimulation {
         ctx.stroke();
 
         ctx.fillStyle = '#0f172a';
-        ctx.font = 'bold 10px monospace';
+        ctx.font = '700 11px var(--font-mono, monospace)';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         ctx.fillText(label, ballPos.x, ballPos.y);
+
+        // Rótulo da Faixa
+        if (laneLabel) {
+            ctx.font = '500 10px var(--font-sans, sans-serif)';
+            ctx.fillStyle = colorHex;
+            ctx.textAlign = 'right';
+            ctx.fillText(laneLabel, this.width - 76, laneY - 10);
+        }
+
+        // 1. Vetor Velocidade (Verde Esmeralda)
+        if (Math.abs(v) > 0.05) {
+            const vLen = Math.max(16, Math.min(65, Math.abs(v) * 9)) * Math.sign(v);
+            const startX = ballPos.x + Math.sign(v) * (this.ballRadius + 2);
+            const endX = startX + vLen;
+
+            ctx.strokeStyle = '#22c55e';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(startX, ballPos.y);
+            ctx.lineTo(endX, ballPos.y);
+            ctx.stroke();
+
+            this.drawVectorArrowHead(endX, ballPos.y, Math.sign(v) > 0 ? 0 : Math.PI, '#22c55e');
+
+            ctx.fillStyle = '#22c55e';
+            ctx.font = '600 10px var(--font-mono, monospace)';
+            ctx.textAlign = 'center';
+            ctx.fillText(`v = ${v >= 0 ? '+' : ''}${v.toFixed(1)}`, (startX + endX) / 2, ballPos.y - 12);
+        }
+
+        // 2. Vetor Aceleração (Roxo / Púrpura)
+        if (Math.abs(a) > 0.05) {
+            const aLen = Math.max(16, Math.min(50, Math.abs(a) * 12)) * Math.sign(a);
+            const aY = laneY + 22; // Abaixo da esfera
+            const startX = ballPos.x;
+            const endX = startX + aLen;
+
+            ctx.strokeStyle = '#c084fc';
+            ctx.lineWidth = 2.5;
+            ctx.beginPath();
+            ctx.moveTo(startX, aY);
+            ctx.lineTo(endX, aY);
+            ctx.stroke();
+
+            this.drawVectorArrowHead(endX, aY, Math.sign(a) > 0 ? 0 : Math.PI, '#c084fc');
+
+            ctx.fillStyle = '#c084fc';
+            ctx.font = '600 10px var(--font-mono, monospace)';
+            ctx.textAlign = 'center';
+            ctx.fillText(`a = ${a >= 0 ? '+' : ''}${a.toFixed(1)}`, (startX + endX) / 2, aY + 12);
+        }
+    }
+
+    drawVectorArrowHead(x, y, angle, colorHex) {
+        const ctx = this.ctx;
+        ctx.save();
+        ctx.translate(x, y);
+        ctx.rotate(angle);
+        ctx.fillStyle = colorHex;
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.lineTo(-7, -4);
+        ctx.lineTo(-7, 4);
+        ctx.closePath();
+        ctx.fill();
+        ctx.restore();
     }
 
     drawMode2D(p, rot) {
@@ -873,37 +1208,49 @@ class MovimentoSimulation {
         this.drawAxes2D(margin, w, h, rot);
 
         if (this.recordingA.length > 0) {
-            // Desenhar Curva do Objeto A (Amarelo)
+            // Curva do Móvel A (Amarelo)
             this.drawTrajectoryCurve2D(this.recordingA, '#facc15', margin, w, h, rot);
 
-            // Desenhar Curva do Objeto B (Ciano) se existir
+            // Curva do Móvel B (Ciano) se houver
             if (this.motionType === 'equation_2' && this.recordingB.length > 0) {
                 this.drawTrajectoryCurve2D(this.recordingB, '#38bdf8', margin, w, h, rot);
             }
 
-            // Marcador de Interseção do Ponto de Encontro
+            // Rastro Estroboscópico no Gráfico 2D (a cada 1s)
+            this.drawStrobeMarkers2D(this.strobePointsA, '#facc15', margin, w, h, rot);
             if (this.motionType === 'equation_2') {
-                const meeting = this.calculateIntersection();
-                if (meeting && meeting.t <= this.tMax) {
-                    const posEnc = this.mapPointToCanvas(meeting, margin, w, h, rot);
+                this.drawStrobeMarkers2D(this.strobePointsB, '#38bdf8', margin, w, h, rot);
+            }
 
-                    ctx.fillStyle = '#ef4444';
-                    ctx.shadowColor = '#ef4444';
-                    ctx.shadowBlur = 15;
-                    ctx.beginPath();
-                    ctx.arc(posEnc.x, posEnc.y, 9, 0, Math.PI * 2);
-                    ctx.fill();
-                    ctx.shadowBlur = 0;
+            // Marcadores de Encontro no Gráfico
+            if (this.motionType === 'equation_2') {
+                const encounters = this.calculateIntersections();
+                encounters.forEach(enc => {
+                    if (enc.t <= this.tMax) {
+                        const posEnc = this.mapPointToCanvas(enc, margin, w, h, rot);
 
-                    ctx.strokeStyle = '#ffffff';
-                    ctx.lineWidth = 2;
-                    ctx.stroke();
+                        ctx.fillStyle = '#ef4444';
+                        ctx.shadowColor = '#ef4444';
+                        ctx.shadowBlur = 12;
+                        ctx.beginPath();
+                        ctx.arc(posEnc.x, posEnc.y, 7, 0, Math.PI * 2);
+                        ctx.fill();
+                        ctx.shadowBlur = 0;
 
-                    ctx.fillStyle = '#ffffff';
-                    ctx.font = 'bold 11px Inter, sans-serif';
-                    ctx.textAlign = 'center';
-                    ctx.fillText('⚡ Encontro', posEnc.x, posEnc.y - 14);
-                }
+                        ctx.strokeStyle = '#ffffff';
+                        ctx.lineWidth = 2;
+                        ctx.stroke();
+
+                        const label = encounters.length > 1
+                            ? `⚡ ${enc.index}º Encontro (${enc.t.toFixed(1)}s, ${enc.x.toFixed(1)}m)`
+                            : `⚡ Encontro (${enc.t.toFixed(1)}s, ${enc.x.toFixed(1)}m)`;
+
+                        ctx.fillStyle = '#ffffff';
+                        ctx.font = '600 11px var(--font-sans, sans-serif)';
+                        ctx.textAlign = 'center';
+                        ctx.fillText(label, posEnc.x, posEnc.y - 12);
+                    }
+                });
             }
 
             this.drawScrubberIndicator2D(margin, w, h, rot);
@@ -912,96 +1259,244 @@ class MovimentoSimulation {
         ctx.restore();
     }
 
+    drawStrobeMarkers2D(strobePoints, colorHex, margin, w, h, rot) {
+        if (!strobePoints || strobePoints.length === 0) return;
+        const ctx = this.ctx;
+        ctx.save();
+
+        const isConventional = rot >= 0.5;
+        const originCanvas = this.mapPointToCanvas({ t: 0, x: 0 }, margin, w, h, rot);
+
+        strobePoints.forEach(pt => {
+            if (pt.sec <= this.tMax) {
+                const pos = this.mapPointToCanvas({ t: pt.sec, x: pt.x }, margin, w, h, rot);
+
+                // Linhas de projeção pontilhadas aos eixos
+                ctx.strokeStyle = colorHex;
+                ctx.globalAlpha = 0.25;
+                ctx.lineWidth = 1;
+                ctx.setLineDash([3, 3]);
+
+                if (isConventional) {
+                    // Projeção ao eixo do tempo (horizontal em originCanvas.y)
+                    ctx.beginPath();
+                    ctx.moveTo(pos.x, pos.y);
+                    ctx.lineTo(pos.x, originCanvas.y);
+                    ctx.stroke();
+
+                    // Projeção ao eixo da posição (vertical em originCanvas.x)
+                    ctx.beginPath();
+                    ctx.moveTo(pos.x, pos.y);
+                    ctx.lineTo(originCanvas.x, pos.y);
+                    ctx.stroke();
+                } else {
+                    // Projeção na visão desdobrada
+                    ctx.beginPath();
+                    ctx.moveTo(pos.x, pos.y);
+                    ctx.lineTo(pos.x, this.height - margin);
+                    ctx.stroke();
+
+                    ctx.beginPath();
+                    ctx.moveTo(pos.x, pos.y);
+                    ctx.lineTo(originCanvas.x, pos.y);
+                    ctx.stroke();
+                }
+
+                ctx.setLineDash([]);
+                ctx.globalAlpha = 1.0;
+
+                // Marcador Circular Estroboscópico
+                ctx.fillStyle = colorHex;
+                ctx.shadowColor = colorHex;
+                ctx.shadowBlur = 8;
+                ctx.beginPath();
+                ctx.arc(pos.x, pos.y, 4.5, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.shadowBlur = 0;
+
+                ctx.strokeStyle = '#ffffff';
+                ctx.lineWidth = 1.5;
+                ctx.stroke();
+
+                // Rótulo do Segundo
+                ctx.fillStyle = '#ffffff';
+                ctx.font = '600 10px var(--font-mono, monospace)';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'bottom';
+                ctx.fillText(`${pt.sec}s`, pos.x, pos.y - 6);
+            }
+        });
+
+        ctx.restore();
+    }
+
     drawAxes2D(margin, w, h, rot) {
         const ctx = this.ctx;
         ctx.save();
 
-        const xOrigin = margin;
-        const yOrigin = this.height - margin;
+        const isConventional = rot >= 0.5;
+
+        // Ponto de Origem Cartesiana Real (0, 0)
+        const originCanvas = this.mapPointToCanvas({ t: 0, x: 0 }, margin, w, h, rot);
 
         ctx.strokeStyle = 'rgba(248, 250, 252, 0.7)';
         ctx.lineWidth = 2.5;
 
-        ctx.beginPath();
-        ctx.moveTo(xOrigin, yOrigin);
-        ctx.lineTo(this.width - margin + 10, yOrigin);
-        ctx.stroke();
+        if (isConventional) {
+            // =========================================================================
+            // VISÃO CONVENCIONAL DE FÍSICA E MATEMÁTICA:
+            // Eixo Horizontal = Tempo t (passa exatamente na linha s = 0)
+            // Eixo Vertical = Posição s (passa na linha t = 0)
+            // Cruzamento RIGOROSO e EXATO na Origem (0, 0)!
+            // =========================================================================
+            const yZero = originCanvas.y;
+            const xZero = margin; // t = 0
 
-        ctx.beginPath();
-        ctx.moveTo(xOrigin, yOrigin);
-        ctx.lineTo(xOrigin, margin - 10);
-        ctx.stroke();
+            // 1. Eixo Horizontal do Tempo t (linha s = 0)
+            ctx.beginPath();
+            ctx.moveTo(xZero, yZero);
+            ctx.lineTo(this.width - margin + 14, yZero);
+            ctx.stroke();
+            this.drawArrow(this.width - margin + 14, yZero, 0);
 
-        this.drawArrow(this.width - margin + 15, yOrigin, 0);
-        this.drawArrow(xOrigin, margin - 15, -Math.PI / 2);
+            // 2. Eixo Vertical da Posição s (linha t = 0)
+            ctx.beginPath();
+            ctx.moveTo(xZero, this.height - margin + 6);
+            ctx.lineTo(xZero, margin - 14);
+            ctx.stroke();
+            this.drawArrow(xZero, margin - 14, -Math.PI / 2);
 
-        ctx.font = 'bold 13px Inter, sans-serif';
-
-        if (rot < 0.5) {
-            ctx.fillStyle = '#38bdf8';
-            ctx.textAlign = 'right';
-            ctx.fillText('Posição (x) [m]', this.width - margin + 10, yOrigin + 35);
-
+            // Rótulos dos Eixos
+            ctx.font = '600 13px var(--font-sans, sans-serif)';
             ctx.fillStyle = '#facc15';
+            ctx.textAlign = 'right';
+            ctx.fillText('Tempo t [s]', this.width - margin + 14, yZero + 24);
+
+            ctx.fillStyle = '#38bdf8';
             ctx.textAlign = 'left';
-            ctx.fillText('Tempo (t) [s]', xOrigin + 10, margin - 15);
+            ctx.fillText('Posição s [m]', xZero + 10, margin - 14);
+
+            // Marcação Clara da Origem O (0, 0)
+            ctx.fillStyle = '#ffffff';
+            ctx.font = '700 11px var(--font-mono, monospace)';
+            ctx.textAlign = 'right';
+            ctx.textBaseline = 'top';
+            ctx.fillText('O (0, 0)', xZero - 8, yZero + 6);
+
+            // Ticks no Eixo do Tempo (a cada 2s)
+            ctx.font = '11px var(--font-sans, sans-serif)';
+            const numTicksT = 5;
+            for (let i = 1; i <= numTicksT; i++) {
+                const valT = (i / numTicksT) * this.tMax;
+                const px = margin + (valT / this.tMax) * w;
+
+                ctx.strokeStyle = 'rgba(148, 163, 184, 0.35)';
+                ctx.beginPath();
+                ctx.moveTo(px, yZero - 5);
+                ctx.lineTo(px, yZero + 5);
+                ctx.stroke();
+
+                ctx.fillStyle = '#94a3b8';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'top';
+                ctx.fillText(`${valT.toFixed(0)}s`, px, yZero + 8);
+            }
+
+            // Ticks no Eixo da Posição (a cada 5m, positivos acima, negativos abaixo)
+            for (let s = -15; s <= 15; s += 5) {
+                if (s === 0) continue; // Origem já assinalada
+                const normS = (s - this.xMin) / (this.xMax - this.xMin);
+                const py = (this.height - margin) - normS * h;
+
+                ctx.strokeStyle = 'rgba(148, 163, 184, 0.35)';
+                ctx.beginPath();
+                ctx.moveTo(xZero - 5, py);
+                ctx.lineTo(xZero + 5, py);
+                ctx.stroke();
+
+                ctx.fillStyle = '#94a3b8';
+                ctx.textAlign = 'right';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(`${s}m`, xZero - 8, py);
+            }
+
         } else {
-            ctx.fillStyle = '#facc15';
-            ctx.textAlign = 'right';
-            ctx.fillText('Tempo (t) [s]', this.width - margin + 10, yOrigin + 35);
+            // =========================================================================
+            // VISÃO DESDOBRADA (EXTRUDED):
+            // Eixo Horizontal = Posição s (passando em t = 0 na base)
+            // Eixo Vertical = Tempo t (passando em s = 0 no centro)
+            // Cruzamento na Origem (0, 0)!
+            // =========================================================================
+            const xZero = originCanvas.x;
+            const yZero = this.height - margin;
 
+            // 1. Eixo Horizontal da Posição s
+            ctx.beginPath();
+            ctx.moveTo(margin, yZero);
+            ctx.lineTo(this.width - margin + 14, yZero);
+            ctx.stroke();
+            this.drawArrow(this.width - margin + 14, yZero, 0);
+
+            // 2. Eixo Vertical do Tempo t (linha s = 0)
+            ctx.beginPath();
+            ctx.moveTo(xZero, yZero);
+            ctx.lineTo(xZero, margin - 14);
+            ctx.stroke();
+            this.drawArrow(xZero, margin - 14, -Math.PI / 2);
+
+            // Rótulos dos Eixos
+            ctx.font = '600 13px var(--font-sans, sans-serif)';
             ctx.fillStyle = '#38bdf8';
-            ctx.textAlign = 'left';
-            ctx.fillText('Posição (x) [m]', xOrigin + 10, margin - 15);
-        }
-
-        ctx.fillStyle = '#94a3b8';
-        ctx.font = '11px Inter, sans-serif';
-
-        const numTicksX = 8;
-        for (let i = 0; i <= numTicksX; i++) {
-            const frac = i / numTicksX;
-            const px = xOrigin + frac * w;
-
-            ctx.strokeStyle = 'rgba(148, 163, 184, 0.3)';
-            ctx.beginPath();
-            ctx.moveTo(px, yOrigin);
-            ctx.lineTo(px, yOrigin + 6);
-            ctx.stroke();
-
-            let label = '';
-            if (rot < 0.5) {
-                const valX = this.xMin + frac * (this.xMax - this.xMin);
-                label = `${valX.toFixed(0)}m`;
-            } else {
-                const valT = frac * this.tMax;
-                label = `${valT.toFixed(1)}s`;
-            }
-            ctx.textAlign = 'center';
-            ctx.fillText(label, px, yOrigin + 18);
-        }
-
-        const numTicksY = 6;
-        for (let i = 0; i <= numTicksY; i++) {
-            const frac = i / numTicksY;
-            const py = yOrigin - frac * h;
-
-            ctx.strokeStyle = 'rgba(148, 163, 184, 0.3)';
-            ctx.beginPath();
-            ctx.moveTo(xOrigin - 6, py);
-            ctx.lineTo(xOrigin, py);
-            ctx.stroke();
-
-            let label = '';
-            if (rot < 0.5) {
-                const valT = frac * this.tMax;
-                label = `${valT.toFixed(1)}s`;
-            } else {
-                const valX = this.xMin + frac * (this.xMax - this.xMin);
-                label = `${valX.toFixed(0)}m`;
-            }
             ctx.textAlign = 'right';
-            ctx.fillText(label, xOrigin - 10, py + 4);
+            ctx.fillText('Posição s [m]', this.width - margin + 14, yZero + 24);
+
+            ctx.fillStyle = '#facc15';
+            ctx.textAlign = 'left';
+            ctx.fillText('Tempo t [s]', xZero + 10, margin - 14);
+
+            // Marcação da Origem O (0, 0)
+            ctx.fillStyle = '#ffffff';
+            ctx.font = '700 11px var(--font-mono, monospace)';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'top';
+            ctx.fillText('O (0, 0)', xZero, yZero + 8);
+
+            // Ticks de Posição
+            ctx.font = '11px var(--font-sans, sans-serif)';
+            for (let s = -15; s <= 15; s += 5) {
+                if (s === 0) continue;
+                const normS = (s - this.xMin) / (this.xMax - this.xMin);
+                const px = margin + normS * w;
+
+                ctx.strokeStyle = 'rgba(148, 163, 184, 0.35)';
+                ctx.beginPath();
+                ctx.moveTo(px, yZero - 5);
+                ctx.lineTo(px, yZero + 5);
+                ctx.stroke();
+
+                ctx.fillStyle = '#94a3b8';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'top';
+                ctx.fillText(`${s}m`, px, yZero + 8);
+            }
+
+            // Ticks de Tempo
+            const numTicksT = 5;
+            for (let i = 1; i <= numTicksT; i++) {
+                const valT = (i / numTicksT) * this.tMax;
+                const py = yZero - (valT / this.tMax) * h;
+
+                ctx.strokeStyle = 'rgba(148, 163, 184, 0.35)';
+                ctx.beginPath();
+                ctx.moveTo(xZero - 5, py);
+                ctx.lineTo(xZero + 5, py);
+                ctx.stroke();
+
+                ctx.fillStyle = '#94a3b8';
+                ctx.textAlign = 'right';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(`${valT.toFixed(0)}s`, xZero - 8, py);
+            }
         }
 
         ctx.restore();
@@ -1012,7 +1507,6 @@ class MovimentoSimulation {
         const normT = Math.min(1, pt.t / this.tMax);
 
         let px, py;
-
         if (rot < 0.5) {
             px = margin + normX * w;
             py = (this.height - margin) - normT * h;
@@ -1029,13 +1523,13 @@ class MovimentoSimulation {
         ctx.save();
 
         ctx.strokeStyle = colorHex;
-        ctx.lineWidth = 3.5;
+        ctx.lineWidth = 3;
         ctx.shadowColor = colorHex;
         ctx.shadowBlur = 8;
 
         ctx.beginPath();
         let first = true;
-        for (let pt of recording) {
+        for (const pt of recording) {
             const pos = this.mapPointToCanvas(pt, margin, w, h, rot);
             if (first) {
                 ctx.moveTo(pos.x, pos.y);
@@ -1048,7 +1542,8 @@ class MovimentoSimulation {
         ctx.shadowBlur = 0;
 
         ctx.fillStyle = '#ffffff';
-        for (let i = 0; i < recording.length; i += Math.max(1, Math.floor(recording.length / 20))) {
+        const sampleStep = Math.max(1, Math.floor(recording.length / 20));
+        for (let i = 0; i < recording.length; i += sampleStep) {
             const pos = this.mapPointToCanvas(recording[i], margin, w, h, rot);
             ctx.beginPath();
             ctx.arc(pos.x, pos.y, 2.5, 0, Math.PI * 2);
@@ -1063,14 +1558,17 @@ class MovimentoSimulation {
         ctx.save();
 
         const activePtA = this.recordingA[this.selectedTimeIndex] || this.recordingA[this.recordingA.length - 1];
-        if (!activePtA) return;
+        if (!activePtA) {
+            ctx.restore();
+            return;
+        }
 
         const posA = this.mapPointToCanvas(activePtA, margin, w, h, rot);
 
         // Marcador A
         ctx.fillStyle = '#facc15';
         ctx.beginPath();
-        ctx.arc(posA.x, posA.y, 7, 0, Math.PI * 2);
+        ctx.arc(posA.x, posA.y, 6, 0, Math.PI * 2);
         ctx.fill();
         ctx.strokeStyle = '#ffffff';
         ctx.lineWidth = 2;
@@ -1083,7 +1581,7 @@ class MovimentoSimulation {
                 const posB = this.mapPointToCanvas(activePtB, margin, w, h, rot);
                 ctx.fillStyle = '#38bdf8';
                 ctx.beginPath();
-                ctx.arc(posB.x, posB.y, 7, 0, Math.PI * 2);
+                ctx.arc(posB.x, posB.y, 6, 0, Math.PI * 2);
                 ctx.fill();
                 ctx.strokeStyle = '#ffffff';
                 ctx.lineWidth = 2;
@@ -1099,7 +1597,7 @@ class MovimentoSimulation {
         ctx.save();
         ctx.translate(x, y);
         ctx.rotate(angle);
-        ctx.fillStyle = 'rgba(248, 250, 252, 0.8)';
+        ctx.fillStyle = 'rgba(248, 250, 252, 0.75)';
         ctx.beginPath();
         ctx.moveTo(0, 0);
         ctx.lineTo(-8, -4);
