@@ -1102,7 +1102,7 @@ class MovimentoSimulation {
         this.drawArrow(this.width - margin + 14, axisY, 0);
 
         // Marcações Limpas na Régua (a cada 5m)
-        ctx.font = '500 11px var(--font-sans, sans-serif)';
+        ctx.font = '600 15px sans-serif';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'top';
 
@@ -1123,10 +1123,10 @@ class MovimentoSimulation {
             ctx.fillText(`${meter}m`, tickX, axisY + 9);
         }
 
-        ctx.font = '600 12px var(--font-sans, sans-serif)';
+        ctx.font = 'bold 18px sans-serif';
         ctx.fillStyle = '#38bdf8';
         ctx.textAlign = 'left';
-        ctx.fillText('Eixo s [m]', this.width - margin + 22, axisY - 6);
+        ctx.fillText('Eixo s [m]', this.width - margin + 22, axisY - 8);
 
         // 3. Rastro Estroboscópico (Marcadores a cada 1s)
         this.drawStrobeTrail(this.strobePointsA, '#facc15', laneA_Y);
@@ -1154,7 +1154,7 @@ class MovimentoSimulation {
 
                 // Badge de Encontro Flutuante
                 ctx.fillStyle = '#ef4444';
-                ctx.font = '700 12px var(--font-sans, sans-serif)';
+                ctx.font = 'bold 13px sans-serif';
                 ctx.textAlign = 'center';
                 ctx.fillText(`⚡ ENCONTRO (s = ${this.xA.toFixed(1)}m)`, (posA.x + posB.x) / 2, laneA_Y - 32);
             }
@@ -1196,7 +1196,7 @@ class MovimentoSimulation {
 
             // Rótulo do segundo (ex: "1s", "2s")
             ctx.globalAlpha = 0.7;
-            ctx.font = '500 9px var(--font-mono, monospace)';
+            ctx.font = '600 10px monospace';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
             ctx.fillText(`${pt.sec}s`, pos.x, pos.y);
@@ -1232,14 +1232,14 @@ class MovimentoSimulation {
         ctx.stroke();
 
         ctx.fillStyle = '#0f172a';
-        ctx.font = '700 11px var(--font-mono, monospace)';
+        ctx.font = 'bold 12px monospace';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         ctx.fillText(label, ballPos.x, ballPos.y);
 
         // Rótulo da Faixa
         if (laneLabel) {
-            ctx.font = '500 10px var(--font-sans, sans-serif)';
+            ctx.font = '600 12px sans-serif';
             ctx.fillStyle = colorHex;
             ctx.textAlign = 'right';
             ctx.fillText(laneLabel, this.width - 76, laneY - 10);
@@ -1261,7 +1261,7 @@ class MovimentoSimulation {
             this.drawVectorArrowHead(endX, ballPos.y, v > 0 ? 0 : Math.PI, '#22c55e');
 
             ctx.fillStyle = '#22c55e';
-            ctx.font = '600 10px var(--font-mono, monospace)';
+            ctx.font = 'bold 13px monospace';
             ctx.textAlign = 'center';
             ctx.fillText(`v = ${v >= 0 ? '+' : ''}${v.toFixed(1)} m/s`, (startX + endX) / 2, ballPos.y - 14);
         }
@@ -1283,7 +1283,7 @@ class MovimentoSimulation {
             this.drawVectorArrowHead(endX, aY, a > 0 ? 0 : Math.PI, '#c084fc');
 
             ctx.fillStyle = '#c084fc';
-            ctx.font = '600 10px var(--font-mono, monospace)';
+            ctx.font = 'bold 13px monospace';
             ctx.textAlign = 'center';
             ctx.fillText(`a = ${a >= 0 ? '+' : ''}${a.toFixed(1)} m/s²`, (startX + endX) / 2, aY + 12);
         }
@@ -1336,33 +1336,62 @@ class MovimentoSimulation {
                 this.drawStrobeMarkers2D(this.strobePointsB, '#38bdf8', margin, w, h, rot);
             }
 
-            // Marcadores de Encontro no Gráfico
+            // Marcadores e Projeções de Encontro no Gráfico (Linhas Pontilhadas até os Eixos)
             if (this.motionType === 'equation_2') {
                 const encounters = this.calculateIntersections();
+                const isConventional = rot >= 0.5;
+                const originCanvas = this.mapPointToCanvas({ t: 0, x: 0 }, margin, w, h, rot);
+
                 encounters.forEach(enc => {
                     if (enc.t <= this.tMax * 2) {
                         const posEnc = this.mapPointToCanvas(enc, margin, w, h, rot);
 
+                        // Linhas de projeção pontilhadas vermelhas até os eixos
+                        ctx.strokeStyle = '#ef4444';
+                        ctx.globalAlpha = 0.85;
+                        ctx.lineWidth = 1.5;
+                        ctx.setLineDash([4, 4]);
+
+                        if (isConventional) {
+                            // Projeção ao eixo do tempo (horizontal em originCanvas.y)
+                            ctx.beginPath();
+                            ctx.moveTo(posEnc.x, posEnc.y);
+                            ctx.lineTo(posEnc.x, originCanvas.y);
+                            ctx.stroke();
+
+                            // Projeção ao eixo da posição (vertical em originCanvas.x)
+                            ctx.beginPath();
+                            ctx.moveTo(posEnc.x, posEnc.y);
+                            ctx.lineTo(originCanvas.x, posEnc.y);
+                            ctx.stroke();
+                        } else {
+                            // Projeção na visão desdobrada
+                            ctx.beginPath();
+                            ctx.moveTo(posEnc.x, posEnc.y);
+                            ctx.lineTo(posEnc.x, originCanvas.y);
+                            ctx.stroke();
+
+                            ctx.beginPath();
+                            ctx.moveTo(posEnc.x, posEnc.y);
+                            ctx.lineTo(originCanvas.x, posEnc.y);
+                            ctx.stroke();
+                        }
+
+                        ctx.setLineDash([]);
+                        ctx.globalAlpha = 1.0;
+
+                        // Ponto de Encontro Vermelho em Destaque
                         ctx.fillStyle = '#ef4444';
                         ctx.shadowColor = '#ef4444';
-                        ctx.shadowBlur = 12;
+                        ctx.shadowBlur = 14;
                         ctx.beginPath();
-                        ctx.arc(posEnc.x, posEnc.y, 7, 0, Math.PI * 2);
+                        ctx.arc(posEnc.x, posEnc.y, 6.5, 0, Math.PI * 2);
                         ctx.fill();
                         ctx.shadowBlur = 0;
 
                         ctx.strokeStyle = '#ffffff';
                         ctx.lineWidth = 2;
                         ctx.stroke();
-
-                        const label = encounters.length > 1
-                            ? `⚡ ${enc.index}º Encontro (${enc.t.toFixed(1)}s, ${enc.x.toFixed(1)}m)`
-                            : `⚡ Encontro (${enc.t.toFixed(1)}s, ${enc.x.toFixed(1)}m)`;
-
-                        ctx.fillStyle = '#ffffff';
-                        ctx.font = '600 11px var(--font-sans, sans-serif)';
-                        ctx.textAlign = 'center';
-                        ctx.fillText(label, posEnc.x, posEnc.y - 12);
                     }
                 });
             }
@@ -1433,7 +1462,7 @@ class MovimentoSimulation {
 
                 // Rótulo do Segundo
                 ctx.fillStyle = '#ffffff';
-                ctx.font = '600 10px var(--font-mono, monospace)';
+                ctx.font = '600 12px monospace';
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'bottom';
                 ctx.fillText(`${pt.sec}s`, pos.x, pos.y - 6);
@@ -1471,25 +1500,25 @@ class MovimentoSimulation {
             ctx.stroke();
             this.drawArrow(xZero, margin - 14, -Math.PI / 2);
 
-            // Rótulos dos Eixos
-            ctx.font = '600 13px var(--font-sans, sans-serif)';
+            // Rótulos dos Eixos (Tamanho Ampliado para Maior Legibilidade)
+            ctx.font = 'bold 18px sans-serif';
             ctx.fillStyle = '#facc15';
             ctx.textAlign = 'right';
-            ctx.fillText('Tempo t [s]', this.width - margin + 14, yZero + 24);
+            ctx.fillText('Tempo t [s]', this.width - margin + 14, yZero + 28);
 
             ctx.fillStyle = '#38bdf8';
             ctx.textAlign = 'left';
-            ctx.fillText('Posição s [m]', xZero + 10, margin - 14);
+            ctx.fillText('Posição s [m]', xZero + 14, margin - 14);
 
             // Marcação Clara da Origem O (0, 0)
             ctx.fillStyle = '#ffffff';
-            ctx.font = '700 11px var(--font-mono, monospace)';
+            ctx.font = 'bold 14px monospace';
             ctx.textAlign = 'right';
             ctx.textBaseline = 'top';
             ctx.fillText('O (0, 0)', xZero - 8, yZero + 6);
 
             // Ticks no Eixo do Tempo (a cada 2s)
-            ctx.font = '11px var(--font-sans, sans-serif)';
+            ctx.font = '600 15px sans-serif';
             const numTicksT = 5;
             for (let i = 1; i <= numTicksT * 2; i++) {
                 const valT = (i / numTicksT) * this.tMax;
@@ -1546,25 +1575,25 @@ class MovimentoSimulation {
             ctx.stroke();
             this.drawArrow(xZero, margin - 14, -Math.PI / 2);
 
-            // Rótulos dos Eixos
-            ctx.font = '600 13px var(--font-sans, sans-serif)';
+            // Rótulos dos Eixos (Tamanho Ampliado para Maior Legibilidade)
+            ctx.font = 'bold 18px sans-serif';
             ctx.fillStyle = '#38bdf8';
             ctx.textAlign = 'right';
-            ctx.fillText('Posição s [m]', this.width - margin + 14, yZero + 24);
+            ctx.fillText('Posição s [m]', this.width - margin + 14, yZero + 28);
 
             ctx.fillStyle = '#facc15';
             ctx.textAlign = 'left';
-            ctx.fillText('Tempo t [s]', xZero + 10, margin - 14);
+            ctx.fillText('Tempo t [s]', xZero + 14, margin - 14);
 
             // Marcação da Origem O (0, 0)
             ctx.fillStyle = '#ffffff';
-            ctx.font = '700 11px var(--font-mono, monospace)';
+            ctx.font = 'bold 14px monospace';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'top';
             ctx.fillText('O (0, 0)', xZero, yZero + 8);
 
             // Ticks de Posição
-            ctx.font = '11px var(--font-sans, sans-serif)';
+            ctx.font = '600 15px sans-serif';
             for (let s = -30; s <= 30; s += 5) {
                 if (s === 0) continue;
                 const posS = this.mapPointToCanvas({ t: 0, x: s }, margin, w, h, rot);
