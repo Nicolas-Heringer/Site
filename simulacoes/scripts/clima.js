@@ -6,6 +6,7 @@
 
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { initSidebarCollapse, initBottomSheet, initModal, inlineSVGImages } from './sim-ui.js';
 
 // Constantes Físicas Planetárias
 const REAL_EARTH_RADIUS_KM = 6371; // Raio médio real da Terra em km
@@ -55,6 +56,7 @@ const state = {
     tempMean: 15,            // Temperatura média global (°C)
     coriolisScale: 1.0,      // Parâmetro de rotação de Coriolis (0x a 3x)
     showWindParticles: true, // Partículas de fluxo (Streamlines)
+    numWindParticles: 2500,  // Densidade de partículas no fluxo
     showWindVectors: true,   // Vetores de vento nas células
     windSpeedScale: 1.0,     // Escala de velocidade do fluxo
     activeTool: null,        // 'cyclone' ou 'anticyclone'
@@ -102,23 +104,24 @@ const CONSTELLATIONS = [
 ];
 
 function getGeographicLocation(latDeg, lonDeg) {
-    if (latDeg > 66.5) return '❄️ Círculo Polar Ártico';
-    if (latDeg < -60) return '🧊 Antártica / Oceano Austral';
+    if (latDeg > 66.5) return 'Círculo Polar Ártico';
+    if (latDeg < -60) return 'Antártica / Oceano Austral';
 
-    if (latDeg >= -56 && latDeg <= 13 && lonDeg >= -82 && lonDeg <= -34) return '🌎 América do Sul';
-    if (latDeg > 13 && latDeg <= 75 && lonDeg >= -168 && lonDeg <= -52) return '🌎 América do Norte';
-    if (latDeg >= -35 && latDeg <= 37 && lonDeg >= -18 && lonDeg <= 52) return '🌍 África';
-    if (latDeg >= 36 && latDeg <= 71 && lonDeg >= -10 && lonDeg <= 42) return '🌍 Europa';
-    if (latDeg >= 0 && latDeg <= 75 && lonDeg > 42 && lonDeg <= 180) return '🌏 Ásia';
-    if (latDeg >= -50 && latDeg <= -10 && lonDeg >= 110 && lonDeg <= 180) return '🌏 Oceania / Austrália';
+    if (latDeg >= -56 && latDeg <= 13 && lonDeg >= -82 && lonDeg <= -34) return 'América do Sul';
+    if (latDeg > 13 && latDeg <= 75 && lonDeg >= -168 && lonDeg <= -52) return 'América do Norte';
+    if (latDeg >= -35 && latDeg <= 37 && lonDeg >= -18 && lonDeg <= 52) return 'África';
+    if (latDeg >= 36 && latDeg <= 71 && lonDeg >= -10 && lonDeg <= 42) return 'Europa';
+    if (latDeg >= 0 && latDeg <= 75 && lonDeg > 42 && lonDeg <= 180) return 'Ásia';
+    if (latDeg >= -50 && latDeg <= -10 && lonDeg >= 110 && lonDeg <= 180) return 'Oceania / Austrália';
 
-    if (lonDeg >= -70 && lonDeg <= 20) return '🌊 Oceano Atlântico';
-    if (lonDeg > 20 && lonDeg <= 110) return '🌊 Oceano Índico';
-    return '🌊 Oceano Pacífico';
+    if (lonDeg >= -70 && lonDeg <= 20) return 'Oceano Atlântico';
+    if (lonDeg > 20 && lonDeg <= 110) return 'Oceano Índico';
+    return 'Oceano Pacífico';
 }
 
 function getZodiacConstellationInfo(dayOfYear) {
     const months = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+    const shortMonths = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
     const daysInMonth = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
 
     let d = Math.floor(dayOfYear);
@@ -128,6 +131,7 @@ function getZodiacConstellationInfo(dayOfYear) {
         monthIdx++;
     }
     const dateFormatted = `${d} de ${months[monthIdx]}`;
+    const dateShort = `${d}/${shortMonths[monthIdx]}`;
 
     const lambdaOrbit = ((dayOfYear - 80 + 365) % 365) * (2.0 * Math.PI / 365.0);
     const sunDeclDeg = (Math.asin(Math.sin(AXIAL_TILT_RAD) * Math.sin(lambdaOrbit)) * 180.0 / Math.PI);
@@ -150,6 +154,7 @@ function getZodiacConstellationInfo(dayOfYear) {
 
     return {
         dateFormatted,
+        dateShort,
         lambdaOrbit,
         sunDeclDeg,
         sunZodiac,
@@ -353,9 +358,9 @@ let hoverHighlightMesh = null;
 
 // Sistema de Partículas de Vento (Streamlines) & Vetores
 let windParticlesMesh = null;
-const NUM_WIND_PARTICLES = 700;
 let windParticlePositions = null;
 let windParticleAges = null;
+let windParticleTexture = null;
 let windVectorsMesh = null;
 
 let ambientLight = null, sunLight = null;
@@ -786,24 +791,59 @@ function createAstronomicalGuides() {
 // 5. SISTEMA DE PARTÍCULAS DE VENTO & STREAMLINES (ABA 4)
 // =============================================================================
 
-function initWindParticleSystem() {
-    windParticlePositions = new Float32Array(NUM_WIND_PARTICLES * 3);
-    windParticleAges = new Float32Array(NUM_WIND_PARTICLES);
+function createWindParticleTexture() {
+    const canvas = document.createElement('canvas');
+    canvas.width = 32;
+    canvas.height = 32;
+    const ctx = canvas.getContext('2d');
+
+    const grad = ctx.createRadialGradient(16, 16, 0, 16, 16, 16);
+    grad.addColorStop(0.0, 'rgba(255, 255, 255, 1.0)');
+    grad.addColorStop(0.35, 'rgba(125, 211, 252, 0.9)');
+    grad.addColorStop(0.7, 'rgba(56, 189, 248, 0.4)');
+    grad.addColorStop(1.0, 'rgba(14, 165, 233, 0.0)');
+
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.arc(16, 16, 16, 0, Math.PI * 2);
+    ctx.fill();
+
+    const texture = new THREE.CanvasTexture(canvas);
+    return texture;
+}
+
+function initWindParticleSystem(count = state.numWindParticles) {
+    state.numWindParticles = count;
+
+    if (windParticlesMesh) {
+        earthSpinGroup.remove(windParticlesMesh);
+        if (windParticlesMesh.geometry) windParticlesMesh.geometry.dispose();
+        if (windParticlesMesh.material) windParticlesMesh.material.dispose();
+        windParticlesMesh = null;
+    }
+
+    windParticlePositions = new Float32Array(state.numWindParticles * 3);
+    windParticleAges = new Float32Array(state.numWindParticles);
 
     const R = 1.008;
-    for (let i = 0; i < NUM_WIND_PARTICLES; i++) {
+    for (let i = 0; i < state.numWindParticles; i++) {
         resetWindParticle(i, R);
-        windParticleAges[i] = Math.random() * 200.0;
+        windParticleAges[i] = Math.random() * 240.0;
     }
 
     const partGeo = new THREE.BufferGeometry();
     partGeo.setAttribute('position', new THREE.BufferAttribute(windParticlePositions, 3));
 
+    if (!windParticleTexture) {
+        windParticleTexture = createWindParticleTexture();
+    }
+
     const partMat = new THREE.PointsMaterial({
-        size: 0.024,
-        color: 0x67e8f9,
+        size: 0.028,
+        map: windParticleTexture,
+        color: 0x7dd3fc,
         transparent: true,
-        opacity: 0.85,
+        opacity: 0.9,
         blending: THREE.AdditiveBlending,
         depthTest: true,
         depthWrite: false
@@ -829,11 +869,14 @@ function updateWindParticles(dt) {
     if (!windParticlesMesh || state.activeTab !== 'tab-atmosphere' || !state.showWindParticles) return;
 
     const R = 1.008;
-    const speedMultiplier = 0.003 * state.windSpeedScale;
+    // Multiplicador ajustado para velocidade visual fluida e dinâmica
+    const speedMultiplier = 0.008 * state.windSpeedScale;
+    const count = state.numWindParticles;
+    const maxAge = 240.0;
 
-    for (let i = 0; i < NUM_WIND_PARTICLES; i++) {
+    for (let i = 0; i < count; i++) {
         windParticleAges[i] += dt * 60.0;
-        if (windParticleAges[i] > 180.0) {
+        if (windParticleAges[i] > maxAge) {
             resetWindParticle(i, R);
             continue;
         }
@@ -856,7 +899,7 @@ function updateWindParticles(dt) {
         py += vy * speedMultiplier * dt;
         pz += vz * speedMultiplier * dt;
 
-        // Projeção esférica
+        // Projeção esférica mantendo raio R
         const newLen = Math.sqrt(px * px + py * py + pz * pz) || 1.0;
         windParticlePositions[3 * i] = (px / newLen) * R;
         windParticlePositions[3 * i + 1] = (py / newLen) * R;
@@ -1132,7 +1175,7 @@ function displayTooltip(screenX, screenY, x, y, z, cellIndex) {
                 <span class="tooltip-lbl">Área Esférica (Aᵢ):</span>
                 <span class="tooltip-v">${(4.0 * Math.PI / currentCellCount).toFixed(4)} sr</span>
             </div>
-            <div class="tooltip-geo">📐 Célula relaxada sobre a esfera S²</div>
+            <div class="tooltip-geo">Célula relaxada sobre a esfera S²</div>
         `;
     } else if (state.activeTab === 'tab-atmosphere') {
         let circZone = 'Ventos Alísios Tropicais';
@@ -1326,6 +1369,14 @@ function switchTab(newTab) {
         updateClimateUI();
     }
 
+    const footerInfo = document.getElementById('footer-sim-info');
+    if (footerInfo) {
+        if (newTab === 'tab-math') footerInfo.textContent = 'Etapa 1: Geometria (SCVT)';
+        else if (newTab === 'tab-science') footerInfo.textContent = 'Etapa 2: Escala Planetária';
+        else if (newTab === 'tab-seasons') footerInfo.textContent = 'Etapa 3: Estações do Ano';
+        else if (newTab === 'tab-atmosphere') footerInfo.textContent = 'Etapa 4: Dinâmica Climática';
+    }
+
     updateHUDVisibility(newTab);
     requestAnimationFrame(onWindowResize);
 }
@@ -1357,6 +1408,8 @@ function updateHUDVisibility(currentTab) {
     if (rowHex) rowHex.style.display = isMath ? 'flex' : 'none';
     if (rowHept) rowHept.style.display = isMath ? 'flex' : 'none';
 
+    const hudSeparator = document.getElementById('hud-separator');
+    if (hudSeparator) hudSeparator.style.display = isMath ? 'none' : 'block';
     if (rowThickness) rowThickness.style.display = isMath ? 'none' : 'flex';
     if (rowExag) rowExag.style.display = isMath ? 'none' : 'flex';
 
@@ -1441,30 +1494,16 @@ function updateAstronomicalState() {
     if (spanSeasonDate) spanSeasonDate.textContent = info.dateFormatted;
     if (spanSunDecl) spanSunDecl.textContent = `${info.sunDeclDeg >= 0 ? '+' : ''}${info.sunDeclDeg.toFixed(1)}° (${info.sunDeclDeg >= 0 ? 'Norte' : 'Sul'})`;
     if (spanZodiac) spanZodiac.textContent = info.sunZodiac;
-    if (valDay) valDay.textContent = `Dia ${state.dayOfYear} (${info.dateFormatted})`;
+    if (valDay) valDay.textContent = `Dia ${Math.floor(state.dayOfYear)} • ${info.dateShort}`;
 
     const h = Math.floor(state.hourOfDay);
     const m = Math.floor((state.hourOfDay - h) * 60);
     if (valHour) valHour.textContent = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
-    if (labelOrreryMonth) labelOrreryMonth.textContent = info.dateFormatted;
+    if (labelOrreryMonth) labelOrreryMonth.textContent = info.dateShort;
 
     if (badgeTitle && badgeStatus) {
-        if (state.dayOfYear >= 165 && state.dayOfYear <= 180) {
-            badgeTitle.textContent = '☀️ Solstício de Junho (21/Jun)';
-            badgeStatus.textContent = 'Inverno no Hemisfério Sul • Verão no Norte';
-        } else if (state.dayOfYear >= 260 && state.dayOfYear <= 272) {
-            badgeTitle.textContent = '🍂 Equinócio de Setembro (22/Set)';
-            badgeStatus.textContent = 'Primavera no Hemisfério Sul • Outono no Norte';
-        } else if (state.dayOfYear >= 350 && state.dayOfYear <= 360) {
-            badgeTitle.textContent = '❄️ Solstício de Dezembro (21/Dez)';
-            badgeStatus.textContent = 'Verão no Hemisfério Sul • Inverno no Norte';
-        } else if (state.dayOfYear >= 75 && state.dayOfYear <= 85) {
-            badgeTitle.textContent = '🌸 Equinócio de Março (20/Mar)';
-            badgeStatus.textContent = 'Outono no Hemisfério Sul • Primavera no Norte';
-        } else {
-            badgeTitle.textContent = `Órbita da Terra (${info.dateFormatted})`;
-            badgeStatus.textContent = `Declinação Solar: ${info.sunDeclDeg >= 0 ? '+' : ''}${info.sunDeclDeg.toFixed(1)}°`;
-        }
+        badgeTitle.textContent = 'Mecânica Orbital & Estações';
+        badgeStatus.textContent = `Declinação Solar (δ): ${info.sunDeclDeg >= 0 ? '+' : ''}${info.sunDeclDeg.toFixed(1)}° (${info.sunDeclDeg >= 0 ? 'Norte' : 'Sul'})`;
     }
 
     renderMiniOrrery(info);
@@ -1596,7 +1635,7 @@ function updateHUDStats(payload) {
     if (spanIter) spanIter.textContent = `${payload.iteration}`;
     if (spanShift) spanShift.textContent = `${payload.avgShift.toExponential(2)}`;
     if (spanPent) {
-        spanPent.innerHTML = `${payload.pentagons} ${payload.pentagons === 12 ? '<span style="color:#22c55e; font-size:0.75rem; font-weight:700;">⭐ (Exato 12!)</span>' : ''}`;
+        spanPent.innerHTML = `${payload.pentagons} ${payload.pentagons === 12 ? '<span style="color:#22c55e; font-size:0.75rem; font-weight:700;">(Exato 12!)</span>' : ''}`;
     }
     if (spanHex) spanHex.textContent = `${payload.hexagons}`;
     if (spanHept) spanHept.textContent = `${payload.heptagons + (payload.others || 0)}`;
@@ -1703,16 +1742,57 @@ function animate(timestamp) {
 // =============================================================================
 
 function setupUIListeners() {
-    // Alternância de Abas Progressivas (1 a 4)
+    // Alternância de Abas Principais (Parâmetros vs Teoria)
+    const tabBtnParams = document.getElementById('tab-btn-params');
+    const tabBtnTheory = document.getElementById('tab-btn-theory');
+    const panelTabParams = document.getElementById('panel-tab-params');
+    const panelTabTheory = document.getElementById('panel-tab-theory');
+
+    if (tabBtnParams) {
+        tabBtnParams.addEventListener('click', () => {
+            tabBtnParams.classList.add('active');
+            if (tabBtnTheory) tabBtnTheory.classList.remove('active');
+            if (panelTabParams) panelTabParams.style.display = 'block';
+            if (panelTabTheory) panelTabTheory.style.display = 'none';
+        });
+    }
+
+    if (tabBtnTheory) {
+        tabBtnTheory.addEventListener('click', () => {
+            tabBtnTheory.classList.add('active');
+            if (tabBtnParams) tabBtnParams.classList.remove('active');
+            if (panelTabTheory) panelTabTheory.style.display = 'block';
+            if (panelTabParams) panelTabParams.style.display = 'none';
+            if (window.renderMathInElement && panelTabTheory) {
+                window.renderMathInElement(panelTabTheory, {
+                    delimiters: [
+                        { left: '$$', right: '$$', display: true },
+                        { left: '$', right: '$', display: false }
+                    ],
+                    throwOnError: false
+                });
+            }
+        });
+    }
+
+    // Alternância de Etapas da Simulação (1 a 4)
     const btnTabMath = document.getElementById('btn-tab-math');
     const btnTabScience = document.getElementById('btn-tab-science');
     const btnTabSeasons = document.getElementById('btn-tab-seasons');
     const btnTabAtmosphere = document.getElementById('btn-tab-atmosphere');
 
-    if (btnTabMath) btnTabMath.addEventListener('click', () => switchTab('tab-math'));
-    if (btnTabScience) btnTabScience.addEventListener('click', () => switchTab('tab-science'));
-    if (btnTabSeasons) btnTabSeasons.addEventListener('click', () => switchTab('tab-seasons'));
-    if (btnTabAtmosphere) btnTabAtmosphere.addEventListener('click', () => switchTab('tab-atmosphere'));
+    function activateStage(stageKey) {
+        if (tabBtnParams) tabBtnParams.classList.add('active');
+        if (tabBtnTheory) tabBtnTheory.classList.remove('active');
+        if (panelTabParams) panelTabParams.style.display = 'block';
+        if (panelTabTheory) panelTabTheory.style.display = 'none';
+        switchTab(stageKey);
+    }
+
+    if (btnTabMath) btnTabMath.addEventListener('click', () => activateStage('tab-math'));
+    if (btnTabScience) btnTabScience.addEventListener('click', () => activateStage('tab-science'));
+    if (btnTabSeasons) btnTabSeasons.addEventListener('click', () => activateStage('tab-seasons'));
+    if (btnTabAtmosphere) btnTabAtmosphere.addEventListener('click', () => activateStage('tab-atmosphere'));
 
     // Botão Flutuante de Rotação Automática da Terra
     const btnQuickAutoRotate = document.getElementById('btn-quick-autorotate');
@@ -2015,6 +2095,16 @@ function setupUIListeners() {
         });
     }
 
+    const sliderNumParticles = document.getElementById('slider-num-particles');
+    const valNumParticles = document.getElementById('val-num-particles');
+    if (sliderNumParticles && valNumParticles) {
+        sliderNumParticles.addEventListener('input', (e) => {
+            const count = parseInt(e.target.value, 10);
+            valNumParticles.textContent = count.toLocaleString('pt-BR');
+            initWindParticleSystem(count);
+        });
+    }
+
     // Ferramentas de Ciclone
     const btnToolCyclone = document.getElementById('btn-tool-cyclone');
     const btnToolAnticyclone = document.getElementById('btn-tool-anticyclone');
@@ -2087,39 +2177,6 @@ function setupUIListeners() {
     }
 }
 
-const svgCache = new Map();
-
-async function inlineSVGImages() {
-    const images = document.querySelectorAll('img.icon-svg');
-    for (const img of images) {
-        const src = img.getAttribute('src');
-        if (!src || !src.endsWith('.svg')) continue;
-
-        let svgText;
-        if (svgCache.has(src)) {
-            svgText = svgCache.get(src);
-        } else {
-            try {
-                const res = await fetch(src);
-                svgText = await res.text();
-                svgCache.set(src, svgText);
-            } catch (e) {
-                continue;
-            }
-        }
-
-        const parser = new DOMParser();
-        const doc = parser.parseFromString(svgText, 'image/svg+xml');
-        const svg = doc.querySelector('svg');
-        if (svg) {
-            svg.setAttribute('class', img.getAttribute('class') || 'icon-svg');
-            if (img.id) svg.setAttribute('id', img.id);
-            if (img.getAttribute('style')) svg.setAttribute('style', img.getAttribute('style'));
-            img.replaceWith(svg);
-        }
-    }
-}
-
 // =============================================================================
 // 13. INICIALIZAÇÃO
 // =============================================================================
@@ -2128,8 +2185,40 @@ window.addEventListener('DOMContentLoaded', async () => {
     initThreeScene();
     initWorker();
     setupUIListeners();
+
+    // Inicialização dos Controladores do Design System 2.0
+    initSidebarCollapse({
+        layoutSelector: '.sim-layout',
+        collapseBtnSelector: '#btn-collapse-sidebar',
+        expandBtnSelector: '#btn-expand-sidebar',
+        onResize: onWindowResize
+    });
+
+    initBottomSheet({
+        panelSelector: '.controls-panel',
+        handleSelector: '#sheet-drag-handle',
+        tabNavSelector: '.tab-nav',
+        collapseBtnSelector: '#btn-collapse-sidebar',
+        defaultState: 'peek'
+    });
+
+    const modalTeoria = initModal('#modal-teoria');
+    document.getElementById('btn-open-theory-modal')?.addEventListener('click', () => {
+        modalTeoria?.open();
+    });
+
     switchTab('tab-math');
     updatePlanetaryScaleStats();
     animate(performance.now());
     await inlineSVGImages();
+
+    if (window.renderMathInElement) {
+        window.renderMathInElement(document.body, {
+            delimiters: [
+                { left: '$$', right: '$$', display: true },
+                { left: '$', right: '$', display: false }
+            ],
+            throwOnError: false
+        });
+    }
 });

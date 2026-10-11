@@ -1,12 +1,13 @@
-/* ==========================================================================
-   Tesselação de Voronoi & Relaxamento de Lloyd na Esfera (SCVT)
-   ========================================================================== */
+/* =============================================================================
+   SIMULAÇÃO: Tesselação de Voronoi & Dinâmica Climática Planetária (SCVT)
+   Design System 2.0 - Estilos Específicos da Simulação
+   ============================================================================= */
 
 /* ---------- Container Three.js ---------- */
 #three-container {
     position: absolute;
     inset: 0;
-    border-radius: 12px;
+    border-radius: inherit;
     overflow: hidden;
     cursor: grab;
 }
@@ -21,115 +22,78 @@
     height: 100% !important;
 }
 
-/* ---------- Botão de Rotação Automática Flutuante no Canvas ---------- */
-.canvas-btn-autorotate {
-    position: absolute;
-    top: 15px;
-    right: 15px;
-    background: rgba(15, 23, 42, 0.85);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    border-radius: 10px;
-    padding: 8px 14px;
-    font-size: 0.78rem;
-    font-weight: 600;
-    color: var(--text-secondary);
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    cursor: pointer;
-    z-index: 20;
-    transition: all 0.2s ease;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.35);
+/* ---------- Botão de Rotação Automática Flutuante ---------- */
+.canvas-btn-floating.active .icon-spin {
+    animation: sim-spin 8s linear infinite;
 }
 
-.canvas-btn-autorotate:hover {
-    color: var(--text-primary);
-    border-color: rgba(56, 189, 248, 0.5);
-    background: rgba(30, 41, 59, 0.9);
-    transform: translateY(-1px);
-}
-
-.canvas-btn-autorotate.active {
-    background: rgba(56, 189, 248, 0.22);
-    border-color: #38bdf8;
-    color: #38bdf8;
-    box-shadow: 0 0 12px rgba(56, 189, 248, 0.35);
-}
-
-.canvas-btn-autorotate.active .icon-spin {
-    animation: spin 6s linear infinite;
-}
-
-@keyframes spin {
+@keyframes sim-spin {
     from { transform: rotate(0deg); }
     to { transform: rotate(360deg); }
 }
 
-/* ---------- Navegação Progressiva por Abas (1 a 4) ---------- */
-.tab-nav {
+/* ---------- Seletor de Módulos (Pills em Parâmetros) ---------- */
+.stage-nav-pills {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     gap: 4px;
-    margin-bottom: 12px;
-    background: rgba(15, 23, 42, 0.7);
+    background: rgba(15, 23, 42, 0.75);
     padding: 4px;
-    border-radius: 10px;
+    border-radius: var(--radius-md);
     border: 1px solid var(--border-color);
+    margin-bottom: 14px;
 }
 
-.tab-btn {
+.stage-pill {
     padding: 7px 4px;
-    font-size: 0.70rem;
+    font-size: 0.72rem;
     font-weight: 600;
-    border-radius: 6px;
+    border-radius: var(--radius-sm);
     background: transparent;
     color: var(--text-secondary);
     border: 1px solid transparent;
     cursor: pointer;
     text-align: center;
-    transition: all 0.2s ease;
+    transition: all var(--trans-fast);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
 }
 
-.tab-btn:hover:not(.disabled) {
+.stage-pill:hover {
     color: var(--text-primary);
     background: rgba(255, 255, 255, 0.05);
 }
 
-.tab-btn.active {
+.stage-pill.active {
     background: rgba(56, 189, 248, 0.22);
     border-color: rgba(56, 189, 248, 0.5);
     color: #38bdf8;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
-.tab-btn.disabled {
-    opacity: 0.4;
-    cursor: not-allowed;
-}
-
-/* ---------- Badge de Estado ---------- */
+/* ---------- Badge de Estado do Clima ---------- */
 .climate-badge {
     display: flex;
     flex-direction: column;
     align-items: center;
+    justify-content: center;
     gap: 4px;
     background: linear-gradient(
         135deg,
         rgba(56, 189, 248, 0.15) 0%,
         rgba(56, 189, 248, 0.03) 100%
     );
-    border: 1px solid rgba(56, 189, 248, 0.40);
-    border-radius: 14px;
-    padding: 12px 14px;
+    border: 1px solid rgba(56, 189, 248, 0.35);
+    border-radius: var(--radius-lg);
+    padding: 10px 14px;
     text-align: center;
     position: relative;
     overflow: hidden;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.25);
+    box-shadow: var(--shadow-sm);
+    margin-bottom: 12px;
+    min-height: 60px;
+    box-sizing: border-box;
 }
 
 .climate-badge::before {
@@ -138,8 +102,8 @@
     top: -30px;
     left: 50%;
     transform: translateX(-50%);
-    width: 160px;
-    height: 60px;
+    width: 140px;
+    height: 50px;
     background: radial-gradient(
         ellipse,
         rgba(56, 189, 248, 0.25) 0%,
@@ -150,67 +114,61 @@
 
 .climate-title {
     display: block;
-    font-size: 1.10rem;
+    font-size: 0.95rem;
     font-weight: 700;
     color: #38bdf8;
-    letter-spacing: 0.03em;
-    line-height: 1.2;
+    letter-spacing: 0.02em;
+    line-height: 1.25;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
 }
 
 .climate-status {
     display: block;
-    font-size: 0.74rem;
+    font-size: 0.72rem;
     color: var(--text-secondary);
-    font-family: 'Courier New', monospace;
+    font-family: var(--font-mono);
     letter-spacing: 0.02em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
 }
 
-/* ---------- HUD de Diagnósticos Topológicos / Climáticos ---------- */
-.climate-hud {
-    position: absolute;
-    top: 15px;
-    left: 15px;
-    background: rgba(15, 23, 42, 0.85);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    border-radius: 10px;
-    padding: 10px 14px;
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    font-size: 0.78rem;
-    color: var(--text-primary);
-    z-index: 10;
-    pointer-events: none;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
-}
-
-.hud-item {
+/* ---------- Estabilidade de Linha em Sliders ---------- */
+.slider-header {
     display: flex;
     justify-content: space-between;
-    gap: 15px;
+    align-items: center;
+    gap: 8px;
+    white-space: nowrap;
+    font-size: 0.78rem;
+    margin-bottom: 4px;
 }
 
-.hud-label {
-    color: var(--text-secondary);
-    font-weight: 500;
+.slider-header span,
+.slider-header label {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
-.hud-val {
-    font-family: 'Courier New', monospace;
-    font-weight: 600;
-    color: var(--accent-color);
+.slider-val {
+    font-family: var(--font-mono);
+    white-space: nowrap;
+    flex-shrink: 0;
 }
 
 /* ---------- Tooltip Flutuante de Inspeção de Célula (Hover) ---------- */
 .cell-tooltip {
     position: absolute;
-    background: rgba(15, 23, 42, 0.92);
+    background: rgba(15, 23, 42, 0.94);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
     border: 1px solid rgba(56, 189, 248, 0.45);
-    border-radius: 10px;
+    border-radius: var(--radius-md);
     padding: 10px 14px;
     font-size: 0.76rem;
     color: var(--text-primary);
@@ -219,8 +177,8 @@
     opacity: 0;
     transform: translate(15px, 15px);
     transition: opacity 0.15s ease, transform 0.1s ease-out;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
-    min-width: 200px;
+    box-shadow: var(--shadow-popover);
+    min-width: 210px;
 }
 
 .cell-tooltip.visible {
@@ -251,7 +209,7 @@
 }
 
 .tooltip-v {
-    font-family: 'Courier New', monospace;
+    font-family: var(--font-mono);
     font-weight: 600;
     color: var(--accent-color);
 }
@@ -259,63 +217,10 @@
 .tooltip-geo {
     font-style: italic;
     color: #94a3b8;
-    margin-top: 4px;
+    margin-top: 5px;
     font-size: 0.72rem;
-    border-top: 1px dashed rgba(255, 255, 255, 0.08);
+    border-top: 1px dashed rgba(255, 255, 255, 0.1);
     padding-top: 4px;
-}
-
-/* ---------- Dica Interativa de Navegação ---------- */
-.interactive-hint {
-    position: absolute;
-    bottom: 20px;
-    right: 20px;
-    background: rgba(15, 23, 42, 0.75);
-    backdrop-filter: blur(6px);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 8px;
-    padding: 6px 12px;
-    font-size: 0.72rem;
-    color: var(--text-secondary);
-    pointer-events: none;
-    z-index: 10;
-}
-
-/* ---------- Grupos de Controles e Grid ---------- */
-.control-grid-2x2 {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 8px;
-}
-
-.btn-preset {
-    padding: 9px 10px;
-    font-size: 0.80rem;
-    font-weight: 600;
-    background: rgba(30, 41, 59, 0.8);
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    border-radius: 8px;
-    color: var(--text-primary);
-    cursor: pointer;
-    transition: all 0.2s ease;
-    text-align: center;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 7px;
-}
-
-.btn-preset:hover {
-    background: rgba(56, 189, 248, 0.15);
-    border-color: rgba(56, 189, 248, 0.5);
-    color: #38bdf8;
-}
-
-.btn-preset.active {
-    background: rgba(56, 189, 248, 0.25);
-    border-color: #38bdf8;
-    color: #38bdf8;
-    font-weight: 600;
 }
 
 /* ---------- Seletor de Campo Climático Segmentado (Aba 4) ---------- */
@@ -325,25 +230,40 @@
     gap: 4px;
     background: rgba(15, 23, 42, 0.75);
     padding: 4px;
-    border-radius: 8px;
+    border-radius: var(--radius-md);
     border: 1px solid var(--border-color);
+    margin-top: 6px;
 }
 
 .field-btn {
-    padding: 8px 4px;
-    font-size: 0.74rem;
+    padding: 7px 2px;
+    font-size: 0.71rem;
     font-weight: 600;
-    border-radius: 6px;
+    border-radius: var(--radius-sm);
     background: transparent;
     color: var(--text-secondary);
     border: 1px solid transparent;
     cursor: pointer;
     text-align: center;
-    transition: all 0.2s ease;
+    transition: all var(--trans-fast);
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 5px;
+    gap: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+}
+
+.field-btn span {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.field-btn .icon-svg {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
 }
 
 .field-btn:hover {
@@ -377,7 +297,7 @@
     display: flex;
     justify-content: space-between;
     font-size: 0.70rem;
-    font-family: 'Courier New', monospace;
+    font-family: var(--font-mono);
     color: var(--text-secondary);
 }
 
@@ -385,7 +305,7 @@
 .mini-orrery-container {
     background: rgba(10, 15, 29, 0.9);
     border: 1px solid rgba(56, 189, 248, 0.35);
-    border-radius: 12px;
+    border-radius: var(--radius-lg);
     padding: 10px;
     margin-top: 10px;
     display: flex;
@@ -408,17 +328,17 @@
 #canvas-mini-orrery {
     width: 100%;
     height: 180px;
-    border-radius: 8px;
+    border-radius: var(--radius-sm);
     background: radial-gradient(circle at center, #0f172a 0%, #050814 100%);
     cursor: pointer;
 }
 
 .mini-orrery-caption {
-    font-size: 0.71rem;
+    font-size: 0.72rem;
     color: var(--text-secondary);
     text-align: center;
     margin-top: 6px;
-    line-height: 1.35;
+    line-height: 1.4;
 }
 
 /* ---------- Legenda de Cores de Topologia ---------- */
@@ -435,7 +355,7 @@
     align-items: center;
     gap: 6px;
     padding: 5px 8px;
-    border-radius: 6px;
+    border-radius: var(--radius-sm);
     background: rgba(0, 0, 0, 0.25);
     border: 1px solid rgba(255, 255, 255, 0.06);
     color: var(--text-primary);
@@ -450,11 +370,12 @@
     flex-shrink: 0;
 }
 
+/* Linha com Toggle Switch */
 .toggle-row {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 5px 0;
+    padding: 6px 0;
     font-size: 0.82rem;
     color: var(--text-secondary);
 }
@@ -464,48 +385,14 @@
     margin: 0;
 }
 
-.toggle-row input[type="checkbox"] {
-    accent-color: var(--accent-color);
-    cursor: pointer;
-    width: 16px;
-    height: 16px;
+/* Ajustes no HUD para alinhamento em modo lista */
+.sim-hud {
+    min-width: 210px;
+    max-width: 290px;
 }
 
-/* ---------- Card Didático Teórico ---------- */
-.theory-card {
-    background: rgba(15, 23, 42, 0.6);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 10px;
-    padding: 12px 14px;
-    margin-top: 12px;
-    font-size: 0.80rem;
-    line-height: 1.55;
-    color: var(--text-secondary);
-}
-
-.theory-card h4 {
-    color: var(--accent-color);
-    margin-bottom: 8px;
-    font-size: 0.85rem;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-}
-
-.theory-card p {
-    margin-bottom: 8px;
-}
-
-.theory-card ul {
-    margin-left: 18px;
-    margin-bottom: 8px;
-}
-
-.theory-card li {
-    margin-bottom: 4px;
-}
-
-.theory-card .katex-display {
-    margin: 8px 0;
-    font-size: 0.92em;
+.sim-hud hr {
+    border: 0;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    margin: 4px 0;
 }
