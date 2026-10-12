@@ -84,51 +84,48 @@
             </div>
         </div>
 
-        <!-- 2. Painel Lateral de Controles e Telemetria (Bottom Sheet no Mobile) -->
-        <aside class="sim-sidebar" id="sim-sidebar">
-            <!-- Alça de Arraste para Mobile -->
-            <div class="sheet-drag-handle" id="sheet-drag-handle">
-                <div class="sheet-handle-bar"></div>
+        <!-- 2. Painel Lateral de Controles (Bottom Sheet no Mobile) -->
+        <aside class="controls-panel" id="controls-panel">
+            <!-- Alça de Arraste para Mobile / Tablet -->
+            <div class="sheet-drag-handle" id="sheet-drag-handle" title="Deslize ou toque para expandir/recolher">
+                <div class="sheet-drag-pill"></div>
             </div>
 
-            <!-- Cabeçalho do Painel Lateral -->
-            <div class="sidebar-header">
-                <h2>Parâmetros e Análise</h2>
-                <button id="btn-collapse-sidebar" class="btn-collapse" title="Recolher Painel (F)">
+            <!-- Topo: Barra de Abas Expansíveis -->
+            <div class="tab-nav">
+                <button class="tab-btn active" id="tab-btn-params">
+                    <img src="../assets/icons/sliders.svg" class="icon-svg" alt="Parâmetros">
+                    <span class="tab-label">Parâmetros</span>
+                </button>
+                <button class="tab-btn" id="tab-btn-theory">
+                    <img src="../assets/icons/book-open.svg" class="icon-svg" alt="Teoria">
+                    <span class="tab-label">Teoria</span>
+                </button>
+                <button class="btn-collapse-sidebar" id="btn-collapse-sidebar" title="Modo Foco (F)">
                     <img src="../assets/icons/collapse.svg" class="icon-svg" alt="Recolher">
                 </button>
             </div>
 
-            <!-- Barra de Transporte Temporal -->
-            <div class="sim-transport-bar">
-                <button id="btn-toggle-sim" class="transport-btn transport-btn-play" title="Iniciar / Pausar">
-                    <img src="../assets/icons/play.svg" class="icon-svg" alt="Play/Pause">
-                </button>
-                <button id="btn-reset-sim" class="transport-btn" title="Reiniciar Órbita">
-                    <img src="../assets/icons/refresh.svg" class="icon-svg" alt="Reiniciar">
-                </button>
-                <div class="transport-time" id="footer-sim-timer">t = 0.00s</div>
-                <div class="transport-speed-pills" id="sim-speed-pills">
-                    <button class="speed-btn" data-speed="0.5">0.5×</button>
-                    <button class="speed-btn active" data-speed="1.0">1.0×</button>
-                    <button class="speed-btn" data-speed="2.0">2.0×</button>
+            <!-- Centro: Corpo Rolável de Conteúdo -->
+            <div class="panel-body">
+                <!-- Barra de Transporte Temporal -->
+                <div class="sim-transport-bar">
+                    <button id="btn-toggle-sim" class="transport-btn transport-btn-play" title="Iniciar / Pausar">
+                        <img src="../assets/icons/play.svg" class="icon-svg" alt="Play/Pause">
+                    </button>
+                    <button id="btn-reset-sim" class="transport-btn" title="Reiniciar Órbita">
+                        <img src="../assets/icons/refresh.svg" class="icon-svg" alt="Reiniciar">
+                    </button>
+                    <div class="transport-time" id="footer-sim-timer">t = 0.00s</div>
+                    <div class="transport-speed-pills" id="sim-speed-pills">
+                        <button class="speed-btn" data-speed="0.5">0.5×</button>
+                        <button class="speed-btn active" data-speed="1.0">1.0×</button>
+                        <button class="speed-btn" data-speed="2.0">2.0×</button>
+                    </div>
                 </div>
-            </div>
 
-            <!-- Navegação por Abas -->
-            <div class="sim-tabs-nav">
-                <button class="tab-btn active" id="tab-btn-params">
-                    <img src="../assets/icons/sliders.svg" class="icon-svg" alt="Parâmetros">
-                    Parâmetros
-                </button>
-                <button class="tab-btn" id="tab-btn-theory">
-                    <img src="../assets/icons/book-open.svg" class="icon-svg" alt="Teoria">
-                    Teoria & Leis
-                </button>
-            </div>
-
-            <!-- CONTEÚDO DA ABA 1: PARÂMETROS E TELEMETRIA -->
-            <div class="tab-content" id="panel-tab-params">
+                <!-- CONTEÚDO DA ABA 1: PARÂMETROS E TELEMETRIA -->
+                <div class="tab-content" id="panel-tab-params">
                 <!-- Seção de Presets de Órbita -->
                 <div class="control-section">
                     <span class="control-label">Regimes Orbitais Pré-configurados:</span>
@@ -264,6 +261,12 @@
                         $$v_{\text{circ}} = \sqrt{\frac{G M}{r}}, \quad v_{\text{esc}} = \sqrt{\frac{2 G M}{r}} = \sqrt{2} \cdot v_{\text{circ}}$$
                     </div>
                 </div>
+            </div>
+
+            <!-- Rodapé Fixo do Painel -->
+            <div class="panel-footer">
+                <span class="footer-meta">Órbitas: Velocity Verlet</span>
+                <span class="footer-meta">Foco: [F]</span>
             </div>
         </aside>
     </main>

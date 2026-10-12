@@ -439,7 +439,7 @@ function setupUI() {
     });
 
     initBottomSheet({
-        panelSelector: '#sim-sidebar',
+        panelSelector: '.controls-panel',
         handleSelector: '#sheet-drag-handle'
     });
 

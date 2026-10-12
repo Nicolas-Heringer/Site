@@ -113,108 +113,117 @@
             </div>
         </div>
 
-        <!-- Painel Lateral de Controles e Telemetria (Bottom Sheet no Mobile) -->
-        <aside class="sim-sidebar" id="sim-sidebar">
-            <!-- Alça de Arraste para Mobile -->
-            <div class="sheet-drag-handle" id="sheet-drag-handle">
-                <div class="sheet-handle-bar"></div>
+        <!-- 2. Painel Lateral de Controles (Bottom Sheet no Mobile) -->
+        <aside class="controls-panel" id="controls-panel">
+            <!-- Alça de Arraste para Mobile / Tablet -->
+            <div class="sheet-drag-handle" id="sheet-drag-handle" title="Deslize ou toque para expandir/recolher">
+                <div class="sheet-drag-pill"></div>
             </div>
 
-            <!-- Cabeçalho do Painel Lateral -->
-            <div class="sidebar-header">
-                <h2>Controles de Áudio</h2>
-                <button id="btn-collapse-sidebar" class="btn-collapse" title="Recolher Painel (F)">
+            <!-- Topo: Barra de Abas Expansíveis -->
+            <div class="tab-nav">
+                <button class="tab-btn active" data-tab="tab-mic" id="tabBtnMic" title="Microfone">
+                    <img src="../assets/icons/fft-bars.svg" class="icon-svg" alt="Microfone">
+                    <span class="tab-label">Microfone</span>
+                </button>
+                <button class="tab-btn" data-tab="tab-waves" id="tabBtnWaves" title="Ondas">
+                    <img src="../assets/icons/wave-sine.svg" class="icon-svg" alt="Ondas">
+                    <span class="tab-label">Ondas</span>
+                </button>
+                <button class="tab-btn" data-tab="tab-beats" id="tabBtnBeats" title="Batimento">
+                    <img src="../assets/icons/motion-oscillate.svg" class="icon-svg" alt="Batimento">
+                    <span class="tab-label">Batimento</span>
+                </button>
+                <button class="tab-btn" data-tab="tab-theory" id="tabBtnTheory" title="Teoria">
+                    <img src="../assets/icons/book-open.svg" class="icon-svg" alt="Teoria">
+                    <span class="tab-label">Teoria</span>
+                </button>
+                <button class="btn-collapse-sidebar" id="btn-collapse-sidebar" title="Modo Foco (F)">
                     <img src="../assets/icons/collapse.svg" class="icon-svg" alt="Recolher">
                 </button>
             </div>
 
-            <!-- Barra de Abas -->
-            <nav class="sim-tabs-nav" aria-label="Abas da Simulação">
-                <button type="button" class="tab-btn active" data-tab="tab-mic" id="tabBtnMic">
-                    MIC
-                </button>
-                <button type="button" class="tab-btn" data-tab="tab-waves" id="tabBtnWaves">
-                    ONDAS
-                </button>
-                <button type="button" class="tab-btn" data-tab="tab-beats" id="tabBtnBeats">
-                    BATIMENTO
-                </button>
-                <button type="button" class="tab-btn" data-tab="tab-theory" id="tabBtnTheory">
-                    TEORIA
-                </button>
-            </nav>
+            <!-- Centro: Corpo Rolável de Conteúdo -->
+            <div class="panel-body">
+                <!-- CONTEÚDO DA ABA 1: MICROFONE & ANÁLISE AO VIVO -->
+                <div id="tab-mic" class="tab-content active">
+                    <div class="tab-header">
+                        <h3>Captura e Análise de Microfone</h3>
+                        <p class="tab-description">
+                            Capture o áudio ambiente em tempo real. Você pode <strong>congelar a tela</strong> a qualquer momento para inspeção harmônica detalhada.
+                        </p>
+                    </div>
 
-            <!-- CONTEÚDO DA ABA 1: MICROFONE & ANÁLISE AO VIVO -->
-            <section id="tab-mic" class="tab-content active">
-                <div class="tab-header">
-                    <h3>Captura e Análise de Microfone</h3>
-                    <p class="tab-description">
-                        Capture o áudio ambiente em tempo real. Você pode <strong>congelar a tela</strong> a qualquer momento para inspeção harmônica detalhada.
-                    </p>
-                </div>
+                    <!-- Botão de Ação da Captura -->
+                    <div class="control-group">
+                        <button type="button" id="btnMicStart" class="btn-primary" style="width: 100%;">
+                            <span id="btnMicStartIcon">▶</span>
+                            <span id="btnMicStartText" class="btn-text">Iniciar Captura</span>
+                        </button>
+                    </div>
 
-                <!-- Botão de Ação da Captura -->
-                <div class="control-group">
-                    <button type="button" id="btnMicStart" class="sim-btn sim-btn--primary" style="width: 100%;">
-                        <span id="btnMicStartIcon">▶</span> <span id="btnMicStartText">Iniciar Captura</span>
-                    </button>
-                </div>
-
-                <!-- Chave de 2 posições para Escala de Frequência -->
-                <div class="control-group">
-                    <label class="control-label">Escala de Frequência:</label>
-                    <div class="segmented-control" id="scaleControl">
-                        <button type="button" class="segment-btn active" data-scale="log">Logarítmica</button>
-                        <button type="button" class="segment-btn" data-scale="linear">Linear</button>
+                    <!-- Chave de 2 posições para Escala de Frequência -->
+                    <div class="control-group">
+                        <label class="control-label" style="font-size: 0.82rem; color: var(--text-secondary); font-weight: 500;">Escala de Frequência:</label>
+                        <div class="segmented-control" id="scaleControl">
+                            <button type="button" class="segment-btn active" data-scale="log">Logarítmica</button>
+                            <button type="button" class="segment-btn" data-scale="linear">Linear</button>
+                        </div>
                     </div>
                 </div>
-            </section>
 
-            <!-- CONTEÚDO DA ABA 2: ONDAS -->
-            <section id="tab-waves" class="tab-content" style="display: none;">
-                <div class="tab-header">
-                    <h3>Fontes de Onda & Decomposição</h3>
-                </div>
-                <div class="placeholder-card">
-                    <span>Módulo de síntese senoidal e harmônicos em desenvolvimento.</span>
-                </div>
-            </section>
-
-            <!-- CONTEÚDO DA ABA 3: BATIMENTO ACÚSTICO -->
-            <section id="tab-beats" class="tab-content" style="display: none;">
-                <div class="tab-header">
-                    <h3>Batimento Acústico</h3>
-                </div>
-                <div class="placeholder-card">
-                    <span>Módulo de interferência e frequência de batimento $f_b = |f_1 - f_2|$ em desenvolvimento.</span>
-                </div>
-            </section>
-
-            <!-- CONTEÚDO DA ABA 4: TEORIA & FOURIER -->
-            <section id="tab-theory" class="tab-content" style="display: none;">
-                <div class="theory-article">
-                    <h3>Análise de Fourier & Física Acústica</h3>
-                    <p>
-                        Qualquer sinal acústico contínuo no tempo $x(t)$ pode ser decomposto em uma superposição de oscilações senoidais harmônicas através da <strong>Transformada de Fourier</strong>:
-                    </p>
-                    <div class="katex-display">
-                        $$X(f) = \int_{-\infty}^{\infty} x(t) e^{-i 2\pi f t} \, dt$$
+                <!-- CONTEÚDO DA ABA 2: ONDAS -->
+                <div id="tab-waves" class="tab-content" style="display: none;">
+                    <div class="tab-header">
+                        <h3>Fontes de Onda & Decomposição</h3>
                     </div>
-                    <p>
-                        No domínio discreto amostrado digitalmente (via Web Audio API a $44{,}1\text{ kHz}$ ou $48\text{ kHz}$), utiliza-se o algoritmo da <strong>Fast Fourier Transform (FFT)</strong>:
-                    </p>
-                    <div class="katex-display">
-                        $$X[k] = \sum_{n=0}^{N-1} x[n] \cdot e^{-i \frac{2\pi}{N} k n}$$
-                    </div>
-                    <h4>Escala Logarítmica e Percepção Humana</h4>
-                    <p>
-                        O ouvido humano percebe frequências e notas musicais segundo uma escala exponencialmente proporcional (relação de oitavas onde cada duplicação de frequência corresponde a um intervalo musical de $12$ semitons):
-                    </p>
-                    <div class="katex-display">
-                        $$f(n) = 440 \cdot 2^{\frac{n - 69}{12}} \text{ Hz}$$
+                    <div class="placeholder-card">
+                        <span>Módulo de síntese senoidal e harmônicos em desenvolvimento.</span>
                     </div>
                 </div>
-            </section>
+
+                <!-- CONTEÚDO DA ABA 3: BATIMENTO ACÚSTICO -->
+                <div id="tab-beats" class="tab-content" style="display: none;">
+                    <div class="tab-header">
+                        <h3>Batimento Acústico</h3>
+                    </div>
+                    <div class="placeholder-card">
+                        <span>Módulo de interferência e frequência de batimento $f_b = |f_1 - f_2|$ em desenvolvimento.</span>
+                    </div>
+                </div>
+
+                <!-- CONTEÚDO DA ABA 4: TEORIA & FOURIER -->
+                <div id="tab-theory" class="tab-content" style="display: none;">
+                    <div class="theory-article">
+                        <h3>Análise de Fourier & Física Acústica</h3>
+                        <p>
+                            Qualquer sinal acústico contínuo no tempo $x(t)$ pode ser decomposto em uma superposição de oscilações senoidais harmônicas através da <strong>Transformada de Fourier</strong>:
+                        </p>
+                        <div class="katex-display">
+                            $$X(f) = \int_{-\infty}^{\infty} x(t) e^{-i 2\pi f t} \, dt$$
+                        </div>
+                        <p>
+                            No domínio discreto amostrado digitalmente (via Web Audio API a $44{,}1\text{ kHz}$ ou $48\text{ kHz}$), utiliza-se o algoritmo da <strong>Fast Fourier Transform (FFT)</strong>:
+                        </p>
+                        <div class="katex-display">
+                            $$X[k] = \sum_{n=0}^{N-1} x[n] \cdot e^{-i \frac{2\pi}{N} k n}$$
+                        </div>
+                        <h4>Escala Logarítmica e Percepção Humana</h4>
+                        <p>
+                            O ouvido humano percebe frequências e notas musicais segundo uma escala exponencialmente proporcional (relação de oitavas onde cada duplicação de frequência corresponde a um intervalo musical de $12$ semitons):
+                        </p>
+                        <div class="katex-display">
+                            $$f(n) = 440 \cdot 2^{\frac{n - 69}{12}} \text{ Hz}$$
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Rodapé Fixo do Painel -->
+            <div class="panel-footer">
+                <span class="footer-meta">FFT: 1024 bins</span>
+                <span class="footer-meta">Modo Foco: [F]</span>
+            </div>
         </aside>
     </main>
 

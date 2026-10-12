@@ -275,67 +275,38 @@
     box-shadow: 0 2px 8px rgba(250, 204, 21, 0.25);
 }
 
-/* --- BARRA DE ABAS NO PAINEL --- */
-.tabs-nav {
+/* --- CONTEÚDO DAS ABAS NO PANEL-BODY --- */
+.tab-header {
     display: flex;
-    gap: 6px;
-    background: rgba(15, 23, 42, 0.6);
-    padding: 4px;
-    border-radius: 8px;
-    border: 1px solid rgba(255, 255, 255, 0.08);
-}
-
-.tab-nav-btn {
-    flex: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-    padding: 8px 6px;
-    border: none;
-    background: transparent;
-    color: var(--text-secondary);
-    font-size: 0.8rem;
-    font-weight: 600;
-    border-radius: 6px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-}
-
-.tab-nav-btn:hover {
-    color: var(--text-primary);
-    background: rgba(255, 255, 255, 0.05);
-}
-
-.tab-nav-btn.active {
-    background: var(--accent-color);
-    color: var(--bg-main);
-    font-weight: 600;
-    box-shadow: 0 2px 8px rgba(250, 204, 21, 0.25);
+    flex-direction: column;
+    gap: 3px;
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border-subtle);
 }
 
 .tab-header h3 {
     font-size: 1.05rem;
     font-weight: 600;
     color: var(--text-primary);
-    margin-bottom: 4px;
-}
-
-.tab-content {
-    display: none;
-    flex-direction: column;
-    gap: 18px;
-}
-
-.tab-content.active {
-    display: flex;
+    margin-bottom: 2px;
 }
 
 .tab-description {
     font-size: 0.82rem;
     color: var(--text-secondary);
     line-height: 1.45;
-    margin-bottom: 5px;
+}
+
+.tab-content {
+    display: none;
+    flex-direction: column;
+    gap: 14px;
+    width: 100%;
+}
+
+.tab-content.active {
+    display: flex;
 }
 
 /* --- BOTÕES DO PAINEL (Estilo Snell: Fundo Transparente com Borda Colorida) --- */

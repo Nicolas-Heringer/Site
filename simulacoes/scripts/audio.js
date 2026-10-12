@@ -574,7 +574,7 @@ function switchTab(targetTabId) {
     tabContents.forEach(content => {
         const isActive = (content.id === targetTabId);
         content.classList.toggle('active', isActive);
-        content.style.display = isActive ? 'block' : 'none';
+        content.style.display = isActive ? 'flex' : 'none';
     });
 
     if (targetTabId === 'tab-theory') {
@@ -676,7 +676,7 @@ window.addEventListener('DOMContentLoaded', () => {
     });
 
     initBottomSheet({
-        panelSelector: '#sim-sidebar',
+        panelSelector: '.controls-panel',
         handleSelector: '#sheet-drag-handle'
     });
 
