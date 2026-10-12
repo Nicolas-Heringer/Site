@@ -1,64 +1,254 @@
 <!DOCTYPE html>
-<html lang="pt-br">
-
+<html lang="pt-BR">
 <head>
-    <!-- Metadados da Página -->
-    <meta charset="utf-8">
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Queda Livre Interativa e Lançamento de Corpos</title>
-
+    <title>Queda Livre & Arremesso Interativo - Plataforma Científica</title>
+    
     <meta name="description"
-        content="Simulação física de queda livre sob aceleração gravitacional com colisões elásticas/inelásticas nas bordas e arremesso interativo de objetos.">
-    <meta name="keywords"
-        content="queda livre, gravidade, cinemática, colisão elástica, coeficiente de restituição, velocidade, simulação interativa">
+        content="Simulação física interativa de gravidade, queda livre, arrasto atmosférico e colisão elástica com coeficiente de restituição.">
     <meta name="author" content="Nicolas Heringer">
 
-    <!-- Favicon -->
+    <!-- Favicon e Design System CSS -->
     <link rel="icon" type="image/svg+xml" href="../favicon.svg">
-
-    <!-- Estilos CSS -->
-    <link rel="stylesheet" href="css/base.css">
+    <link rel="stylesheet" href="css/design-system.css">
     <link rel="stylesheet" href="css/quedalivre.css">
 
-    <!-- Suporte a LaTeX com KaTeX -->
+    <!-- Suporte a Fórmulas Matemáticas com KaTeX -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" crossorigin="anonymous">
     <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" crossorigin="anonymous"></script>
-    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" crossorigin="anonymous"
-        onload="renderMathInElement(document.body, {
-            delimiters: [
-                {left: '$$', right: '$$', display: true},
-                {left: '$', right: '$', display: false},
-                {left: '\\(', right: '\\)', display: false},
-                {left: '\\[', right: '\\]', display: true}
-            ],
-            throwOnError: false
-        });"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" crossorigin="anonymous"></script>
 </head>
-
 <body>
     <!-- Cabeçalho da Simulação -->
     <header class="sim-header">
-        <a href="../index.html#secao-simulacoes" class="btn-back">← Voltar ao Hub</a>
-        <span class="sim-title">Queda Livre Interativa</span>
+        <a href="../index.html#secao-simulacoes" class="btn-back">
+            <svg class="icon-svg" viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+            Voltar
+        </a>
+        <h1 class="sim-title">Queda Livre & Arremesso de Corpos</h1>
     </header>
 
-    <!-- Conteúdo Principal -->
+    <!-- Layout Grid Principal -->
     <main class="sim-layout">
-        <!-- Área de Visualização (Canvas) -->
+        <!-- 1. Área do Canvas 2D Interativo -->
         <div class="canvas-area">
-            <canvas id="simulacao" width="600" height="600"></canvas>
+            <canvas id="simulacao"></canvas>
+
+            <!-- Grupo de Ações do Topo Direito -->
+            <div class="canvas-top-actions">
+                <button id="btn-quick-reset" class="canvas-btn-floating" title="Reposicionar Esfera">
+                    <img src="../assets/icons/refresh.svg" class="icon-svg" alt="Reset">
+                    <span class="btn-label-text">Repor Esfera</span>
+                </button>
+                <button id="btn-expand-sidebar" class="canvas-btn-expand-sidebar" title="Expandir Controles (F)">
+                    <img src="../assets/icons/expand.svg" class="icon-svg" alt="Expandir">
+                    <span class="btn-label-text">Controles</span>
+                </button>
+            </div>
+
+            <!-- HUD de Telemetria no Canto Inferior Esquerdo -->
+            <div class="sim-hud" id="sim-hud">
+                <div class="hud-item">
+                    <span class="hud-label">Velocidade:</span>
+                    <span class="hud-val" id="hud-vel">0.0 m/s</span>
+                </div>
+                <div class="hud-item">
+                    <span class="hud-label">Altura (h):</span>
+                    <span class="hud-val" id="hud-altura">0.0 m</span>
+                </div>
+                <div class="hud-item">
+                    <span class="hud-label">Energia:</span>
+                    <span class="hud-val" id="hud-energia">0.0 J</span>
+                </div>
+            </div>
+
+            <!-- Dica Interativa Centralizada no Fundo (Desktop) -->
+            <div class="interactive-hint">
+                <img src="../assets/icons/lightbulb.svg" class="icon-svg icon-accent" alt="Dica">
+                Clique/toque e arraste a esfera para arremessá-la em qualquer direção.
+            </div>
         </div>
 
-        <!-- Painel de Informações -->
+        <!-- 2. Painel Lateral de Controles (Bottom Sheet no Mobile) -->
         <aside class="controls-panel">
-            <div class="info-section">
-                <p>Nesta simulação é possível interagir com um objeto submetido à força da gravidade (queda livre).</p>
+            <!-- Alça de Arraste para Mobile / Tablet -->
+            <div class="sheet-drag-handle" id="sheet-drag-handle" title="Deslize ou toque para expandir/recolher">
+                <div class="sheet-drag-pill"></div>
+            </div>
+
+            <!-- Topo: Barra de Abas Expansíveis -->
+            <div class="tab-nav">
+                <button class="tab-btn active" id="tab-btn-params">
+                    <img src="../assets/icons/rotate.svg" class="icon-svg" alt="Parâmetros">
+                    <span class="tab-label">Parâmetros</span>
+                </button>
+                <button class="tab-btn" id="tab-btn-theory">
+                    <img src="../assets/icons/compass.svg" class="icon-svg" alt="Teoria">
+                    <span class="tab-label">Teoria</span>
+                </button>
+                <button class="btn-collapse-sidebar" id="btn-collapse-sidebar" title="Modo Foco (F)">
+                    <img src="../assets/icons/collapse.svg" class="icon-svg" alt="Recolher">
+                </button>
+            </div>
+
+            <!-- Centro: Corpo Rolável de Conteúdo -->
+            <div class="panel-body">
+                <!-- ABA 1: PARÂMETROS -->
+                <div id="panel-tab-params">
+                    <!-- 1. Barra de Transporte / Playback -->
+                    <div class="sim-transport-bar">
+                        <div class="transport-controls-row">
+                            <button class="btn-primary btn-toggle transport-btn-play" id="btn-play-sim"
+                                    data-state="1"
+                                    data-text-idle="Executar"
+                                    data-text-active="Pausar"
+                                    data-icon-idle="play"
+                                    data-icon-active="pause">
+                                <img src="../assets/icons/pause.svg" class="icon-svg" alt="Play">
+                                <span class="btn-text">Pausar</span>
+                            </button>
+                            <button class="btn-icon" id="btn-step-sim" title="Avançar 1 Passo (Δt)">
+                                <img src="../assets/icons/step.svg" class="icon-svg" alt="Passo">
+                            </button>
+                            <button class="btn-icon" id="btn-reset-sim" title="Reiniciar (t = 0)">
+                                <img src="../assets/icons/refresh.svg" class="icon-svg" alt="Reset">
+                            </button>
+                        </div>
+
+                        <div class="transport-speed-row">
+                            <span class="transport-speed-label">
+                                <img src="../assets/icons/rotate.svg" class="icon-svg" style="width: 14px; height: 14px;" alt="Velocidade">
+                                Velocidade:
+                            </span>
+                            <div class="transport-speed-pills" id="sim-speed-pills">
+                                <button class="speed-btn" data-speed="0.25">0.25×</button>
+                                <button class="speed-btn" data-speed="0.5">0.5×</button>
+                                <button class="speed-btn active" data-speed="1.0">1.0×</button>
+                                <button class="speed-btn" data-speed="2.0">2.0×</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 2. Sliders Sincronizados -->
+                    <div class="control-group">
+                        <div class="slider-container sim-dual-slider">
+                            <div class="slider-header">
+                                <label for="slider-gravidade" class="slider-label">Aceleração Gravitacional ($g$)</label>
+                                <div class="dual-input-wrapper">
+                                    <input type="number" class="dual-input-number" id="num-gravidade"
+                                           min="0" max="30" step="0.2" value="9.8">
+                                    <span class="dual-input-unit">m/s²</span>
+                                </div>
+                            </div>
+                            <input type="range" class="sim-slider" id="slider-gravidade"
+                                   min="0" max="30" step="0.2" value="9.8">
+                        </div>
+                    </div>
+
+                    <div class="control-group">
+                        <div class="slider-container sim-dual-slider">
+                            <div class="slider-header">
+                                <label for="slider-restituicao" class="slider-label">Coeficiente de Restituição ($e$)</label>
+                                <div class="dual-input-wrapper">
+                                    <input type="number" class="dual-input-number" id="num-restituicao"
+                                           min="0" max="1" step="0.05" value="0.75">
+                                    <span class="dual-input-unit">adim</span>
+                                </div>
+                            </div>
+                            <input type="range" class="sim-slider" id="slider-restituicao"
+                                   min="0" max="1" step="0.05" value="0.75">
+                        </div>
+                    </div>
+
+                    <div class="control-group">
+                        <div class="slider-container sim-dual-slider">
+                            <div class="slider-header">
+                                <label for="slider-arrasto" class="slider-label">Resistência do Ar ($b$)</label>
+                                <div class="dual-input-wrapper">
+                                    <input type="number" class="dual-input-number" id="num-arrasto"
+                                           min="0" max="0.5" step="0.01" value="0.02">
+                                    <span class="dual-input-unit">kg/s</span>
+                                </div>
+                            </div>
+                            <input type="range" class="sim-slider" id="slider-arrasto"
+                                   min="0" max="0.5" step="0.01" value="0.02">
+                        </div>
+                    </div>
+
+                    <div class="control-group">
+                        <div class="slider-container sim-dual-slider">
+                            <div class="slider-header">
+                                <label for="slider-massa" class="slider-label">Massa do Corpo ($m$)</label>
+                                <div class="dual-input-wrapper">
+                                    <input type="number" class="dual-input-number" id="num-massa"
+                                           min="0.2" max="10" step="0.2" value="2.0">
+                                    <span class="dual-input-unit">kg</span>
+                                </div>
+                            </div>
+                            <input type="range" class="sim-slider" id="slider-massa"
+                                   min="0.2" max="10" step="0.2" value="2.0">
+                        </div>
+                    </div>
+
+                    <!-- 3. Telemetria em Tempo Real (RealtimePlot) -->
+                    <div class="control-group">
+                        <div class="sim-plot-card" id="card-telemetria">
+                            <div class="plot-header">
+                                <div class="plot-title-group">
+                                    <span class="plot-dot"></span>
+                                    <span class="plot-title">Energia Mecânica $E(t)$</span>
+                                </div>
+                                <div class="plot-stats">
+                                    <span class="plot-stat-label">Total:</span>
+                                    <span class="plot-stat-val" id="plot-valor-e">0.0 J</span>
+                                </div>
+                            </div>
+                            <div class="plot-canvas-wrapper">
+                                <canvas class="sim-plot-canvas" id="canvas-plot-energia"></canvas>
+                                <span class="plot-axis-label plot-axis-max" id="plot-max-label">+500 J</span>
+                                <span class="plot-axis-label plot-axis-min">0 J</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ABA 2: TEORIA -->
+                <div id="panel-tab-theory" style="display: none;">
+                    <div class="theory-section">
+                        <h4>1. Equações do Movimento Sob Gravidade e Arrasto</h4>
+                        <p>Pela Segunda Lei de Newton, a dinâmica vetorial da partícula sujeita à gravidade e à força resistiva do fluido é expressa por:</p>
+                        $$m \frac{d\vec{v}}{dt} = m \vec{g} - b \vec{v}$$
+                        <p>Projetando no eixo vertical $y$ (orientado positivamente para baixo):</p>
+                        $$\frac{dv_y}{dt} = g - \frac{b}{m} v_y$$
+                    </div>
+
+                    <div class="theory-section">
+                        <h4>2. Colisão e Coeficiente de Restituição ($e$)</h4>
+                        <p>No choque contra as bordas ou solo, a velocidade normal é invertida com dissipação de energia cinética:</p>
+                        $$v'_n = -e \, v_n \quad (0 \le e \le 1)$$
+                        <p>Onde $e = 1$ representa colisão puramente elástica e $e < 1$ representa impacto inelástico.</p>
+                    </div>
+
+                    <div class="theory-section">
+                        <h4>3. Conservação e Dissipação da Energia Mecânica</h4>
+                        <p>A energia total instantânea do corpo em relação ao solo é dada pela soma da energia cinética $K$ e potencial gravitacional $U$:</p>
+                        $$E(t) = K + U = \frac{1}{2} m v^2 + m g (y_{\text{solo}} - y)$$
+                    </div>
+                </div>
+            </div>
+
+            <!-- Base: Rodapé Fixo de Telemetria -->
+            <div class="panel-footer">
+                <div class="sim-badge" id="footer-status-badge">
+                    <span class="status-dot"></span>
+                    <span id="footer-status-text">Simulação Ativa</span>
+                </div>
+                <span class="footer-meta" id="footer-sim-timer">t = 0.00s</span>
             </div>
         </aside>
     </main>
 
-    <!-- Script da Simulação -->
-    <script type="text/javascript" src="scripts/quedalivre.js"></script>
+    <script type="module" src="scripts/quedalivre.js"></script>
 </body>
-
 </html>

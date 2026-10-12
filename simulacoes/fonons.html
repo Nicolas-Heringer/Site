@@ -1,96 +1,252 @@
 <!DOCTYPE html>
-<html lang="pt-br">
-
+<html lang="pt-BR">
 <head>
-    <!-- Metadados da Página -->
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Simulação de Fônons e Modos de Vibração</title>
-
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fônons & Dinâmica de Redes Cristalinas - Plataforma Científica</title>
+    
     <meta name="description"
-        content="Simulação interativa de fônons e modos normais de vibração em redes cristalinas 2D monoatômicas e diatômicas. Interaja com as partículas para observar ondas de matéria e condutividade térmica.">
-    <meta name="keywords"
-        content="fônons, rede cristalina, modos de vibração, ondas de matéria, dinâmica de redes, rede monoatômica, rede diatômica, física do estado sólido">
+        content="Simulação física interativa de fônons, modos normais de vibração, ramos acústicos e ópticos em redes cristalinas 2D.">
     <meta name="author" content="Nicolas Heringer">
 
-    <!-- Favicon -->
+    <!-- Favicon e Design System CSS -->
     <link rel="icon" type="image/svg+xml" href="../favicon.svg">
-
-    <!-- Estilos CSS -->
-    <link rel="stylesheet" href="css/base.css">
+    <link rel="stylesheet" href="css/design-system.css">
     <link rel="stylesheet" href="css/fonons.css">
 
-    <!-- Suporte a LaTeX com KaTeX -->
+    <!-- Suporte a Fórmulas Matemáticas com KaTeX -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" crossorigin="anonymous">
     <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" crossorigin="anonymous"></script>
-    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" crossorigin="anonymous"
-        onload="renderMathInElement(document.body, {
-            delimiters: [
-                {left: '$$', right: '$$', display: true},
-                {left: '$', right: '$', display: false},
-                {left: '\\(', right: '\\)', display: false},
-                {left: '\\[', right: '\\]', display: true}
-            ],
-            throwOnError: false
-        });"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" crossorigin="anonymous"></script>
 </head>
-
 <body>
-
     <!-- Cabeçalho da Simulação -->
     <header class="sim-header">
-        <a href="../index.html#secao-simulacoes" class="btn-back">← Voltar ao Hub</a>
-        <span class="sim-title">Simulação de fônons</span>
+        <a href="../index.html#secao-simulacoes" class="btn-back">
+            <svg class="icon-svg" viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+            Voltar
+        </a>
+        <h1 class="sim-title">Fônons & Modos de Vibração em Cristais</h1>
     </header>
 
-    <!-- Conteúdo Principal -->
+    <!-- Layout Grid Principal -->
     <main class="sim-layout">
-        <!-- Área de Visualização (Canvas) -->
+        <!-- 1. Área do Canvas 2D Interativo -->
         <div class="canvas-area">
-            <canvas id="myCanvas" width="900" height="600"></canvas>
+            <canvas id="myCanvas"></canvas>
+
+            <!-- Grupo de Ações do Topo Direito -->
+            <div class="canvas-top-actions">
+                <button id="btn-quick-pulse" class="canvas-btn-floating" title="Excitação Térmica Central">
+                    <img src="../assets/icons/sparkles.svg" class="icon-svg" alt="Pulso">
+                    <span class="btn-label-text">Pulso Central</span>
+                </button>
+                <button id="btn-expand-sidebar" class="canvas-btn-expand-sidebar" title="Expandir Controles (F)">
+                    <img src="../assets/icons/expand.svg" class="icon-svg" alt="Expandir">
+                    <span class="btn-label-text">Controles</span>
+                </button>
+            </div>
+
+            <!-- HUD de Telemetria no Canto Inferior Esquerdo -->
+            <div class="sim-hud" id="sim-hud">
+                <div class="hud-item">
+                    <span class="hud-label">Partículas:</span>
+                    <span class="hud-val" id="hud-particulas">0</span>
+                </div>
+                <div class="hud-item">
+                    <span class="hud-label">Molas:</span>
+                    <span class="hud-val" id="hud-molas">0</span>
+                </div>
+                <div class="hud-item">
+                    <span class="hud-label">Energia Cinética:</span>
+                    <span class="hud-val" id="hud-energia">0.0 u</span>
+                </div>
+            </div>
+
+            <!-- Dica Interativa Centralizada no Fundo (Desktop) -->
+            <div class="interactive-hint">
+                <img src="../assets/icons/lightbulb.svg" class="icon-svg icon-accent" alt="Dica">
+                Arraste sobre a rede com o mouse ou dedo para excitar ondas de fônons mecânicas.
+            </div>
         </div>
 
-        <!-- Painel de Controles -->
+        <!-- 2. Painel Lateral de Controles (Bottom Sheet no Mobile) -->
         <aside class="controls-panel">
-
-            <div class="control-group">
-                <label for="seletor-de-template">Template (Tamanho da rede):</label>
-                <select id="seletor-de-template" class="sim-control">
-                    <option value="uniforme_10">Monoatômica (Grid 10)</option>
-                    <option value="uniforme_20">Monoatômica (Grid 20)</option>
-                    <option value="uniforme_50" selected>Monoatômica (Grid 50)</option>
-                    <option value="linhas_20">Diatômica Linhas (Grid 20)</option>
-                    <option value="linhas_50">Diatômica Linhas (Grid 50)</option>
-                    <option value="checkerboard_20">Diatômica Checkerboard (Grid 20)</option>
-                    <option value="checkerboard_50">Diatômica Checkerboard (Grid 50)</option>
-                </select>
+            <!-- Alça de Arraste para Mobile / Tablet -->
+            <div class="sheet-drag-handle" id="sheet-drag-handle" title="Deslize ou toque para expandir/recolher">
+                <div class="sheet-drag-pill"></div>
             </div>
 
-            <div class="control-group">
-                <label>Raio de Influência:</label>
-                <input type="range" id="raioInput" class="sim-slider" min="20" max="200" value="80">
+            <!-- Topo: Barra de Abas Expansíveis -->
+            <div class="tab-nav">
+                <button class="tab-btn active" id="tab-btn-params">
+                    <img src="../assets/icons/rotate.svg" class="icon-svg" alt="Parâmetros">
+                    <span class="tab-label">Parâmetros</span>
+                </button>
+                <button class="tab-btn" id="tab-btn-theory">
+                    <img src="../assets/icons/compass.svg" class="icon-svg" alt="Teoria">
+                    <span class="tab-label">Teoria</span>
+                </button>
+                <button class="btn-collapse-sidebar" id="btn-collapse-sidebar" title="Modo Foco (F)">
+                    <img src="../assets/icons/collapse.svg" class="icon-svg" alt="Recolher">
+                </button>
             </div>
 
-            <div class="control-group">
-                <label>Intensidade da vibração:</label>
-                <input type="range" id="intensidadeInput" class="sim-slider" min="100" max="500" value="300">
+            <!-- Centro: Corpo Rolável de Conteúdo -->
+            <div class="panel-body">
+                <!-- ABA 1: PARÂMETROS -->
+                <div id="panel-tab-params">
+                    <!-- 1. Barra de Transporte / Playback -->
+                    <div class="sim-transport-bar">
+                        <div class="transport-controls-row">
+                            <button class="btn-primary btn-toggle transport-btn-play" id="btn-play-sim"
+                                    data-state="1"
+                                    data-text-idle="Executar"
+                                    data-text-active="Pausar"
+                                    data-icon-idle="play"
+                                    data-icon-active="pause">
+                                <img src="../assets/icons/pause.svg" class="icon-svg" alt="Play">
+                                <span class="btn-text">Pausar</span>
+                            </button>
+                            <button class="btn-icon" id="btn-step-sim" title="Avançar 1 Passo (Δt)">
+                                <img src="../assets/icons/step.svg" class="icon-svg" alt="Passo">
+                            </button>
+                            <button class="btn-icon" id="btn-reset-sim" title="Zerar Vibrações">
+                                <img src="../assets/icons/refresh.svg" class="icon-svg" alt="Reset">
+                            </button>
+                        </div>
+
+                        <div class="transport-speed-row">
+                            <span class="transport-speed-label">
+                                <img src="../assets/icons/rotate.svg" class="icon-svg" style="width: 14px; height: 14px;" alt="Velocidade">
+                                Velocidade:
+                            </span>
+                            <div class="transport-speed-pills" id="sim-speed-pills">
+                                <button class="speed-btn" data-speed="0.5">0.5×</button>
+                                <button class="speed-btn active" data-speed="1.0">1.0×</button>
+                                <button class="speed-btn" data-speed="1.5">1.5×</button>
+                                <button class="speed-btn" data-speed="2.5">2.5×</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 2. Configuração da Rede Cristalina -->
+                    <div class="control-group">
+                        <label for="seletor-de-template" class="slider-label">Topologia e Densidade da Rede:</label>
+                        <select id="seletor-de-template" class="sim-control">
+                            <option value="uniforme_10">Monoatômica — Alta Densidade (Espaçamento 10px)</option>
+                            <option value="uniforme_20">Monoatômica — Média Densidade (Espaçamento 20px)</option>
+                            <option value="uniforme_50" selected>Monoatômica — Baixa Densidade (Espaçamento 50px)</option>
+                            <option value="linhas_20">Diatômica em Linhas (Espaçamento 20px)</option>
+                            <option value="linhas_50">Diatômica em Linhas (Espaçamento 50px)</option>
+                            <option value="checkerboard_20">Diatômica Xadrez / Checkerboard (Espaçamento 20px)</option>
+                            <option value="checkerboard_50">Diatômica Xadrez / Checkerboard (Espaçamento 50px)</option>
+                        </select>
+                    </div>
+
+                    <!-- 3. Sliders Sincronizados de Interação Física -->
+                    <div class="control-group">
+                        <div class="slider-container sim-dual-slider">
+                            <div class="slider-header">
+                                <label for="slider-raio" class="slider-label">Raio de Influência do Arrasto ($R$)</label>
+                                <div class="dual-input-wrapper">
+                                    <input type="number" class="dual-input-number" id="num-raio"
+                                           min="20" max="250" step="5" value="80">
+                                    <span class="dual-input-unit">px</span>
+                                </div>
+                            </div>
+                            <input type="range" class="sim-slider" id="slider-raio"
+                                   min="20" max="250" step="5" value="80">
+                        </div>
+                    </div>
+
+                    <div class="control-group">
+                        <div class="slider-container sim-dual-slider">
+                            <div class="slider-header">
+                                <label for="slider-intensidade" class="slider-label">Intensidade de Perturbação ($F$)</label>
+                                <div class="dual-input-wrapper">
+                                    <input type="number" class="dual-input-number" id="num-intensidade"
+                                           min="50" max="600" step="10" value="250">
+                                    <span class="dual-input-unit">u</span>
+                                </div>
+                            </div>
+                            <input type="range" class="sim-slider" id="slider-intensidade"
+                                   min="50" max="600" step="10" value="250">
+                        </div>
+                    </div>
+
+                    <div class="control-group">
+                        <div class="slider-container sim-dual-slider">
+                            <div class="slider-header">
+                                <label for="slider-amortecimento" class="slider-label">Taxa de Amortecimento ($\gamma$)</label>
+                                <div class="dual-input-wrapper">
+                                    <input type="number" class="dual-input-number" id="num-amortecimento"
+                                           min="0.001" max="0.030" step="0.001" value="0.005">
+                                    <span class="dual-input-unit">s⁻¹</span>
+                                </div>
+                            </div>
+                            <input type="range" class="sim-slider" id="slider-amortecimento"
+                                   min="0.001" max="0.030" step="0.001" value="0.005">
+                        </div>
+                    </div>
+
+                    <!-- 4. Mini-Gráfico RealtimePlot de Energia Cinética -->
+                    <div class="control-group">
+                        <div class="sim-plot-card" id="card-telemetria">
+                            <div class="plot-header">
+                                <div class="plot-title-group">
+                                    <span class="plot-dot"></span>
+                                    <span class="plot-title">Energia Cinética Média $\langle K \rangle$</span>
+                                </div>
+                                <div class="plot-stats">
+                                    <span class="plot-stat-label">Atual:</span>
+                                    <span class="plot-stat-val" id="plot-valor-k">0.0 u</span>
+                                </div>
+                            </div>
+                            <div class="plot-canvas-wrapper">
+                                <canvas class="sim-plot-canvas" id="canvas-plot-energia"></canvas>
+                                <span class="plot-axis-label plot-axis-max" id="plot-max-label">+15.0</span>
+                                <span class="plot-axis-label plot-axis-min">0.0</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ABA 2: TEORIA -->
+                <div id="panel-tab-theory" style="display: none;">
+                    <div class="theory-section">
+                        <h4>1. Dinâmica da Rede Cristalina 2D</h4>
+                        <p>Cada átomo de massa $M$ está acoplado elasticamente a seus quatro vizinhos mais próximos na aproximação harmônica por molas com constante elástica $K$. Pela Lei de Hooke:</p>
+                        $$M \frac{d^2 \vec{u}_{i,j}}{dt^2} = K \sum_{\text{vizinhos}} (\vec{u}_{\text{viz}} - \vec{u}_{i,j}) - \gamma M \frac{d\vec{u}_{i,j}}{dt}$$
+                        <p>Onde $\vec{u}_{i,j}$ é o deslocamento do átomo a partir de sua posição de equilíbrio da rede e $\gamma$ é o coeficiente de dissipação viscosa.</p>
+                    </div>
+
+                    <div class="theory-section">
+                        <h4>2. Relação de Dispersão (Rede Monoatômica)</h4>
+                        <p>Procurando soluções de ondas planas da forma $\vec{u} \propto e^{i(\vec{k} \cdot \vec{r} - \omega t)}$, obtém-se a relação de dispersão dos fônons acústicos:</p>
+                        $$\omega(\vec{k}) = 2 \sqrt{\frac{K}{M}} \sqrt{\sin^2\left(\frac{k_x a}{2}\right) + \sin^2\left(\frac{k_y a}{2}\right)}$$
+                        <p>No limite de grandes comprimentos de onda ($k \to 0$), a dispersão torna-se linear: $\omega \approx v_s k$, onde $v_s = a \sqrt{K/M}$ é a velocidade do som no cristal.</p>
+                    </div>
+
+                    <div class="theory-section">
+                        <h4>3. Redes Diatômicas & Modos Ópticos</h4>
+                        <p>Em redes cristalinas com base de dois átomos de massas distintas ($M_1 \ne M_2$), surgem dois ramos de dispersão: o <strong>ramo acústico</strong> (em que átomos vizinhos oscilam em fase) e o <strong>ramo óptico</strong> (oscilação em oposição de fase com gap de banda proibida de frequências):</p>
+                        $$\omega_{\pm}^2(k) = K \left( \frac{1}{M_1} + \frac{1}{M_2} \right) \pm K \sqrt{\left( \frac{1}{M_1} + \frac{1}{M_2} \right)^2 - \frac{4}{M_1 M_2} \sin^2\left(\frac{ka}{2}\right)}$$
+                    </div>
+                </div>
             </div>
 
-            <div class="control-group">
-                <button id="btn-reset" class="sim-btn">Resetar Grid</button>
-                <button id="btn-pause" class="sim-btn">Pausar</button>
+            <!-- Base: Rodapé Fixo de Telemetria -->
+            <div class="panel-footer">
+                <div class="sim-badge" id="footer-status-badge">
+                    <span class="status-dot"></span>
+                    <span id="footer-status-text">Rede em Equilíbrio</span>
+                </div>
+                <span class="footer-meta" id="footer-sim-timer">t = 0.00s</span>
             </div>
-
-            <div class="info-section">
-                <p>O objetivo desta simulação é ilustrar como a temperatura (energia térmica) se associa à propagação de
-                    ondas de matéria (fônons) em uma rede cristalina.</p>
-            </div>
-
         </aside>
     </main>
 
-    <!-- Script da Simulação -->
-    <script src="scripts/fonons.js"></script>
+    <script type="module" src="scripts/fonons.js"></script>
 </body>
-
 </html>
