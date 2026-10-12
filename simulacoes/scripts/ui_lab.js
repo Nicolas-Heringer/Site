@@ -37,11 +37,16 @@ export {
 
 const ICONS_LIST = [
     'dice', 'play', 'pause', 'step', 'rotate', 'refresh',
+    'sliders', 'chart-line', 'book-open', 'toggle-switch',
     'globe', 'sun', 'snowflake', 'leaf', 'flower',
     'thermometer', 'cyclone', 'wind', 'compass', 'sparkles', 'lightbulb',
-    'collapse', 'expand', 'gauge', 'pressure',
-    'mouse', 'mouse-left', 'mouse-right', 'mouse-wheel', 'keyboard', 'key',
+    'collapse', 'expand', 'gauge', 'pressure', 'stopwatch', 'camera-reset',
+    'mouse', 'mouse-left', 'mouse-right', 'mouse-wheel', 'mouse-drag-horizontal',
+    'keyboard', 'key',
     'smartphone', 'tablet', 'touch', 'touch-drag', 'touch-pinch', 'touch-pan', 'screen-rotate',
+    'motion-oscillate', 'spring', 'pendulum', 'wave-sine', 'fft-bars',
+    'prism', 'gravity-fall', 'dipole', 'magnetic-field', 'electron-drift', 'orbital',
+    'axis-3d', 'matrix-basis', 'chladni-plate',
     'particle-single', 'particle-moving', 'particles-double', 'particles-opposite',
     'particles-three', 'particle-circle', 'particle-grid', 'salt-nacl'
 ];

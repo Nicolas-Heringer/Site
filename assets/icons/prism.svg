@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+  <style>
+    .prism-ray {
+      stroke-dasharray: 22;
+      stroke-dashoffset: 22;
+      animation: prismRayAnim 2.4s ease-in-out infinite;
+    }
+    @keyframes prismRayAnim {
+      0% {
+        stroke-dashoffset: 22;
+      }
+      65%, 100% {
+        stroke-dashoffset: 0;
+      }
+    }
+  </style>
+  <polygon points="12,3 21,20 3,20" fill="currentColor" fill-opacity="0.12"/>
+  <line class="prism-ray" x1="2" y1="13" x2="8" y2="11.5"/>
+  <line class="prism-ray" x1="8" y1="11.5" x2="15.5" y2="13"/>
+  <line class="prism-ray" x1="15.5" y1="13" x2="22" y2="11"/>
+  <line class="prism-ray" x1="15.5" y1="13" x2="22" y2="15" stroke-opacity="0.6"/>
+</svg>

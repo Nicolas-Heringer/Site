@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+  <style>
+    .fft-bar {
+      animation: fftBounceAnim 1.4s ease-in-out infinite alternate;
+    }
+    .bar-1 { animation-delay: 0.05s; }
+    .bar-2 { animation-delay: 0.35s; }
+    .bar-3 { animation-delay: 0.15s; }
+    .bar-4 { animation-delay: 0.45s; }
+    .bar-5 { animation-delay: 0.25s; }
+    @keyframes fftBounceAnim {
+      0% {
+        transform: scaleY(0.3);
+      }
+      100% {
+        transform: scaleY(1.0);
+      }
+    }
+  </style>
+  <line class="fft-bar bar-1" style="transform-origin: 4px 20px;" x1="4" y1="20" x2="4" y2="10"/>
+  <line class="fft-bar bar-2" style="transform-origin: 8px 20px;" x1="8" y1="20" x2="8" y2="5"/>
+  <line class="fft-bar bar-3" style="transform-origin: 12px 20px;" x1="12" y1="20" x2="12" y2="8"/>
+  <line class="fft-bar bar-4" style="transform-origin: 16px 20px;" x1="16" y1="20" x2="16" y2="4"/>
+  <line class="fft-bar bar-5" style="transform-origin: 20px 20px;" x1="20" y1="20" x2="20" y2="12"/>
+</svg>

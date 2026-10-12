@@ -10,6 +10,7 @@
     border-radius: inherit;
     overflow: hidden;
     cursor: grab;
+    touch-action: none !important;
 }
 
 #three-container:active {
@@ -20,6 +21,7 @@
     display: block;
     width: 100% !important;
     height: 100% !important;
+    touch-action: none !important;
 }
 
 /* ---------- Botão de Rotação Automática Flutuante ---------- */

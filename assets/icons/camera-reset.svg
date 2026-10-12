@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+  <style>
+    .camera-target {
+      animation: targetPulseAnim 2.5s ease-in-out infinite;
+    }
+    @keyframes targetPulseAnim {
+      0%, 100% {
+        transform: scale(1);
+      }
+      50% {
+        transform: scale(1.12);
+      }
+    }
+  </style>
+  <circle class="camera-target" style="transform-origin: 12px 12px;" cx="12" cy="12" r="3" fill="currentColor" fill-opacity="0.25"/>
+  <path d="M 4 8 V 5 a 1 1 0 0 1 1 -1 h 3"/>
+  <path d="M 16 4 h 3 a 1 1 0 0 1 1 1 v 3"/>
+  <path d="M 20 16 v 3 a 1 1 0 0 1 -1 1 h -3"/>
+  <path d="M 8 20 H 5 a 1 1 0 0 1 -1 -1 v -3"/>
+  <line x1="12" y1="6" x2="12" y2="8"/>
+  <line x1="12" y1="16" x2="12" y2="18"/>
+  <line x1="6" y1="12" x2="8" y2="12"/>
+  <line x1="16" y1="12" x2="18" y2="12"/>
+</svg>

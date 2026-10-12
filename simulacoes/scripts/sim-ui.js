@@ -411,25 +411,37 @@ export function initSidebarCollapse({
     };
 
     const collapse = () => {
+        if (window.innerWidth <= 900) return;
         layout.classList.add('sidebar-collapsed');
         smoothResize();
     };
 
     const expand = () => {
+        if (window.innerWidth <= 900) return;
         layout.classList.remove('sidebar-collapsed');
         smoothResize();
     };
 
     const toggle = () => {
+        if (window.innerWidth <= 900) return;
         layout.classList.toggle('sidebar-collapsed');
         smoothResize();
     };
 
-    if (btnCollapse) btnCollapse.addEventListener('click', collapse);
-    if (btnExpand) btnExpand.addEventListener('click', expand);
+    if (btnCollapse) {
+        btnCollapse.addEventListener('click', () => {
+            if (window.innerWidth > 900) collapse();
+        });
+    }
+    if (btnExpand) {
+        btnExpand.addEventListener('click', () => {
+            if (window.innerWidth > 900) expand();
+        });
+    }
 
-    // Atalho de Teclado: Tecla 'F' ou '[' para alternar o painel lateral
+    // Atalho de Teclado: Tecla 'F' ou '[' para alternar o painel lateral no desktop
     document.addEventListener('keydown', (e) => {
+        if (window.innerWidth <= 900) return;
         if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
         if (e.key === 'f' || e.key === 'F' || e.key === '[') {
             toggle();

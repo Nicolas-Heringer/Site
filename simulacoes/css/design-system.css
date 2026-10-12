@@ -204,6 +204,17 @@ body {
     height: 100% !important;
 }
 
+/* Blindagem Global de Touch-Action para Canvas e Containers 3D */
+.canvas-area,
+.canvas-area canvas,
+#three-container,
+#three-container canvas,
+.sim-layout canvas {
+    touch-action: none !important;
+    -webkit-touch-callout: none;
+    user-select: none;
+}
+
 /* Painel Lateral de Controles (Layout Tripartido: Topo Fixo, Corpo Rolável, Rodapé Fixo) */
 .controls-panel {
     background-color: var(--bg-panel);
@@ -223,12 +234,14 @@ body {
     transition: opacity 0.25s ease, transform 0.25s ease, padding 0.25s ease;
 }
 
-.sim-layout.sidebar-collapsed .controls-panel {
-    opacity: 0;
-    pointer-events: none;
-    transform: translateX(40px);
-    padding: 0;
-    border: none;
+@media (min-width: 901px) {
+    .sim-layout.sidebar-collapsed .controls-panel {
+        opacity: 0;
+        pointer-events: none;
+        transform: translateX(40px);
+        padding: 0;
+        border: none;
+    }
 }
 
 /* Botão de Recolher Sidebar no Painel */
@@ -797,17 +810,32 @@ input[type="range"].sim-slider:hover::-webkit-slider-runnable-track {
 input[type="range"].sim-slider::-webkit-slider-thumb {
     -webkit-appearance: none;
     border: 2px solid var(--bg-surface);
-    height: 18px;
-    width: 18px;
+    height: 24px;
+    width: 24px;
     border-radius: 50%;
     background: var(--accent-slider, var(--accent-color));
-    margin-top: -6px;
+    margin-top: -9px;
     box-shadow: 0 0 10px color-mix(in srgb, var(--accent-slider, var(--accent-color)) 40%, transparent);
     transition: transform var(--trans-fast), background var(--trans-fast), box-shadow var(--trans-fast);
 }
 
 input[type="range"].sim-slider:hover::-webkit-slider-thumb {
-    transform: scale(1.22);
+    transform: scale(1.15);
+    box-shadow: 0 0 14px color-mix(in srgb, var(--accent-slider, var(--accent-color)) 50%, transparent);
+}
+
+input[type="range"].sim-slider::-moz-range-thumb {
+    border: 2px solid var(--bg-surface);
+    height: 24px;
+    width: 24px;
+    border-radius: 50%;
+    background: var(--accent-slider, var(--accent-color));
+    box-shadow: 0 0 10px color-mix(in srgb, var(--accent-slider, var(--accent-color)) 40%, transparent);
+    transition: transform var(--trans-fast), background var(--trans-fast), box-shadow var(--trans-fast);
+}
+
+input[type="range"].sim-slider:hover::-moz-range-thumb {
+    transform: scale(1.15);
     box-shadow: 0 0 14px color-mix(in srgb, var(--accent-slider, var(--accent-color)) 50%, transparent);
 }
 
@@ -1368,12 +1396,17 @@ input[type="text"].sim-input:focus {
     margin-bottom: 4px;
 }
 
+.katex-display {
+    overflow-x: auto !important;
+    overflow-y: hidden;
+    max-width: 100%;
+    padding: 6px 0;
+    -webkit-overflow-scrolling: touch;
+}
+
 .theory-card .katex-display {
     margin: 10px 0;
     font-size: 0.95em;
-    overflow-x: auto;
-    overflow-y: hidden;
-    padding: 4px 0;
 }
 
 /* =============================================================================
@@ -1602,6 +1635,38 @@ input[type="text"].sim-input:focus {
 
 .btn-preset:hover .particle-head {
     animation-duration: 1.0s;
+}
+
+/* Microanimações Globais de Interação & Oscilação */
+.mouse-click-left {
+    animation: mouseClickLeftAnim 1.8s ease-in-out infinite;
+}
+.mouse-click-right {
+    animation: mouseClickRightAnim 1.8s ease-in-out infinite;
+}
+@keyframes mouseClickLeftAnim {
+    0%, 60%, 100% { fill-opacity: 0.18; }
+    75% { fill-opacity: 0.85; }
+    85% { fill-opacity: 0.35; }
+}
+@keyframes mouseClickRightAnim {
+    0%, 60%, 100% { fill-opacity: 0.18; }
+    75% { fill-opacity: 0.85; }
+    85% { fill-opacity: 0.35; }
+}
+.oscillate-body {
+    animation: harmonicSwayAnim 2.2s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
+}
+@keyframes harmonicSwayAnim {
+    0%, 100% { transform: translateX(-5.5px); }
+    50% { transform: translateX(5.5px); }
+}
+.mouse-drag-sway {
+    animation: mouseDragSwayAnim 2.4s ease-in-out infinite;
+}
+@keyframes mouseDragSwayAnim {
+    0%, 100% { transform: translateX(-3px); }
+    50% { transform: translateX(3px); }
 }
 
 /* Utilitários de Grid */
@@ -1961,19 +2026,20 @@ input[type="text"].sim-input:focus {
 .sheet-drag-handle {
     display: none;
     width: 100%;
-    height: 16px;
+    height: 40px;
+    min-height: 40px;
     align-items: center;
     justify-content: center;
     cursor: pointer;
     touch-action: none;
     user-select: none;
-    padding-top: 4px;
+    padding: 12px 0;
 }
 
 .sheet-drag-pill {
     width: 36px;
-    height: 4px;
-    background: rgba(255, 255, 255, 0.25);
+    height: 5px;
+    background: rgba(255, 255, 255, 0.35);
     border-radius: 999px;
     transition: background 0.2s ease, width 0.2s ease;
 }
@@ -2023,8 +2089,8 @@ input[type="text"].sim-input:focus {
 
     .toolbar-dot,
     .theme-dot-btn {
-        width: 14px;
-        height: 14px;
+        width: 22px;
+        height: 22px;
     }
 
     /* Grupo de ações no topo direito */

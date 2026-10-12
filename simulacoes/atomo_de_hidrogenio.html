@@ -263,14 +263,20 @@
                     <!-- Seção 2: Amostragem & Visualização -->
                     <div class="sim-divider-label"><span>Amostragem & Cores</span></div>
 
-                    <!-- Número de pontos -->
+                    <!-- Número de pontos com Dual Slider -->
                     <div class="control-group">
-                        <label for="slider-pontos">
-                            Pontos amostrados
-                            <strong class="slider-val" id="span-pontos">5.000</strong>
-                        </label>
-                        <input type="range" id="slider-pontos" class="sim-slider" min="500" max="20000" step="500"
-                            value="5000">
+                        <div class="slider-container sim-dual-slider">
+                            <div class="slider-header">
+                                <label for="slider-pontos" class="slider-label">Pontos Amostrados (Monte Carlo)</label>
+                                <div class="dual-input-wrapper">
+                                    <input type="number" class="dual-input-number" id="num-pontos"
+                                           min="500" max="20000" step="500" value="5000">
+                                    <span class="dual-input-unit">pts</span>
+                                </div>
+                            </div>
+                            <input type="range" id="slider-pontos" class="sim-slider" min="500" max="20000" step="500"
+                                value="5000">
+                        </div>
                     </div>
 
                     <!-- Modo de colorização -->

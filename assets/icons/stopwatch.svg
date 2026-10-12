@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+  <style>
+    .stopwatch-hand {
+      transform-origin: 12px 13px;
+      animation: stopwatchTickAnim 4s linear infinite;
+    }
+    @keyframes stopwatchTickAnim {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+  </style>
+  <line x1="10" y1="2" x2="14" y2="2"/>
+  <line x1="12" y1="2" x2="12" y2="5"/>
+  <circle cx="12" cy="13" r="8"/>
+  <circle cx="12" cy="13" r="1.5" fill="currentColor"/>
+  <line class="stopwatch-hand" x1="12" y1="13" x2="12" y2="8"/>
+</svg>

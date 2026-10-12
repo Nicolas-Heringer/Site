@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+  <style>
+    .matrix-shear {
+      animation: matrixShearAnim 3.2s ease-in-out infinite;
+    }
+    @keyframes matrixShearAnim {
+      0%, 100% {
+        transform: skewX(0deg);
+      }
+      50% {
+        transform: skewX(-18deg);
+      }
+    }
+  </style>
+  <circle cx="5" cy="19" r="1.5" fill="currentColor"/>
+  <g class="matrix-shear" style="transform-origin: 5px 19px;">
+    <polygon points="5,19 15,19 15,9 5,9" stroke-dasharray="2 2" stroke-opacity="0.4" fill="currentColor" fill-opacity="0.12"/>
+    <line x1="5" y1="19" x2="15" y2="19"/>
+    <path d="M12.5 17L15 19l-2.5 2"/>
+    <line x1="5" y1="19" x2="5" y2="9"/>
+    <path d="M3 11.5L5 9l2 2.5"/>
+  </g>
+</svg>

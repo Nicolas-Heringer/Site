@@ -11,7 +11,8 @@ import { OrbitControls }      from 'three/addons/controls/OrbitControls.js';
 import {
     initSidebarCollapse,
     initBottomSheet,
-    inlineSVGImages
+    inlineSVGImages,
+    syncDualSlider
 } from './sim-ui.js';
 
 // ============================================================================
@@ -666,19 +667,22 @@ quickSelectModo?.addEventListener('change', () => {
     recolorirNuvem();
 });
 
-// 6. Slider de Pontos
-sliderPts.addEventListener('input', () => {
-    const pts = parseInt(sliderPts.value);
+// 6. Slider de Pontos com Dual Slider
+const numPts = document.getElementById('num-pontos');
+syncDualSlider('#slider-pontos', '#num-pontos', (val) => {
+    const pts = parseInt(val);
     const formatted = pts.toLocaleString('pt-BR');
-    spanPts.textContent = formatted;
-    if (quickSliderPts) quickSliderPts.value = sliderPts.value;
+    if (spanPts) spanPts.textContent = formatted;
+    if (quickSliderPts) quickSliderPts.value = val;
     if (quickSpanPts) quickSpanPts.textContent = formatted;
 });
+
 quickSliderPts?.addEventListener('input', () => {
     const pts = parseInt(quickSliderPts.value);
     const formatted = pts.toLocaleString('pt-BR');
-    sliderPts.value = quickSliderPts.value;
-    spanPts.textContent = formatted;
+    if (sliderPts) sliderPts.value = quickSliderPts.value;
+    if (numPts) numPts.value = quickSliderPts.value;
+    if (spanPts) spanPts.textContent = formatted;
     if (quickSpanPts) quickSpanPts.textContent = formatted;
 });
 

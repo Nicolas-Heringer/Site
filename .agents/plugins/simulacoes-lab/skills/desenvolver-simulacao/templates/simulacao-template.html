@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{TITULO_SIMULACAO}} - Plataforma Científica</title>
+    
+    <!-- Favicon e Design System CSS -->
+    <link rel="icon" type="image/svg+xml" href="../favicon.svg">
+    <link rel="stylesheet" href="css/design-system.css">
+
+    <!-- Suporte a Fórmulas Matemáticas com KaTeX -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" crossorigin="anonymous">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" crossorigin="anonymous"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" crossorigin="anonymous"></script>
+
+    <!-- Three.js via Importmap (ES Modules) -->
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://cdn.jsdelivr.net/npm/three@0.165.0/build/three.module.js",
+            "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.165.0/examples/jsm/"
+        }
+    }
+    </script>
+</head>
+<body>
+    <!-- Cabeçalho da Simulação -->
+    <header class="sim-header">
+        <a href="../index.html#secao-simulacoes" class="btn-back">
+            <svg class="icon-svg" viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+            Voltar
+        </a>
+        <h1 class="sim-title">{{TITULO_SIMULACAO}}</h1>
+    </header>
+
+    <!-- Layout Grid Principal -->
+    <main class="sim-layout">
+        <!-- 1. Área do Canvas 3D / 2D -->
+        <div class="canvas-area">
+            <div id="three-container"></div>
+
+            <!-- Barra de Ferramentas / Seletor Rápido (Topo Esquerdo) -->
+            <div class="canvas-toolbar pos-top-left" id="sim-toolbar">
+                <span>🎨 Acento:</span>
+                <div class="toolbar-dot active" style="--c: #facc15;" data-color="#facc15" title="Amarelo"></div>
+                <div class="toolbar-dot" style="--c: #38bdf8;" data-color="#38bdf8" title="Ciano"></div>
+                <div class="toolbar-dot" style="--c: #22c55e;" data-color="#22c55e" title="Verde"></div>
+            </div>
+
+            <!-- Grupo de Ações do Topo Direito (Rotação + Reabrir Controles no Modo Foco) -->
+            <div class="canvas-top-actions">
+                <button id="btn-quick-autorotate" class="canvas-btn-floating active" title="Alternar Rotação 3D">
+                    <img src="../assets/icons/rotate.svg" class="icon-svg icon-spin" alt="Rotação">
+                    <span class="btn-label-text">Rotação 3D</span>
+                </button>
+                <button id="btn-expand-sidebar" class="canvas-btn-expand-sidebar" title="Expandir Controles (F)">
+                    <img src="../assets/icons/expand.svg" class="icon-svg" alt="Expandir">
+                    <span class="btn-label-text">Controles</span>
+                </button>
+            </div>
+
+            <!-- HUD de Telemetria no Canto Inferior Esquerdo -->
+            <div class="sim-hud" id="sim-hud">
+                <div class="hud-item">
+                    <span class="hud-label">Status:</span>
+                    <span class="hud-val" id="hud-status">Pronto</span>
+                </div>
+                <div class="hud-item">
+                    <span class="hud-label">FPS:</span>
+                    <span class="hud-val" id="hud-fps" style="color: var(--color-emerald, #22c55e);">60 fps</span>
+                </div>
+            </div>
+
+            <!-- Dica Interativa Centralizada no Fundo (Desktop) -->
+            <div class="interactive-hint">
+                <img src="../assets/icons/lightbulb.svg" class="icon-svg icon-accent" alt="Dica">
+                Arraste para orbitar a cena 3D e use o painel para ajustar os parâmetros.
+            </div>
+        </div>
+
+        <!-- 2. Painel Lateral de Controles (Layout Tripartido / Bottom Sheet no Mobile) -->
+        <aside class="controls-panel">
+            <!-- Alça de Arraste para Mobile / Tablet (Bottom Sheet) -->
+            <div class="sheet-drag-handle" id="sheet-drag-handle" title="Deslize ou toque para expandir/recolher">
+                <div class="sheet-drag-pill"></div>
+            </div>
+
+            <!-- Topo: Barra de Abas Expansíveis -->
+            <div class="tab-nav">
+                <button class="tab-btn active" id="tab-btn-params">
+                    <img src="../assets/icons/rotate.svg" class="icon-svg" alt="Parâmetros">
+                    <span class="tab-label">Parâmetros</span>
+                </button>
+                <button class="tab-btn" id="tab-btn-theory">
+                    <img src="../assets/icons/compass.svg" class="icon-svg" alt="Teoria">
+                    <span class="tab-label">Teoria</span>
+                </button>
+                <button class="btn-collapse-sidebar" id="btn-collapse-sidebar" title="Modo Foco (F)">
+                    <img src="../assets/icons/collapse.svg" class="icon-svg" alt="Recolher">
+                </button>
+            </div>
+
+            <!-- Centro: Corpo Rolável de Conteúdo -->
+            <div class="panel-body">
+                <div id="panel-tab-params">
+                    <!-- 1. Barra de Transporte / Playback -->
+                    <div class="sim-transport-bar">
+                        <div class="transport-controls-row">
+                            <button class="btn-primary btn-toggle transport-btn-play" id="btn-play-sim"
+                                    data-state="0"
+                                    data-text-idle="Executar"
+                                    data-text-active="Pausar"
+                                    data-icon-idle="play"
+                                    data-icon-active="pause">
+                                <img src="../assets/icons/play.svg" class="icon-svg" alt="Play">
+                                <span class="btn-text">Executar</span>
+                            </button>
+                            <button class="btn-icon" id="btn-step-sim" title="Avançar 1 Passo (Δt)">
+                                <img src="../assets/icons/step.svg" class="icon-svg" alt="Passo">
+                            </button>
+                            <button class="btn-icon" id="btn-reset-sim" title="Reiniciar (t = 0)">
+                                <img src="../assets/icons/refresh.svg" class="icon-svg" alt="Reset">
+                            </button>
+                        </div>
+
+                        <div class="transport-speed-row">
+                            <span class="transport-speed-label">
+                                <img src="../assets/icons/rotate.svg" class="icon-svg" style="width: 14px; height: 14px;" alt="Velocidade">
+                                Velocidade:
+                            </span>
+                            <div class="transport-speed-pills" id="sim-speed-pills">
+                                <button class="speed-btn" data-speed="0.5">0.5×</button>
+                                <button class="speed-btn active" data-speed="1.0">1.0×</button>
+                                <button class="speed-btn" data-speed="2.0">2.0×</button>
+                                <button class="speed-btn" data-speed="5.0">5.0×</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 2. Controles de Parâmetros com Dual Slider -->
+                    <div class="control-group">
+                        <div class="slider-container sim-dual-slider">
+                            <div class="slider-header">
+                                <label for="slider-param1" class="slider-label">Parâmetro Exemplo ($p_1$)</label>
+                                <div class="dual-input-wrapper">
+                                    <input type="number" class="dual-input-number" id="num-param1"
+                                           min="0.1" max="10.0" step="0.1" value="1.0">
+                                    <span class="dual-input-unit">un</span>
+                                </div>
+                            </div>
+                            <input type="range" class="sim-slider" id="slider-param1"
+                                   min="0.1" max="10.0" step="0.1" value="1.0">
+                        </div>
+                    </div>
+                </div>
+
+                <div id="panel-tab-theory" style="display: none;">
+                    <div class="theory-section">
+                        <h4>Fundamentação Física</h4>
+                        <p>Descrição do modelo físico e formulação matemática:</p>
+                        $$f(x, t) = A \cos(k x - \omega t)$$
+                    </div>
+                </div>
+            </div>
+
+            <!-- Base: Rodapé Fixo de Telemetria -->
+            <div class="panel-footer">
+                <div class="sim-badge" id="footer-status-badge">
+                    <span class="status-dot"></span>
+                    <span id="footer-status-text">Simulação Pronta</span>
+                </div>
+                <span class="footer-meta" id="footer-sim-timer">t = 0.00s</span>
+            </div>
+        </aside>
+    </main>
+
+    <script type="module" src="scripts/{{NOME_SCRIPT}}.js"></script>
+</body>
+</html>

@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+  <style>
+    .pendulum-arm {
+      transform-origin: 12px 3px;
+      animation: pendulumSwingAnim 2.4s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
+    }
+    @keyframes pendulumSwingAnim {
+      0%, 100% {
+        transform: rotate(-24deg);
+      }
+      50% {
+        transform: rotate(24deg);
+      }
+    }
+  </style>
+  <line x1="8" y1="3" x2="16" y2="3"/>
+  <circle cx="12" cy="3" r="1.5" fill="currentColor"/>
+  <g class="pendulum-arm">
+    <line x1="12" y1="3" x2="12" y2="16.5"/>
+    <circle cx="12" cy="17.5" r="3" fill="currentColor"/>
+  </g>
+</svg>

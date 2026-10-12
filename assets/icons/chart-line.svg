@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+  <style>
+    .telemetry-pulse {
+      stroke-dasharray: 28;
+      stroke-dashoffset: 28;
+      animation: telemetryPulseAnim 2.4s linear infinite;
+    }
+    @keyframes telemetryPulseAnim {
+      0% {
+        stroke-dashoffset: 28;
+        opacity: 0.35;
+      }
+      50% {
+        opacity: 1;
+      }
+      100% {
+        stroke-dashoffset: 0;
+        opacity: 0.8;
+      }
+    }
+  </style>
+  <path d="M3 3v16a2 2 0 0 0 2 2h16" stroke-opacity="0.45"/>
+  <path class="telemetry-pulse" d="M7 16l4-7 4 5 6-9"/>
+  <circle cx="21" cy="5" r="2" fill="currentColor"/>
+</svg>
