@@ -324,6 +324,286 @@ export class RealtimePlot {
 }
 
 /**
+ * Classe controladora de Telemetria Multicanal e Espaço de Fase via HTML5 Canvas
+ * Suporta múltiplas curvas simultâneas (ex: Cinética, Potencial, Total), auto-scaling,
+ * eixos positivos/negativos (linha zero) e legendas dinâmicas.
+ */
+export class MultiSeriesPlot {
+    /**
+     * @param {HTMLCanvasElement|string} canvasTarget - Elemento canvas ou seletor CSS
+     * @param {Object} [options]
+     * @param {number} [options.maxPoints=100] - Pontos máximos no buffer
+     * @param {string} [options.mode='time-series'] - 'time-series' ou 'phase-space'
+     * @param {Array<Object>} [options.series] - Configuração das séries [{ id, label, color, unit }]
+     * @param {number} [options.minVal] - Limite inferior manual (opcional)
+     * @param {number} [options.maxVal] - Limite superior manual (opcional)
+     * @param {boolean} [options.showLegend=true] - Exibir legenda dinâmica no topo
+     * @param {boolean} [options.showGrid=true] - Exibir grade de referência
+     */
+    constructor(canvasTarget, options = {}) {
+        this.canvas = typeof canvasTarget === 'string' ? document.querySelector(canvasTarget) : canvasTarget;
+        if (!this.canvas) return;
+        this.ctx = this.canvas.getContext('2d');
+
+        this.maxPoints = options.maxPoints || 100;
+        this.mode = options.mode || 'time-series';
+        this.series = options.series || [
+            { id: 'default', label: 'Série 1', color: '#38bdf8' }
+        ];
+        this.showLegend = options.showLegend !== false;
+        this.showGrid = options.showGrid !== false;
+        this.fixedMin = options.minVal !== undefined ? options.minVal : null;
+        this.fixedMax = options.maxVal !== undefined ? options.maxVal : null;
+
+        this.buffers = {};
+        this.latestValues = {};
+        this.series.forEach(s => {
+            this.buffers[s.id] = [];
+            this.latestValues[s.id] = 0;
+        });
+        this.phaseBuffer = [];
+
+        this.width = 0;
+        this.height = 0;
+
+        this.resize();
+        window.addEventListener('resize', () => this.resize());
+        if (window.ResizeObserver && this.canvas.parentElement) {
+            new ResizeObserver(() => this.resize()).observe(this.canvas.parentElement);
+        }
+    }
+
+    resize() {
+        if (!this.canvas) return;
+        const rect = this.canvas.getBoundingClientRect();
+        if (rect.width === 0 || rect.height === 0) return;
+        const dpr = Math.min(window.devicePixelRatio || 1, 2);
+        this.canvas.width = rect.width * dpr;
+        this.canvas.height = rect.height * dpr;
+        this.ctx.setTransform(1, 0, 0, 1, 0, 0);
+        this.ctx.scale(dpr, dpr);
+        this.width = rect.width;
+        this.height = rect.height;
+        this.render();
+    }
+
+    push(dataRecord) {
+        if (!dataRecord) return;
+        this.series.forEach(s => {
+            if (dataRecord[s.id] !== undefined) {
+                const val = Number(dataRecord[s.id]);
+                this.latestValues[s.id] = val;
+                this.buffers[s.id].push(val);
+                if (this.buffers[s.id].length > this.maxPoints) {
+                    this.buffers[s.id].shift();
+                }
+            }
+        });
+        this.render();
+    }
+
+    pushPhasePoint(x, p) {
+        this.phaseBuffer.push({ x: Number(x), p: Number(p) });
+        if (this.phaseBuffer.length > this.maxPoints * 2) {
+            this.phaseBuffer.shift();
+        }
+        this.render();
+    }
+
+    clear() {
+        this.series.forEach(s => {
+            this.buffers[s.id] = [];
+            this.latestValues[s.id] = 0;
+        });
+        this.phaseBuffer = [];
+        this.render();
+    }
+
+    render() {
+        if (!this.ctx || !this.width || !this.height) return;
+        const { ctx, width, height } = this;
+
+        ctx.clearRect(0, 0, width, height);
+
+        if (this.mode === 'phase-space') {
+            this.renderPhaseSpace();
+            return;
+        }
+
+        // --- Renderização Time-Series Multicanal ---
+        let min = this.fixedMin !== null ? this.fixedMin : Infinity;
+        let max = this.fixedMax !== null ? this.fixedMax : -Infinity;
+        let hasData = false;
+
+        this.series.forEach(s => {
+            const buf = this.buffers[s.id];
+            if (buf && buf.length > 0) {
+                hasData = true;
+                if (this.fixedMin === null || this.fixedMax === null) {
+                    for (let i = 0; i < buf.length; i++) {
+                        const v = buf[i];
+                        if (this.fixedMin === null && v < min) min = v;
+                        if (this.fixedMax === null && v > max) max = v;
+                    }
+                }
+            }
+        });
+
+        if (!hasData || min === Infinity) {
+            min = this.fixedMin !== null ? this.fixedMin : -1;
+            max = this.fixedMax !== null ? this.fixedMax : 1;
+        }
+
+        if (min === max) {
+            min -= 1;
+            max += 1;
+        }
+
+        // Margem de respiro de 12%
+        const span = max - min;
+        const plotMin = min - span * 0.12;
+        const plotMax = max + span * 0.12;
+        const plotSpan = plotMax - plotMin;
+
+        const getY = (v) => height - ((v - plotMin) / plotSpan) * height;
+
+        // 1. Grade e Linha Zero
+        if (this.showGrid) {
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.06)';
+            ctx.lineWidth = 1;
+            const gridLines = 4;
+            for (let i = 1; i < gridLines; i++) {
+                const y = (height / gridLines) * i;
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                ctx.lineTo(width, y);
+                ctx.stroke();
+            }
+
+            // Eixo zero destacado se estiver na faixa
+            if (plotMin < 0 && plotMax > 0) {
+                const zeroY = getY(0);
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.22)';
+                ctx.setLineDash([4, 4]);
+                ctx.beginPath();
+                ctx.moveTo(0, zeroY);
+                ctx.lineTo(width, zeroY);
+                ctx.stroke();
+                ctx.setLineDash([]);
+            }
+        }
+
+        // 2. Traçado das Séries
+        this.series.forEach(s => {
+            const buf = this.buffers[s.id];
+            if (!buf || buf.length < 2) return;
+
+            const stepX = width / (this.maxPoints - 1);
+            const offsetIdx = this.maxPoints - buf.length;
+
+            ctx.save();
+            ctx.strokeStyle = s.color || '#38bdf8';
+            ctx.lineWidth = 2;
+            ctx.shadowColor = s.color || '#38bdf8';
+            ctx.shadowBlur = 6;
+            ctx.beginPath();
+
+            for (let i = 0; i < buf.length; i++) {
+                const x = (offsetIdx + i) * stepX;
+                const y = Math.max(2, Math.min(height - 2, getY(buf[i])));
+                if (i === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            }
+            ctx.stroke();
+            ctx.restore();
+        });
+
+        // 3. Legenda Dinâmica no Topo
+        if (this.showLegend) {
+            ctx.save();
+            ctx.font = '10px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+            let legendX = 8;
+            const legendY = 14;
+
+            this.series.forEach(s => {
+                const val = this.latestValues[s.id] !== undefined ? this.latestValues[s.id].toFixed(1) : '--';
+                const text = `${s.label}: ${val}${s.unit || ''}`;
+
+                // Marcador circular
+                ctx.fillStyle = s.color || '#38bdf8';
+                ctx.beginPath();
+                ctx.arc(legendX + 4, legendY - 3, 3.5, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Texto do rótulo
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.75)';
+                ctx.fillText(text, legendX + 11, legendY);
+
+                legendX += ctx.measureText(text).width + 16;
+            });
+            ctx.restore();
+        }
+    }
+
+    renderPhaseSpace() {
+        const { ctx, width, height, phaseBuffer } = this;
+        if (!phaseBuffer || phaseBuffer.length < 2) return;
+
+        let minX = Infinity, maxX = -Infinity;
+        let minP = Infinity, maxP = -Infinity;
+        for (let i = 0; i < phaseBuffer.length; i++) {
+            const pt = phaseBuffer[i];
+            if (pt.x < minX) minX = pt.x;
+            if (pt.x > maxX) maxX = pt.x;
+            if (pt.p < minP) minP = pt.p;
+            if (pt.p > maxP) maxP = pt.p;
+        }
+        if (minX === maxX) { minX -= 1; maxX += 1; }
+        if (minP === maxP) { minP -= 1; maxP += 1; }
+
+        const spanX = (maxX - minX) * 1.15;
+        const spanP = (maxP - minP) * 1.15;
+        const midX = (minX + maxX) / 2;
+        const midP = (minP + maxP) / 2;
+
+        const getScreenX = (x) => width / 2 + ((x - midX) / spanX) * width;
+        const getScreenY = (p) => height / 2 - ((p - midP) / spanP) * height;
+
+        // Eixos de referência cruzados
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.12)';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(0, height / 2);
+        ctx.lineTo(width, height / 2);
+        ctx.moveTo(width / 2, 0);
+        ctx.lineTo(width / 2, height);
+        ctx.stroke();
+
+        // Trajetória no espaço de fase com fade temporal
+        const total = phaseBuffer.length;
+        for (let i = 1; i < total; i++) {
+            const p0 = phaseBuffer[i - 1];
+            const p1 = phaseBuffer[i];
+            const alpha = 0.15 + 0.85 * (i / total);
+
+            ctx.strokeStyle = `rgba(56, 189, 248, ${alpha})`;
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            ctx.moveTo(getScreenX(p0.x), getScreenY(p0.p));
+            ctx.lineTo(getScreenX(p1.x), getScreenY(p1.p));
+            ctx.stroke();
+        }
+
+        // Ponto atual
+        const last = phaseBuffer[total - 1];
+        ctx.fillStyle = '#facc15';
+        ctx.beginPath();
+        ctx.arc(getScreenX(last.x), getScreenY(last.p), 4, 0, Math.PI * 2);
+        ctx.fill();
+    }
+}
+
+/**
  * Inicializa um modal didático de diálogo ou teoria (.sim-modal-overlay)
  * Suporta fechamento por botão [data-modal-close], clique fora e tecla Esc.
  * @param {HTMLElement|string} modalTarget - Seletor ou elemento do modal

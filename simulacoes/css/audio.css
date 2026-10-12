@@ -448,9 +448,41 @@
 
 @media (max-width: 900px) {
     .audio-canvas-container.canvas-pip {
-        width: 220px;
-        height: 140px;
+        width: 170px;
+        height: 105px;
         bottom: 8px;
         right: 8px;
     }
 }
+
+/* Estado Recolhido / Minimizado da Miniatura PiP (Garante Visão Desobstruída no Mobile) */
+.audio-canvas-container.canvas-pip.pip-minimized {
+    width: auto !important;
+    height: auto !important;
+    min-height: 0 !important;
+    padding: 4px 8px;
+    background: rgba(3, 7, 18, 0.95);
+    border: 1px solid rgba(56, 189, 248, 0.5);
+    border-radius: 6px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
+}
+
+.audio-canvas-container.canvas-pip.pip-minimized canvas {
+    display: none !important;
+}
+
+.audio-canvas-container.canvas-pip.pip-minimized .canvas-header-bar {
+    position: static;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 0;
+    background: transparent;
+}
+
+.audio-canvas-container.canvas-pip.pip-minimized .canvas-header-title {
+    display: inline-block;
+    font-size: 0.72rem;
+    color: var(--text-secondary);
+}
+

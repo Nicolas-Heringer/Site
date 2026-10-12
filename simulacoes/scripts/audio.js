@@ -7,12 +7,19 @@
 //            Layout com Canvas Principal em destaque e Miniatura PIP alternável.
 // =============================================================================
 
+import {
+    initSidebarCollapse,
+    initBottomSheet,
+    initKaTeXAutoRender,
+    inlineSVGImages
+} from './sim-ui.js';
+
 // =============================================================================
 // 1. ELEMENTOS DOM
 // =============================================================================
 
 // Navegação por Abas
-const tabButtons         = document.querySelectorAll('.tab-nav-btn');
+const tabButtons         = document.querySelectorAll('.tab-btn, .tab-nav-btn');
 const tabContents        = document.querySelectorAll('.tab-content');
 
 // Controles da Aba 1 (Microfone)
@@ -208,19 +215,32 @@ function updateControlsState() {
 // 5. GESTÃO DO LAYOUT PIP E ALTERNÂNCIA DE FOCO
 // =============================================================================
 
+let isPipMinimized = false;
+
+function applyPipState() {
+    const mainEl = isTimeMain ? timeCanvasContainer : freqCanvasContainer;
+    const pipEl = isTimeMain ? freqCanvasContainer : timeCanvasContainer;
+
+    mainEl.className = 'audio-canvas-container canvas-main';
+    mainEl.classList.remove('pip-minimized');
+
+    pipEl.className = 'audio-canvas-container canvas-pip' + (isPipMinimized ? ' pip-minimized' : '');
+
+    document.querySelectorAll('.btn-toggle-pip').forEach(b => {
+        b.textContent = isPipMinimized ? '▢ Exp' : '_ Min';
+        b.title = isPipMinimized ? 'Expandir Miniatura' : 'Recolher Miniatura';
+    });
+}
+
+function togglePipMinimized() {
+    isPipMinimized = !isPipMinimized;
+    applyPipState();
+    renderFrame();
+}
+
 function swapFocus() {
     isTimeMain = !isTimeMain;
-
-    if (isTimeMain) {
-        // Osciloscópio vira o principal, FFT vira a miniatura
-        timeCanvasContainer.className = 'audio-canvas-container canvas-main';
-        freqCanvasContainer.className = 'audio-canvas-container canvas-pip';
-    } else {
-        // FFT vira o principal, Osciloscópio vira a miniatura
-        freqCanvasContainer.className = 'audio-canvas-container canvas-main';
-        timeCanvasContainer.className = 'audio-canvas-container canvas-pip';
-    }
-
+    applyPipState();
     renderFrame();
 }
 
@@ -554,8 +574,13 @@ function switchTab(targetTabId) {
     tabContents.forEach(content => {
         const isActive = (content.id === targetTabId);
         content.classList.toggle('active', isActive);
-        content.style.display = isActive ? 'flex' : 'none';
+        content.style.display = isActive ? 'block' : 'none';
     });
+
+    if (targetTabId === 'tab-theory') {
+        const theoryPanel = document.getElementById('tab-theory');
+        if (theoryPanel) initKaTeXAutoRender(theoryPanel);
+    }
 
     renderFrame();
 }
@@ -640,7 +665,30 @@ window.addEventListener('resize', () => {
 });
 
 // =============================================================================
-// 11. INICIALIZAÇÃO DA PÁGINA
+// 11. INICIALIZAÇÃO DA PÁGINA (DESIGN SYSTEM 2.0)
 // =============================================================================
-updateControlsState();
-renderFrame();
+window.addEventListener('DOMContentLoaded', () => {
+    initSidebarCollapse({
+        layoutSelector: '.sim-layout',
+        collapseBtnSelector: '#btn-collapse-sidebar',
+        expandBtnSelector: '#btn-expand-sidebar',
+        onResize: () => renderFrame()
+    });
+
+    initBottomSheet({
+        panelSelector: '#sim-sidebar',
+        handleSelector: '#sheet-drag-handle'
+    });
+
+    document.querySelectorAll('.btn-toggle-pip').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            togglePipMinimized();
+        });
+    });
+
+    inlineSVGImages();
+    initKaTeXAutoRender(document.body);
+    updateControlsState();
+    renderFrame();
+});

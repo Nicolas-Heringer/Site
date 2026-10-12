@@ -1,27 +1,22 @@
 <!DOCTYPE html>
-<html lang="pt-br">
-
+<html lang="pt-BR">
 <head>
-    <!-- Metadados da Página -->
-    <meta charset="utf-8">
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Movimento Planetário 3D — Gravitação Universal</title>
-
+    <title>Movimento Planetário & Gravitação Universal 3D - Plataforma Científica</title>
+    
     <meta name="description"
-        content="Simulação 3D de órbitas planetárias sob a gravitação universal de Newton. Visualize vetores de posição e velocidade e acompanhe o gráfico de energia cinética e potencial em tempo real.">
+        content="Simulação 3D de mecânica orbital e gravitação universal de Newton. Acompanhe vetores de posição e velocidade e telemetria de conservação de energia em tempo real.">
     <meta name="keywords"
-        content="gravitação 3D, órbitas planetárias, leis de kepler, mecânica celeste, energia cinética, energia potencial, simulação física, vetores">
+        content="gravitação 3D, órbitas keplerianas, leis de kepler, mecânica celeste, conservação de energia, telemetria orbital">
     <meta name="author" content="Nicolas Heringer">
 
-    <!-- Favicon -->
+    <!-- Favicon e Design System CSS -->
     <link rel="icon" type="image/svg+xml" href="../favicon.svg">
-
-    <!-- Estilos CSS e Libs -->
-    <link rel="stylesheet" href="css/base.css">
+    <link rel="stylesheet" href="css/design-system.css">
     <link rel="stylesheet" href="css/gravidade.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-    <!-- Suporte a LaTeX com KaTeX -->
+    <!-- Suporte a Fórmulas Matemáticas com KaTeX -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" crossorigin="anonymous">
     <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" crossorigin="anonymous"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" crossorigin="anonymous"
@@ -35,48 +30,245 @@
             throwOnError: false
         });"></script>
 </head>
-
 <body>
     <!-- Cabeçalho da Simulação -->
     <header class="sim-header">
-        <a href="../index.html#secao-simulacoes" class="btn-back">← Voltar ao Hub</a>
-        <span class="sim-title">Movimento Planetário (Gravidade 3D)</span>
+        <a href="../index.html#secao-simulacoes" class="btn-back">
+            <svg class="icon-svg" viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+            Voltar
+        </a>
+        <h1 class="sim-title">Movimento Planetário (Gravitação 3D)</h1>
     </header>
 
-    <!-- Conteúdo Principal -->
+    <!-- Layout Grid Principal -->
     <main class="sim-layout">
-        <!-- Área de Visualização 3D (Canvas) -->
+        <!-- 1. Área do Canvas 3D Interativo -->
         <div class="canvas-area">
             <canvas id="simulationCanvas"></canvas>
+
+            <!-- Ações Flutuantes do Topo Direito -->
+            <div class="canvas-top-actions">
+                <button id="btn-reset-view" class="canvas-btn-floating" title="Resetar Câmera 3D">
+                    <img src="../assets/icons/camera-reset.svg" class="icon-svg" alt="Reset Câmera">
+                    <span class="btn-label-text">Reset Visão</span>
+                </button>
+                <button id="btn-expand-sidebar" class="canvas-btn-expand-sidebar" title="Expandir Controles (F)">
+                    <img src="../assets/icons/expand.svg" class="icon-svg" alt="Expandir">
+                    <span class="btn-label-text">Controles</span>
+                </button>
+            </div>
+
+            <!-- HUD de Telemetria no Canto Inferior Esquerdo -->
+            <div class="sim-hud" id="sim-hud">
+                <div class="hud-item">
+                    <span class="hud-label">Raio Orbital $r$</span>
+                    <span class="hud-value" id="hud-raio">--- u</span>
+                </div>
+                <div class="hud-item">
+                    <span class="hud-label">Velocidade $v$</span>
+                    <span class="hud-value" id="hud-velocidade">--- u/s</span>
+                </div>
+                <div class="hud-item">
+                    <span class="hud-label">Energia Total $E$</span>
+                    <span class="hud-value" id="hud-energia-total">--- J</span>
+                </div>
+                <div class="hud-item">
+                    <span class="hud-label">Excentricidade $e$</span>
+                    <span class="hud-value" id="hud-excentricidade">---</span>
+                </div>
+            </div>
+
+            <!-- Dica de Interação 3D -->
+            <div class="canvas-interaction-hint">
+                <span>Arraste para orbitar a câmera 3D • Roda do mouse ou pinch para zoom</span>
+            </div>
         </div>
 
-        <!-- Painel de Controles e Gráficos -->
-        <div class="side-panel">
-            <div class="controls-section">
-                <h3>Controles</h3>
-                <label>
-                    <input type="checkbox" id="showPosition"> Mostrar Vetor Posição
-                </label>
-                <label>
-                    <input type="checkbox" id="showVelocity"> Mostrar Vetor Velocidade
-                </label>
+        <!-- 2. Painel Lateral de Controles e Telemetria (Bottom Sheet no Mobile) -->
+        <aside class="sim-sidebar" id="sim-sidebar">
+            <!-- Alça de Arraste para Mobile -->
+            <div class="sheet-drag-handle" id="sheet-drag-handle">
+                <div class="sheet-handle-bar"></div>
             </div>
-            <div class="chart-section">
-                <h3>Energia Cinética (K)</h3>
-                <div class="chart-wrapper">
-                    <canvas id="kineticChart"></canvas>
-                </div>
-                
-                <h3>Energia Potencial (U)</h3>
-                <div class="chart-wrapper">
-                    <canvas id="potentialChart"></canvas>
+
+            <!-- Cabeçalho do Painel Lateral -->
+            <div class="sidebar-header">
+                <h2>Parâmetros e Análise</h2>
+                <button id="btn-collapse-sidebar" class="btn-collapse" title="Recolher Painel (F)">
+                    <img src="../assets/icons/collapse.svg" class="icon-svg" alt="Recolher">
+                </button>
+            </div>
+
+            <!-- Barra de Transporte Temporal -->
+            <div class="sim-transport-bar">
+                <button id="btn-toggle-sim" class="transport-btn transport-btn-play" title="Iniciar / Pausar">
+                    <img src="../assets/icons/play.svg" class="icon-svg" alt="Play/Pause">
+                </button>
+                <button id="btn-reset-sim" class="transport-btn" title="Reiniciar Órbita">
+                    <img src="../assets/icons/refresh.svg" class="icon-svg" alt="Reiniciar">
+                </button>
+                <div class="transport-time" id="footer-sim-timer">t = 0.00s</div>
+                <div class="transport-speed-pills" id="sim-speed-pills">
+                    <button class="speed-btn" data-speed="0.5">0.5×</button>
+                    <button class="speed-btn active" data-speed="1.0">1.0×</button>
+                    <button class="speed-btn" data-speed="2.0">2.0×</button>
                 </div>
             </div>
-        </div>
+
+            <!-- Navegação por Abas -->
+            <div class="sim-tabs-nav">
+                <button class="tab-btn active" id="tab-btn-params">
+                    <img src="../assets/icons/sliders.svg" class="icon-svg" alt="Parâmetros">
+                    Parâmetros
+                </button>
+                <button class="tab-btn" id="tab-btn-theory">
+                    <img src="../assets/icons/book-open.svg" class="icon-svg" alt="Teoria">
+                    Teoria & Leis
+                </button>
+            </div>
+
+            <!-- CONTEÚDO DA ABA 1: PARÂMETROS E TELEMETRIA -->
+            <div class="tab-content" id="panel-tab-params">
+                <!-- Seção de Presets de Órbita -->
+                <div class="control-section">
+                    <span class="control-label">Regimes Orbitais Pré-configurados:</span>
+                    <div class="orbit-presets-grid">
+                        <button class="preset-chip-btn active" data-preset="circular">Órbita Circular ($e=0$)</button>
+                        <button class="preset-chip-btn" data-preset="eliptica">Elíptica ($e \approx 0.55$)</button>
+                        <button class="preset-chip-btn" data-preset="inclinada">Inclinada 3D ($i=35^\circ$)</button>
+                        <button class="preset-chip-btn" data-preset="escape">Escape / Parabólica</button>
+                    </div>
+                </div>
+
+                <!-- Sliders Numéricos de Gravidade -->
+                <div class="control-section">
+                    <span class="control-label">Parâmetros Gravitacionais e Iniciais:</span>
+
+                    <div class="sim-dual-slider">
+                        <div class="slider-header">
+                            <label for="slider-massa-sol">Massa do Sol ($M$):</label>
+                            <input type="number" id="num-massa-sol" class="number-input" min="200" max="3000" step="50" value="1000">
+                        </div>
+                        <input type="range" id="slider-massa-sol" class="range-slider" min="200" max="3000" step="50" value="1000">
+                    </div>
+
+                    <div class="sim-dual-slider">
+                        <div class="slider-header">
+                            <label for="slider-massa-planeta">Massa do Planeta ($m$):</label>
+                            <input type="number" id="num-massa-planeta" class="number-input" min="1" max="50" step="1" value="10">
+                        </div>
+                        <input type="range" id="slider-massa-planeta" class="range-slider" min="1" max="50" step="1" value="10">
+                    </div>
+
+                    <div class="sim-dual-slider">
+                        <div class="slider-header">
+                            <label for="slider-distancia">Distância Inicial ($r_0$):</label>
+                            <input type="number" id="num-distancia" class="number-input" min="80" max="400" step="5" value="200">
+                        </div>
+                        <input type="range" id="slider-distancia" class="range-slider" min="80" max="400" step="5" value="200">
+                    </div>
+
+                    <div class="sim-dual-slider">
+                        <div class="slider-header">
+                            <label for="slider-velocidade">Velocidade Inicial ($v_0$):</label>
+                            <input type="number" id="num-velocidade" class="number-input" min="0.5" max="5.0" step="0.05" value="2.24">
+                        </div>
+                        <input type="range" id="slider-velocidade" class="range-slider" min="0.5" max="5.0" step="0.05" value="2.24">
+                    </div>
+                </div>
+
+                <!-- Filtros Visuais de Vetores -->
+                <div class="control-section">
+                    <span class="control-label">Camadas e Vetores Físicos:</span>
+                    <div class="checkbox-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="show-position" checked>
+                            <span>Vetor Posição $\vec{r}$ (Verde)</span>
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="show-velocity" checked>
+                            <span>Vetor Velocidade $\vec{v}$ (Rosa)</span>
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="show-orbit-trail" checked>
+                            <span>Rastro Histórico da Trajetória</span>
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="show-grid-3d" checked>
+                            <span>Plano Eclíptico & Eixos 3D</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Card de Telemetria de Conservação de Energia (MultiSeriesPlot) -->
+                <div class="sim-plot-card">
+                    <div class="plot-header">
+                        <span class="plot-title">Conservação de Energia em Tempo Real</span>
+                    </div>
+                    <canvas id="canvas-energy-plot" height="150"></canvas>
+                    <div class="plot-legend-pills">
+                        <span class="pill-cinetica">● $K$ Cinética</span>
+                        <span class="pill-potencial">● $U$ Potencial</span>
+                        <span class="pill-total">● $E$ Mecânica Total</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CONTEÚDO DA ABA 2: TEORIA & LEIS DE KEPLER -->
+            <div class="tab-content" id="panel-tab-theory" style="display: none;">
+                <div class="theory-article">
+                    <h3>Mecânica Orbital & Gravitação Universal</h3>
+                    <p>
+                        A dinâmica dos corpos celestes é governada pela <strong>Lei da Gravitação Universal de Newton</strong>, que estabelece uma força atrativa proporcional ao produto das massas e inversamente proporcional ao quadrado da distância:
+                    </p>
+                    <div class="katex-display">
+                        $$\vec{F}_g = -G \frac{M m}{r^2} \hat{r} = -G \frac{M m}{r^3} \vec{r}$$
+                    </div>
+                    <p>
+                        Em um campo de força puramente central, o <strong>Momento Angular</strong> $\vec{L} = \vec{r} \times \vec{p}$ é estritamente conservado em magnitude e direção, restringindo o movimento orbital a um plano invariante bidimensional.
+                    </p>
+
+                    <h4>As Três Leis de Kepler</h4>
+                    <ol>
+                        <li>
+                            <strong>1ª Lei (Órbitas Elípticas)</strong>: Os planetas descrevem órbitas cônicas em torno do Sol, o qual ocupa um dos focos da elipse.
+                            $$\frac{p}{r} = 1 + e \cos(\theta)$$
+                        </li>
+                        <li>
+                            <strong>2ª Lei (Lei das Áreas)</strong>: O vetor raio varre áreas iguais em tempos iguais, resultante da conservação do momento angular ($\frac{dA}{dt} = \frac{L}{2m} = \text{constante}$).
+                        </li>
+                        <li>
+                            <strong>3ª Lei (Lei dos Períodos)</strong>: O quadrado do período orbital $T^2$ é diretamente proporcional ao cubo do semi-eixo maior $a^3$:
+                            $$T^2 = \frac{4\pi^2}{G(M + m)} a^3$$
+                        </li>
+                    </ol>
+
+                    <h4>Conservação da Energia Mecânica</h4>
+                    <p>
+                        A energia mecânica total de uma partícula em órbita é a soma escalar da energia cinética ($K$) com a energia potencial gravitacional ($U$):
+                    </p>
+                    <div class="katex-display">
+                        $$E = K + U = \frac{1}{2} m v^2 - \frac{G M m}{r} = -\frac{G M m}{2a}$$
+                    </div>
+                    <p>
+                        O sinal da energia total determina a geometria da trajetória:
+                    </p>
+                    <ul>
+                        <li>$E < 0$: Trajetória fechada limitada (Elipse, $e < 1$ ou Círculo, $e = 0$).</li>
+                        <li>$E = 0$: Trajetória de escape limite (Parábola, $e = 1$).</li>
+                        <li>$E > 0$: Trajetória aberta hiperbólica ($e > 1$).</li>
+                    </ul>
+
+                    <h4>Velocidade Orbital Circular & Escape</h4>
+                    <div class="katex-display">
+                        $$v_{\text{circ}} = \sqrt{\frac{G M}{r}}, \quad v_{\text{esc}} = \sqrt{\frac{2 G M}{r}} = \sqrt{2} \cdot v_{\text{circ}}$$
+                    </div>
+                </div>
+            </div>
+        </aside>
     </main>
 
-    <!-- Script da Simulação -->
-    <script src="scripts/gravidade.js"></script>
+    <!-- Script Modular da Simulação -->
+    <script type="module" src="scripts/gravidade.js"></script>
 </body>
-
 </html>
