@@ -445,6 +445,17 @@ initBottomSheet({
 });
 ```
 
+#### 4.6.1 Guia de Gestos Táteis e Ícones para Mobile
+Em dispositivos móveis (smartphones e tablets), substitua ou complemente as instruções de mouse por ícones de gestos táteis nativos:
+
+* `touch-drag.svg`: 1 dedo arrastar (órbita 3D ou arraste).
+* `touch-pinch.svg`: Gesto de pinça com 2 dedos (zoom aproximar/afastar).
+* `touch-pan.svg`: 2 dedos arrastar em paralelo (translação / pan).
+* `smartphone.svg` / `tablet.svg`: Orientação e controle do Bottom Sheet.
+
+> [!TIP]
+> **Prevenção de Scroll Acidental em Telas Táteis**: Em containers 3D Three.js ou canvas interativos, sempre aplique `touch-action: none;` no CSS do elemento para impedir que o gesto de pinça ou órbita 3D dispare o scroll vertical nativo da página.
+
 ---
 
 ### 4.7 Botões de Ação, Alternância 0/1 e Presets
@@ -497,7 +508,7 @@ initBottomSheet({
 
 ### 4.9 Galeria de Ícones Vetoriais Nativos (`assets/icons/`)
 
-Todos os 19 ícones vetoriais estão disponíveis em `assets/icons/` e adaptam-se automaticamente à cor do texto via `currentColor`:
+Todos os 34 ícones vetoriais estão disponíveis em `assets/icons/` e adaptam-se automaticamente à cor do texto via `currentColor`:
 
 | Nome do Ícone | Arquivo | Finalidade Sugerida |
 | :--- | :--- | :--- |
@@ -520,6 +531,21 @@ Todos os 19 ícones vetoriais estão disponíveis em `assets/icons/` e adaptam-s
 | `globe` | `globe.svg` | Coordenadas globais, Esfera |
 | `leaf` | `leaf.svg` | Ecologia, Dinâmica de populações |
 | `flower` | `flower.svg` | Padrões de Turing, Biologia |
+| `gauge` | `gauge.svg` | Manômetros, Velocímetros, Medição |
+| `pressure` | `pressure.svg` | Pressão e forças superficiais |
+| `mouse` | `mouse.svg` | Dispositivo mouse, Controles gerais |
+| `mouse-left` | `mouse-left.svg` | Botão esquerdo, Arrastar, Orbitar câmera |
+| `mouse-right` | `mouse-right.svg` | Botão direito, Panning, Deslocamento |
+| `mouse-wheel` | `mouse-wheel.svg` | Roda de rolagem (Scroll), Zoom |
+| `keyboard` | `keyboard.svg` | Atalhos de teclado, Dispositivo |
+| `key` | `key.svg` | Tecla individual (Keycap), Atalho unitário |
+| `smartphone` | `smartphone.svg` | Dispositivo móvel, Smartphone, Mobile |
+| `tablet` | `tablet.svg` | Tablet, Telas intermediárias |
+| `touch` | `touch.svg` | Toque / Tap na tela, Seleção tátil |
+| `touch-drag` | `touch-drag.svg` | 1 dedo arrastar, Orbitar cena 3D |
+| `touch-pinch` | `touch-pinch.svg` | Gesto de pinça (Pinch to Zoom) |
+| `touch-pan` | `touch-pan.svg` | 2 dedos arrastar, Deslocar / Panning |
+| `screen-rotate` | `screen-rotate.svg` | Orientação de tela, Modo paisagem/retrato |
 
 Para renderizar um ícone com coloração automática:
 ```html

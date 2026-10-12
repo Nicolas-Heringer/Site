@@ -8,6 +8,11 @@
 
 import * as THREE              from 'three';
 import { OrbitControls }      from 'three/addons/controls/OrbitControls.js';
+import {
+    initSidebarCollapse,
+    initBottomSheet,
+    inlineSVGImages
+} from './sim-ui.js';
 
 // ============================================================================
 // 1. FÍSICA — Funções Analíticas do Átomo de Hidrogênio
@@ -233,11 +238,23 @@ function gerarPontos(n, l, ml, numPontos) {
 // 3. RENDERIZAÇÃO — Three.js
 // ============================================================================
 
-let scene, camera, renderer, orbitControls, pointCloud;
+let scene, camera, renderer, orbitControls, pointCloud, container;
+
+/** Função de redimensionamento contínuo da câmera e do renderer WebGL */
+export function onWindowResize() {
+    if (!container) container = document.getElementById('three-container');
+    if (!container || !renderer || !camera) return;
+    const width = container.clientWidth;
+    const height = container.clientHeight;
+    if (width === 0 || height === 0) return;
+    camera.aspect = width / height;
+    camera.updateProjectionMatrix();
+    renderer.setSize(width, height);
+}
 
 /** Inicializa cena, câmera, renderer, OrbitControls e elementos fixos. */
 function initScene() {
-    const container = document.getElementById('three-container');
+    container = document.getElementById('three-container');
 
     // Cena
     scene = new THREE.Scene();
@@ -419,95 +436,304 @@ function criarNuvem(pontos, modo, n) {
 
 const NOMES_L = ['s', 'p', 'd', 'f', 'g'];
 
-// Referências DOM
-const selectN     = document.getElementById('select-n');
-const selectL     = document.getElementById('select-l');
-const selectMl    = document.getElementById('select-ml');
-const selectModo  = document.getElementById('select-modo');
-const sliderPts   = document.getElementById('slider-pontos');
-const spanPts     = document.getElementById('span-pontos');
-const btnGerar    = document.getElementById('btn-gerar');
-const spanOrbital = document.getElementById('span-orbital');
-const spanEnergia = document.getElementById('span-energia');
-const statusMsg   = document.getElementById('status-msg');
-const legendFase  = document.getElementById('legend-fase');
-const legendDens  = document.getElementById('legend-density');
+// Referências DOM — Painel Lateral Principal
+const selectN      = document.getElementById('select-n');
+const selectL      = document.getElementById('select-l');
+const selectMl     = document.getElementById('select-ml');
+const selectMs     = document.getElementById('select-ms');
+const selectModo   = document.getElementById('select-modo');
+const sliderPts    = document.getElementById('slider-pontos');
+const spanPts      = document.getElementById('span-pontos');
+const btnGerar     = document.getElementById('btn-gerar');
+const spanOrbital  = document.getElementById('span-orbital');
+const spanEnergia  = document.getElementById('span-energia');
+const statusMsg    = document.getElementById('status-msg');
+const legendFase   = document.getElementById('legend-fase');
+const legendDens   = document.getElementById('legend-density');
 
-/** Preenche o <select> de l com valores válidos (0 … n−1). */
-function atualizarSelectL() {
-    const n     = parseInt(selectN.value);
-    const lPrev = parseInt(selectL.value) || 0;
-    selectL.innerHTML = '';
-    for (let l = 0; l < n; l++) {
-        const opt       = document.createElement('option');
-        opt.value       = l;
-        opt.textContent = `${l}  (${NOMES_L[l]})`;
-        selectL.appendChild(opt);
-    }
-    selectL.value = Math.min(lPrev, n - 1);
-    atualizarSelectMl();
+// Referências DOM — Menu de Contexto (Topo Esquerdo do Canvas) & Popover
+const contextToolbar       = document.getElementById('quantum-context-toolbar');
+const quickSelectN         = document.getElementById('quick-select-n');
+const quickSelectL         = document.getElementById('quick-select-l');
+const quickSelectMl        = document.getElementById('quick-select-ml');
+const quickBadgeOrbital    = document.getElementById('quick-badge-orbital');
+const btnQuickGerar        = document.getElementById('btn-quick-gerar');
+const btnTogglePopover     = document.getElementById('btn-toggle-quantum-popover');
+
+const popoverEl            = document.getElementById('quantum-popover');
+const btnClosePopover      = document.getElementById('btn-close-quantum-popover');
+const popoverOrbitalName   = document.getElementById('popover-orbital-name');
+const popoverOrbitalEnergy = document.getElementById('popover-orbital-energy');
+const quickSelectMs        = document.getElementById('quick-select-ms');
+const quickSelectModo      = document.getElementById('quick-select-modo');
+const quickSliderPts       = document.getElementById('quick-slider-pontos');
+const quickSpanPts         = document.getElementById('quick-span-pontos');
+const btnPopoverGerar      = document.getElementById('btn-popover-gerar');
+
+// Ações Flutuantes no Topo Direito & Rodapé
+const btnQuickAutorotate   = document.getElementById('btn-quick-autorotate');
+const footerEnergyMeta     = document.getElementById('footer-energy-meta');
+const footerStatusText     = document.getElementById('footer-status-text');
+
+// Abas de Parâmetros e Teoria
+const tabBtnParams         = document.getElementById('tab-btn-params');
+const tabBtnTheory         = document.getElementById('tab-btn-theory');
+const panelTabParams       = document.getElementById('panel-tab-params');
+const panelTabTheory       = document.getElementById('panel-tab-theory');
+
+/** Atualiza todos os badges do orbital em tempo real */
+function atualizarBadges() {
+    const n = parseInt(selectN.value) || 1;
+    const l = parseInt(selectL.value) || 0;
+    const ml = parseInt(selectMl.value) || 0;
+    const mlStr = ml >= 0 ? `+${ml}` : `${ml}`;
+    const subshell = NOMES_L[l] || 's';
+    const nomeOrbital = `${n}${subshell}`;
+    const descCompleta = `${nomeOrbital}\u00A0\u00A0(m\u2113=${mlStr})`;
+    const energiaVal = (-13.6 / (n * n)).toFixed(3);
+    const energiaStr = `E = ${energiaVal} eV`;
+
+    if (spanOrbital) spanOrbital.textContent = descCompleta;
+    if (spanEnergia) spanEnergia.textContent = energiaStr;
+    if (quickBadgeOrbital) quickBadgeOrbital.textContent = `${nomeOrbital} (m\u2113=${mlStr})`;
+    if (popoverOrbitalName) popoverOrbitalName.textContent = descCompleta;
+    if (popoverOrbitalEnergy) popoverOrbitalEnergy.textContent = energiaStr;
+    if (footerEnergyMeta) footerEnergyMeta.textContent = energiaStr;
 }
 
-/** Preenche o <select> de mₗ com valores válidos (−l … +l). */
+/** Preenche os <select> de l no painel lateral e no menu de contexto (0 … n−1). */
+function atualizarSelectL() {
+    const n = parseInt(selectN.value) || 1;
+    const lPrev = parseInt(selectL.value) || 0;
+
+    selectL.innerHTML = '';
+    if (quickSelectL) quickSelectL.innerHTML = '';
+
+    for (let l = 0; l < n; l++) {
+        const opt = document.createElement('option');
+        opt.value = l;
+        opt.textContent = `${l}  (${NOMES_L[l]})`;
+        selectL.appendChild(opt);
+
+        if (quickSelectL) {
+            const qOpt = document.createElement('option');
+            qOpt.value = l;
+            qOpt.textContent = `${l} (${NOMES_L[l]})`;
+            quickSelectL.appendChild(qOpt);
+        }
+    }
+
+    const valL = Math.min(lPrev, n - 1);
+    selectL.value = valL;
+    if (quickSelectL) quickSelectL.value = valL;
+    if (quickSelectN) quickSelectN.value = n;
+
+    atualizarSelectMl();
+    atualizarBadges();
+}
+
+/** Preenche os <select> de mₗ no painel lateral e no menu de contexto (−l … +l). */
 function atualizarSelectMl() {
-    const l      = parseInt(selectL.value);
+    const l = parseInt(selectL.value) || 0;
     const mlPrev = parseInt(selectMl.value) || 0;
+
     selectMl.innerHTML = '';
+    if (quickSelectMl) quickSelectMl.innerHTML = '';
+
     for (let ml = -l; ml <= l; ml++) {
-        const opt       = document.createElement('option');
-        opt.value       = ml;
+        const opt = document.createElement('option');
+        opt.value = ml;
         opt.textContent = ml >= 0 ? `+${ml}` : `${ml}`;
         selectMl.appendChild(opt);
+
+        if (quickSelectMl) {
+            const qOpt = document.createElement('option');
+            qOpt.value = ml;
+            qOpt.textContent = ml >= 0 ? `+${ml}` : `${ml}`;
+            quickSelectMl.appendChild(qOpt);
+        }
     }
-    selectMl.value = Math.max(-l, Math.min(l, mlPrev));
+
+    const valMl = Math.max(-l, Math.min(l, mlPrev));
+    selectMl.value = valMl;
+    if (quickSelectMl) quickSelectMl.value = valMl;
+
+    atualizarBadges();
 }
 
 /** Mostra a legenda de fase ou de densidade conforme o modo selecionado. */
 function atualizarLegenda() {
-    if (selectModo.value === 'fase') {
-        legendFase.classList.remove('hidden');
-        legendDens.classList.add('hidden');
+    const modo = selectModo.value;
+    if (modo === 'fase') {
+        legendFase?.classList.remove('hidden');
+        legendDens?.classList.add('hidden');
     } else {
-        legendFase.classList.add('hidden');
-        legendDens.classList.remove('hidden');
+        legendFase?.classList.add('hidden');
+        legendDens?.classList.remove('hidden');
     }
 }
 
-/** Atualiza o texto de status e ativa/desativa o botão. */
+/** Atualiza o texto de status e ativa/desativa os botões. */
 function setStatus(msg, carregando = false) {
-    statusMsg.textContent = msg;
-    statusMsg.className   = carregando ? 'status loading' : 'status';
-    btnGerar.disabled     = carregando;
+    if (statusMsg) {
+        statusMsg.textContent = msg;
+        statusMsg.className = carregando ? 'status loading' : 'status';
+    }
+    if (btnGerar) btnGerar.disabled = carregando;
+    if (btnQuickGerar) btnQuickGerar.disabled = carregando;
+    if (btnPopoverGerar) btnPopoverGerar.disabled = carregando;
 }
 
 // Pontos atuais em memória — permite recolorir sem recalcular
 let pontosAtuais = null;
-let nAtual       = 1;
+let nAtual = 1;
 
 /** Recolore a nuvem existente com o novo modo, sem regenerar pontos. */
 function recolorirNuvem() {
     if (pontosAtuais) criarNuvem(pontosAtuais, selectModo.value, nAtual);
 }
 
-// ---- Listeners ----
+// ---- Listeners e Sincronização Bidirecional ----
 
-selectN.addEventListener('change', atualizarSelectL);
-selectL.addEventListener('change', atualizarSelectMl);
+// 1. Mudança em n
+selectN.addEventListener('change', () => {
+    if (quickSelectN) quickSelectN.value = selectN.value;
+    atualizarSelectL();
+    btnGerar.click();
+});
+quickSelectN?.addEventListener('change', () => {
+    selectN.value = quickSelectN.value;
+    atualizarSelectL();
+    btnGerar.click();
+});
 
+// 2. Mudança em l
+selectL.addEventListener('change', () => {
+    if (quickSelectL) quickSelectL.value = selectL.value;
+    atualizarSelectMl();
+    btnGerar.click();
+});
+quickSelectL?.addEventListener('change', () => {
+    selectL.value = quickSelectL.value;
+    atualizarSelectMl();
+    btnGerar.click();
+});
+
+// 3. Mudança em ml
+selectMl.addEventListener('change', () => {
+    if (quickSelectMl) quickSelectMl.value = selectMl.value;
+    atualizarBadges();
+    btnGerar.click();
+});
+quickSelectMl?.addEventListener('change', () => {
+    selectMl.value = quickSelectMl.value;
+    atualizarBadges();
+    btnGerar.click();
+});
+
+// 4. Mudança em ms (spin)
+selectMs?.addEventListener('change', () => {
+    if (quickSelectMs) quickSelectMs.value = selectMs.value;
+});
+quickSelectMs?.addEventListener('change', () => {
+    if (selectMs) selectMs.value = quickSelectMs.value;
+});
+
+// 5. Modo de Cor
 selectModo.addEventListener('change', () => {
+    if (quickSelectModo) quickSelectModo.value = selectModo.value;
+    atualizarLegenda();
+    recolorirNuvem();
+});
+quickSelectModo?.addEventListener('change', () => {
+    selectModo.value = quickSelectModo.value;
     atualizarLegenda();
     recolorirNuvem();
 });
 
+// 6. Slider de Pontos
 sliderPts.addEventListener('input', () => {
-    spanPts.textContent = parseInt(sliderPts.value).toLocaleString('pt-BR');
+    const pts = parseInt(sliderPts.value);
+    const formatted = pts.toLocaleString('pt-BR');
+    spanPts.textContent = formatted;
+    if (quickSliderPts) quickSliderPts.value = sliderPts.value;
+    if (quickSpanPts) quickSpanPts.textContent = formatted;
+});
+quickSliderPts?.addEventListener('input', () => {
+    const pts = parseInt(quickSliderPts.value);
+    const formatted = pts.toLocaleString('pt-BR');
+    sliderPts.value = quickSliderPts.value;
+    spanPts.textContent = formatted;
+    if (quickSpanPts) quickSpanPts.textContent = formatted;
 });
 
+// 7. Botões Gerar
+btnQuickGerar?.addEventListener('click', () => btnGerar.click());
+btnPopoverGerar?.addEventListener('click', () => {
+    popoverEl?.classList.add('hidden');
+    btnGerar.click();
+});
+
+// 8. Popover Quântico
+btnTogglePopover?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    popoverEl?.classList.toggle('hidden');
+});
+btnClosePopover?.addEventListener('click', () => {
+    popoverEl?.classList.add('hidden');
+});
+document.addEventListener('click', (e) => {
+    if (popoverEl && !popoverEl.classList.contains('hidden')) {
+        if (!popoverEl.contains(e.target) && !btnTogglePopover?.contains(e.target)) {
+            popoverEl.classList.add('hidden');
+        }
+    }
+});
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && popoverEl && !popoverEl.classList.contains('hidden')) {
+        popoverEl.classList.add('hidden');
+    }
+});
+
+// 9. Alternância de Rotação da Câmera
+btnQuickAutorotate?.addEventListener('click', () => {
+    if (!orbitControls) return;
+    orbitControls.autoRotate = !orbitControls.autoRotate;
+    orbitControls.autoRotateSpeed = 0.8;
+    btnQuickAutorotate.classList.toggle('active', orbitControls.autoRotate);
+    const icon = btnQuickAutorotate.querySelector('.icon-svg');
+    if (icon) icon.classList.toggle('icon-spin', orbitControls.autoRotate);
+});
+
+// 10. Abas: Parâmetros vs. Teoria
+tabBtnParams?.addEventListener('click', () => {
+    tabBtnParams.classList.add('active');
+    tabBtnTheory?.classList.remove('active');
+    if (panelTabParams) panelTabParams.style.display = 'block';
+    if (panelTabTheory) panelTabTheory.style.display = 'none';
+});
+tabBtnTheory?.addEventListener('click', () => {
+    tabBtnTheory.classList.add('active');
+    tabBtnParams?.classList.remove('active');
+    if (panelTabParams) panelTabParams.style.display = 'none';
+    if (panelTabTheory) panelTabTheory.style.display = 'block';
+
+    if (window.renderMathInElement && panelTabTheory) {
+        window.renderMathInElement(panelTabTheory, {
+            delimiters: [
+                { left: '$$', right: '$$', display: true },
+                { left: '$', right: '$', display: false }
+            ]
+        });
+    }
+});
+
+// Cálculo e Geração do Orbital
 btnGerar.addEventListener('click', () => {
-    const n         = parseInt(selectN.value);
-    const l         = parseInt(selectL.value);
-    const ml        = parseInt(selectMl.value);
-    const numPontos = parseInt(sliderPts.value);
+    const n         = parseInt(selectN.value) || 1;
+    const l         = parseInt(selectL.value) || 0;
+    const ml        = parseInt(selectMl.value) || 0;
+    const numPontos = parseInt(sliderPts.value) || 5000;
     const modo      = selectModo.value;
 
     setStatus('Calculando Ψ(r, θ, φ)…', true);
@@ -522,11 +748,7 @@ btnGerar.addEventListener('click', () => {
         nAtual       = n;
 
         criarNuvem(pontos, modo, n);
-
-        // Atualizar badge do orbital
-        const mlStr         = ml >= 0 ? `+${ml}` : `${ml}`;
-        spanOrbital.textContent = `${n}${NOMES_L[l]}\u00A0\u00A0(m\u2113=${mlStr})`;
-        spanEnergia.textContent = `E = ${(-13.6 / (n * n)).toFixed(3)} eV`;
+        atualizarBadges();
 
         // Reposicionar câmera para enquadrar o orbital
         const dist = n * n * 3.2 + 15;
@@ -540,6 +762,10 @@ btnGerar.addEventListener('click', () => {
             ? `⚠ ${ptsStr} pts (limite de tentativas) — ${dt}s`
             : `✓ ${ptsStr} pontos gerados em ${dt}s`;
         setStatus(msg, false);
+
+        if (footerStatusText) {
+            footerStatusText.textContent = `Orbital ${n}${NOMES_L[l]} pronto`;
+        }
     }, 40);
 });
 
@@ -547,9 +773,43 @@ btnGerar.addEventListener('click', () => {
 // 5. INICIALIZAÇÃO
 // ============================================================================
 
-atualizarSelectL();   // Popula l e mₗ com valores iniciais (n=1)
-atualizarLegenda();   // Mostra legenda de fase (modo padrão)
-initScene();          // Monta a cena Three.js
+window.addEventListener('DOMContentLoaded', async () => {
+    // Configura controladores de modo foco e responsividade mobile
+    initSidebarCollapse({
+        layoutSelector: '.sim-layout',
+        collapseBtnSelector: '#btn-collapse-sidebar',
+        expandBtnSelector: '#btn-expand-sidebar',
+        onResize: onWindowResize
+    });
 
-// Gera o orbital 1s automaticamente após a cena estar pronta
-setTimeout(() => btnGerar.click(), 450);
+    const layoutEl = document.querySelector('.sim-layout');
+    initBottomSheet({
+        panelSelector: '.controls-panel',
+        handleSelector: '#sheet-drag-handle',
+        tabNavSelector: '.tab-nav',
+        collapseBtnSelector: '#btn-collapse-sidebar',
+        defaultState: 'peek',
+        onStateChange: (state) => {
+            if (layoutEl) {
+                layoutEl.classList.toggle('mobile-sheet-peek', state === 'peek');
+            }
+        }
+    });
+
+    if (layoutEl && window.innerWidth <= 900) {
+        layoutEl.classList.add('mobile-sheet-peek');
+    }
+
+    // Popula l e ml com valores iniciais (n=1)
+    atualizarSelectL();
+    atualizarLegenda();
+
+    // Monta cena Three.js
+    initScene();
+
+    // Transforma tags <img> de ícones em código SVG inline com currentColor
+    await inlineSVGImages();
+
+    // Gera o orbital 1s automaticamente após a cena estar pronta
+    setTimeout(() => btnGerar.click(), 450);
+});

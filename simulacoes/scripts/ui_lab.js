@@ -35,7 +35,9 @@ const ICONS_LIST = [
     'dice', 'play', 'pause', 'step', 'rotate', 'refresh',
     'globe', 'sun', 'snowflake', 'leaf', 'flower',
     'thermometer', 'cyclone', 'wind', 'compass', 'sparkles', 'lightbulb',
-    'collapse', 'expand'
+    'collapse', 'expand', 'gauge', 'pressure',
+    'mouse', 'mouse-left', 'mouse-right', 'mouse-wheel', 'keyboard', 'key',
+    'smartphone', 'tablet', 'touch', 'touch-drag', 'touch-pinch', 'touch-pan', 'screen-rotate'
 ];
 
 let clickCount = 0;

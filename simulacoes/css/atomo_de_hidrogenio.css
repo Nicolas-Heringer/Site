@@ -9,6 +9,9 @@
     border-radius: 12px;
     overflow: hidden;
     cursor: grab;
+    touch-action: none; /* Previne scroll/zoom indesejado da página durante orbit/pinch 3D */
+    -webkit-user-select: none;
+    user-select: none;
 }
 
 #three-container:active {
@@ -209,4 +212,252 @@
 @keyframes statusPulse {
     0%, 100% { opacity: 1.0; }
     50%       { opacity: 0.30; }
+}
+
+/* ---------- Menu de Contexto Flutuante (Canto Superior Esquerdo) ---------- */
+.quantum-context-toolbar {
+    display: none; /* Oculto por padrão quando sidebar visível */
+    position: absolute;
+    top: 15px;
+    left: 15px;
+    z-index: 45;
+}
+
+/* Ativa automaticamente quando a sidebar for recolhida (Modo Foco) */
+.sim-layout.sidebar-collapsed .quantum-context-toolbar {
+    display: inline-flex;
+    animation: fadeInSlideDown 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes fadeInSlideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.toolbar-orbital-title {
+    color: var(--accent-color);
+    font-size: 1.1rem;
+    line-height: 1;
+    display: inline-flex;
+    align-items: center;
+}
+
+.toolbar-orbital-badge {
+    font-weight: 700;
+    font-size: 0.78rem;
+    color: var(--accent-color);
+    background: rgba(250, 204, 21, 0.12);
+    border: 1px solid rgba(250, 204, 21, 0.35);
+    border-radius: var(--radius-sm);
+    padding: 2px 7px;
+    letter-spacing: 0.03em;
+}
+
+.quick-qn-group {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.quick-qn-label {
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--accent-color);
+    margin-right: -2px;
+}
+
+.quick-qn-select {
+    appearance: none;
+    background: rgba(15, 23, 42, 0.9);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    padding: 3px 6px;
+    border-radius: var(--radius-sm);
+    font-size: 0.76rem;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+    text-align: center;
+    outline: none;
+    transition: border-color var(--trans-fast), background var(--trans-fast);
+}
+
+.quick-qn-select:hover,
+.quick-qn-select:focus {
+    border-color: var(--accent-color);
+    background: rgba(30, 41, 59, 0.95);
+}
+
+/* Popover Quântico */
+#quantum-popover {
+    top: 52px;
+    left: 15px;
+    min-width: 290px;
+    max-width: 320px;
+}
+
+.quantum-popover-content {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.orbital-badge-compact {
+    padding: 8px 12px;
+    border-radius: 10px;
+}
+
+.orbital-badge-compact .orbital-name {
+    font-size: 1.15rem;
+}
+
+.orbital-badge-compact .orbital-energy {
+    font-size: 0.72rem;
+}
+
+.popover-field-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.popover-field-label {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+.popover-field-select {
+    padding: 5px 8px !important;
+    font-size: 0.8rem !important;
+    min-width: 130px;
+}
+
+.popover-field-col {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.popover-slider-title-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* Lista de Instruções com Ícones */
+.sim-instructions-list {
+    list-style: none;
+    padding: 0 !important;
+    margin: 8px 0 0 0;
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+}
+
+.sim-instructions-list li {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    font-size: 0.82rem;
+    color: var(--text-secondary);
+    margin-bottom: 0 !important;
+}
+
+.sim-instructions-list .icon-svg {
+    width: 16px;
+    height: 16px;
+    color: var(--accent-color);
+    flex-shrink: 0;
+}
+
+.sim-instructions-list strong {
+    color: var(--text-primary);
+}
+
+/* ---------- Responsividade & Portabilidade Mobile ---------- */
+.instructions-block {
+    margin-top: 6px;
+}
+
+.instructions-title {
+    display: block;
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--accent-color);
+    margin-bottom: 5px;
+}
+
+/* Alternância Desktop vs. Mobile para instruções */
+@media (min-width: 901px) {
+    .mobile-only {
+        display: none !important;
+    }
+}
+
+@media (max-width: 900px) {
+    .desktop-only {
+        display: none !important;
+    }
+
+    /* No mobile, ativa o menu de contexto quando o bottom sheet estiver em 'peek' (minimizado) */
+    .sim-layout.mobile-sheet-peek .quantum-context-toolbar {
+        display: inline-flex;
+    }
+
+    /* Oculta o menu de contexto se o bottom sheet for expandido para evitar poluição visual */
+    .sim-layout:not(.mobile-sheet-peek):not(.sidebar-collapsed) .quantum-context-toolbar {
+        display: none;
+    }
+
+    .controls-panel {
+        padding-bottom: max(16px, env(safe-area-inset-bottom, 16px));
+    }
+}
+
+/* Telas compactas (smartphones < 560px) */
+@media (max-width: 560px) {
+    .quantum-context-toolbar {
+        top: 8px;
+        left: 8px;
+        padding: 4px 6px;
+        gap: 4px;
+        font-size: 0.72rem;
+        max-width: calc(100vw - 75px);
+    }
+
+    .quick-qn-group {
+        gap: 3px;
+    }
+
+    .quick-qn-select {
+        padding: 2px 4px;
+        font-size: 0.70rem;
+    }
+
+    .toolbar-orbital-badge {
+        font-size: 0.70rem;
+        padding: 1px 5px;
+    }
+
+    .quantum-context-toolbar .toolbar-btn span {
+        display: none; /* Exibe apenas o ícone nos botões da toolbar para caber em telas menores */
+    }
+
+    .qn-cell {
+        padding: 7px 4px 5px;
+    }
+
+    .qn-select {
+        font-size: 0.82rem !important;
+    }
 }
