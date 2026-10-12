@@ -193,15 +193,24 @@ class SistemaParticulas {
 
         for (let i = 0; i < this.particulas.length; i++) {
             const p = this.particulas[i];
-            if (p.fixa) return;
+            if (p.fixa) continue;
             const dx = p.origX - centroX;
             const dy = p.origY - centroY;
             const dist = Math.hypot(dx, dy);
 
-            if (dist < 120 && dist > 1) {
-                const f = (1 - dist / 120) * forcaMax;
-                p.vx += (dx / dist) * f;
-                p.vy += (dy / dist) * f;
+            const raioPulso = 160;
+            if (dist < raioPulso) {
+                const peso = Math.pow(1 - dist / raioPulso, 1.2);
+                const f = peso * forcaMax;
+                if (dist > 1) {
+                    p.vx += (dx / dist) * f;
+                    p.vy += (dy / dist) * f;
+                    p.x += (dx / dist) * (f * 0.04);
+                    p.y += (dy / dist) * (f * 0.04);
+                } else {
+                    p.vy += f;
+                    p.y += f * 0.04;
+                }
             }
         }
     }
@@ -457,7 +466,7 @@ function setupUI() {
 
     // Botão de Pulso Central Rápido
     document.getElementById('btn-quick-pulse')?.addEventListener('click', () => {
-        sistema.aplicarPulsoCentral(state.intensidade * 0.4);
+        sistema.aplicarPulsoCentral(state.intensidade * 0.8);
     });
 
     // Seletor de Velocidades
