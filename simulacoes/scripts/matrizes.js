@@ -1,8 +1,18 @@
 // =============================================================================
 // Autor: Nicolas Heringer
-// Coautor / Revisor: Gemini 3.0 Flash
-// Simulação: Transformações Lineares
+// Coautor / Revisor: Gemini 3.0 Flash & Antigravity
+// Simulação: Transformações Lineares 2D (Design System 2.0)
 // =============================================================================
+
+import {
+    initBottomSheet,
+    initSidebarCollapse,
+    initTabs,
+    inlineSVGImages,
+    initKaTeXAutoRender,
+    eigen2x2,
+    det2x2
+} from './sim-ui.js';
 
 class PlanoCartesiano {
     constructor(canvas) {
@@ -16,16 +26,20 @@ class PlanoCartesiano {
         // Vetor de prova opcional (v)
         this.vVec = { x: 2, y: 1 };
         this.showVVec = true;
+        this.showEigen = true;
+
+        // Análise de autovalores/autovetores
+        this.currentAnalysis = null;
 
         // Configurações visuais do plano
         this.scale = 50; // 50 píxeis = 1 unidade matemática
         this.gridRange = 14; // Número de linhas da grade para cada lado
         this.origin = { x: canvas.width / 2, y: canvas.height / 2 };
 
-        // Estado de interação do mouse
+        // Estado de interação
         this.draggingTarget = null; // 'i', 'j', ou 'v'
         this.hoverTarget = null;
-        this.dragRadius = 14; // Raio em píxeis para captura do clique
+        this.dragRadius = 18; // Raio em píxeis para captura do ponteiro/toque
     }
 
     /**
@@ -37,7 +51,6 @@ class PlanoCartesiano {
         this.canvas.height = rect.height;
         this.origin = { x: this.canvas.width / 2, y: this.canvas.height / 2 };
 
-        // Ajustar escala responsiva para telas menores
         if (this.canvas.width < 600) {
             this.scale = 38;
         } else {
@@ -91,21 +104,29 @@ class PlanoCartesiano {
         // 2. Área do Determinante (Paralelograma unitário formado por î' e ĵ')
         this.drawDeterminantArea();
 
-        // 3. Grade transformada (linhas paralelas formadas a partir das combinações dos vetores base)
+        // 3. Círculo unitário transformado (elipse de deformação)
+        this.drawTransformedUnitCircle();
+
+        // 4. Grade transformada
         this.drawTransformedGrid();
 
-        // 4. Eixos principais transformados (x = 0 e y = 0 deformados)
+        // 5. Eixos principais transformados
         this.drawTransformedAxes();
 
-        // 5. Vetor de prova personalizado v⃗ e sua imagem v⃗' = Mv⃗ (se habilitado)
+        // 6. Eixos de autovetores reais invariantes (se ativos)
+        if (this.showEigen && this.currentAnalysis && this.currentAnalysis.isReal) {
+            this.drawEigenAxes();
+        }
+
+        // 7. Vetor de prova personalizado v⃗ e sua imagem v⃗' = Mv⃗
         if (this.showVVec) {
             this.drawVectorProbe();
         }
 
-        // 6. Vetores unitários da base (î' e ĵ') com destaque e etiquetas
+        // 8. Vetores unitários da base (î' e ĵ') com destaque
         this.drawBasisVectors();
 
-        // 7. Marcador de ponto de origem (0, 0)
+        // 9. Marcador do ponto de origem (0, 0)
         this.drawOriginMarker();
     }
 
@@ -116,9 +137,7 @@ class PlanoCartesiano {
         this.ctx.lineWidth = 1;
         this.ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
 
-        // Linhas verticais e horizontais estáticas
         for (let i = -this.gridRange; i <= this.gridRange; i++) {
-            // Vertical
             let p1 = this.toScreen(i, -this.gridRange);
             let p2 = this.toScreen(i, this.gridRange);
             this.ctx.beginPath();
@@ -126,7 +145,6 @@ class PlanoCartesiano {
             this.ctx.lineTo(p2.x, p2.y);
             this.ctx.stroke();
 
-            // Horizontal
             p1 = this.toScreen(-this.gridRange, i);
             p2 = this.toScreen(this.gridRange, i);
             this.ctx.beginPath();
@@ -134,6 +152,32 @@ class PlanoCartesiano {
             this.ctx.lineTo(p2.x, p2.y);
             this.ctx.stroke();
         }
+    }
+
+    /**
+     * Desenha a deformação do círculo unitário
+     */
+    drawTransformedUnitCircle() {
+        const steps = 72;
+        this.ctx.save();
+        this.ctx.beginPath();
+        for (let step = 0; step <= steps; step++) {
+            const angle = (step / steps) * Math.PI * 2;
+            const unitX = Math.cos(angle);
+            const unitY = Math.sin(angle);
+            const trans = this.transformPoint(unitX, unitY);
+            const pt = this.toScreen(trans.x, trans.y);
+            if (step === 0) {
+                this.ctx.moveTo(pt.x, pt.y);
+            } else {
+                this.ctx.lineTo(pt.x, pt.y);
+            }
+        }
+        this.ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+        this.ctx.lineWidth = 1.5;
+        this.ctx.setLineDash([3, 3]);
+        this.ctx.stroke();
+        this.ctx.restore();
     }
 
     /**
@@ -152,8 +196,7 @@ class PlanoCartesiano {
         this.ctx.lineTo(j.x, j.y);
         this.ctx.closePath();
 
-        // Cor de preenchimento translucida (amarelo/dourado)
-        this.ctx.fillStyle = 'rgba(250, 204, 21, 0.18)';
+        this.ctx.fillStyle = 'rgba(250, 204, 21, 0.16)';
         this.ctx.fill();
 
         this.ctx.lineWidth = 1.5;
@@ -167,14 +210,11 @@ class PlanoCartesiano {
     drawTransformedGrid() {
         const range = this.gridRange;
 
-        // Retas paralelas a î' (variando y inteiro)
         for (let y = -range; y <= range; y++) {
-            if (y === 0) continue; // Pula o eixo principal para desenhar com destaque depois
+            if (y === 0) continue;
 
-            // Ponto inicial x = -range, Ponto final x = +range
             const startMath = this.transformPoint(-range, y);
             const endMath = this.transformPoint(range, y);
-
             const p1 = this.toScreen(startMath.x, startMath.y);
             const p2 = this.toScreen(endMath.x, endMath.y);
 
@@ -182,17 +222,15 @@ class PlanoCartesiano {
             this.ctx.moveTo(p1.x, p1.y);
             this.ctx.lineTo(p2.x, p2.y);
             this.ctx.lineWidth = 1;
-            this.ctx.strokeStyle = 'rgba(250, 204, 21, 0.12)';
+            this.ctx.strokeStyle = 'rgba(250, 204, 21, 0.1)';
             this.ctx.stroke();
         }
 
-        // Retas paralelas a ĵ' (variando x inteiro)
         for (let x = -range; x <= range; x++) {
             if (x === 0) continue;
 
             const startMath = this.transformPoint(x, -range);
             const endMath = this.transformPoint(x, range);
-
             const p1 = this.toScreen(startMath.x, startMath.y);
             const p2 = this.toScreen(endMath.x, endMath.y);
 
@@ -200,18 +238,17 @@ class PlanoCartesiano {
             this.ctx.moveTo(p1.x, p1.y);
             this.ctx.lineTo(p2.x, p2.y);
             this.ctx.lineWidth = 1;
-            this.ctx.strokeStyle = 'rgba(56, 189, 248, 0.12)';
+            this.ctx.strokeStyle = 'rgba(56, 189, 248, 0.1)';
             this.ctx.stroke();
         }
     }
 
     /**
-     * Desenha os eixos X e Y transformados com maior espessura
+     * Desenha os eixos X e Y transformados
      */
     drawTransformedAxes() {
         const range = this.gridRange;
 
-        // Eixo X transformado (variando x, com y = 0)
         let startMath = this.transformPoint(-range, 0);
         let endMath = this.transformPoint(range, 0);
         let p1 = this.toScreen(startMath.x, startMath.y);
@@ -221,10 +258,9 @@ class PlanoCartesiano {
         this.ctx.moveTo(p1.x, p1.y);
         this.ctx.lineTo(p2.x, p2.y);
         this.ctx.lineWidth = 2;
-        this.ctx.strokeStyle = 'rgba(250, 204, 21, 0.45)'; // Cor do eixo X/î
+        this.ctx.strokeStyle = 'rgba(250, 204, 21, 0.45)';
         this.ctx.stroke();
 
-        // Eixo Y transformado (variando y, com x = 0)
         startMath = this.transformPoint(0, -range);
         endMath = this.transformPoint(0, range);
         p1 = this.toScreen(startMath.x, startMath.y);
@@ -234,15 +270,38 @@ class PlanoCartesiano {
         this.ctx.moveTo(p1.x, p1.y);
         this.ctx.lineTo(p2.x, p2.y);
         this.ctx.lineWidth = 2;
-        this.ctx.strokeStyle = 'rgba(56, 189, 248, 0.45)'; // Cor do eixo Y/ĵ
+        this.ctx.strokeStyle = 'rgba(56, 189, 248, 0.45)';
         this.ctx.stroke();
+    }
+
+    /**
+     * Desenha as retas invariantes dos autovetores
+     */
+    drawEigenAxes() {
+        if (!this.currentAnalysis || !this.currentAnalysis.eigenvectors) return;
+        const R = this.gridRange * 1.5;
+
+        this.ctx.save();
+        this.ctx.setLineDash([6, 6]);
+        this.ctx.lineWidth = 1.5;
+        this.ctx.strokeStyle = 'rgba(168, 85, 247, 0.65)'; // Roxo/Púrpura
+
+        this.currentAnalysis.eigenvectors.forEach((v) => {
+            if (!v || (v[0] === 0 && v[1] === 0)) return;
+            const p1 = this.toScreen(-R * v[0], -R * v[1]);
+            const p2 = this.toScreen(R * v[0], R * v[1]);
+            this.ctx.beginPath();
+            this.ctx.moveTo(p1.x, p1.y);
+            this.ctx.lineTo(p2.x, p2.y);
+            this.ctx.stroke();
+        });
+        this.ctx.restore();
     }
 
     /**
      * Desenha o vetor de prova personalizado v⃗ e sua transformação v⃗'
      */
     drawVectorProbe() {
-        // Vetor original v (linha pontilhada rosa/roxo)
         const originPx = this.toScreen(0, 0);
         const vOriginalPx = this.toScreen(this.vVec.x, this.vVec.y);
 
@@ -256,25 +315,22 @@ class PlanoCartesiano {
         this.ctx.stroke();
         this.ctx.restore();
 
-        // Vetor transformado v' = Mv
         const vTransformedMath = this.transformPoint(this.vVec.x, this.vVec.y);
         const vTransformedPx = this.toScreen(vTransformedMath.x, vTransformedMath.y);
 
         this.drawArrow(originPx, vTransformedPx, '#f472b6', 3);
 
-        // Rótulo v'
         this.ctx.font = 'bold 13px Inter, sans-serif';
         this.ctx.fillStyle = '#f472b6';
         this.ctx.fillText(`v⃗'`, vTransformedPx.x + 10, vTransformedPx.y - 10);
 
-        // Circulo de captura se estiver em hover ou drag
         if (this.hoverTarget === 'v' || this.draggingTarget === 'v') {
             this.drawHandle(vTransformedPx, '#f472b6');
         }
     }
 
     /**
-     * Desenha os vetores da base î' e ĵ' com destaque visual elevado
+     * Desenha os vetores da base î' e ĵ'
      */
     drawBasisVectors() {
         const originPx = this.toScreen(0, 0);
@@ -327,13 +383,11 @@ class PlanoCartesiano {
         this.ctx.fillStyle = color;
         this.ctx.lineWidth = width;
 
-        // Corpo da seta
         this.ctx.beginPath();
         this.ctx.moveTo(from.x, from.y);
         this.ctx.lineTo(to.x, to.y);
         this.ctx.stroke();
 
-        // Cabeça da seta
         this.ctx.beginPath();
         this.ctx.moveTo(to.x, to.y);
         this.ctx.lineTo(to.x - headLength * Math.cos(angle - Math.PI / 6), to.y - headLength * Math.sin(angle - Math.PI / 6));
@@ -345,7 +399,7 @@ class PlanoCartesiano {
     }
 
     /**
-     * Desenha um anel de destaque ao redor do ponto clicável
+     * Desenha anel de captura ao redor do ponto manipulável
      */
     drawHandle(point, color) {
         this.ctx.beginPath();
@@ -358,7 +412,7 @@ class PlanoCartesiano {
     }
 
     /**
-     * Detecta qual vetor o mouse está sobrepondo para arrastar
+     * Detecta qual vetor o ponteiro está sobrepondo
      */
     getHitTarget(screenX, screenY) {
         const iPx = this.toScreen(this.iHat.x, this.iHat.y);
@@ -382,17 +436,24 @@ class PlanoCartesiano {
 }
 
 
-// --- LÓGICA PRINCIPAL DA SIMULAÇÃO E INTERFASE ---
+// --- INICIALIZAÇÃO DA SIMULAÇÃO ---
 
 document.addEventListener('DOMContentLoaded', () => {
+    // Inicializar subsistemas do Design System 2.0
+    inlineSVGImages();
+    initTabs();
+    initSidebarCollapse();
+    initBottomSheet('#controls-panel');
+    initKaTeXAutoRender();
+
     const canvas = document.getElementById('simCanvas');
     const plano = new PlanoCartesiano(canvas);
 
     // Entradas da Matriz 2x2
-    const inputM11 = document.getElementById('m11'); // a
-    const inputM12 = document.getElementById('m12'); // b
-    const inputM21 = document.getElementById('m21'); // c
-    const inputM22 = document.getElementById('m22'); // d
+    const inputM11 = document.getElementById('m11');
+    const inputM12 = document.getElementById('m12');
+    const inputM21 = document.getElementById('m21');
+    const inputM22 = document.getElementById('m22');
 
     // Badges de leitura
     const valIx = document.getElementById('valIx');
@@ -408,12 +469,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const btnApply = document.getElementById('btnApply');
     const btnReset = document.getElementById('btnReset');
+    const btnFocus = document.getElementById('btn-focus-mode');
 
-    // Determinante e Leitura
+    // Determinante, Autovalores e Leitura
     const detVal = document.getElementById('detVal');
     const detAreaText = document.getElementById('detAreaText');
     const detOrientText = document.getElementById('detOrientText');
     const badgeDetValue = document.getElementById('badgeDetValue');
+    const eigenValText = document.getElementById('eigenValText');
 
     // Vetor de prova
     const chkCustomVector = document.getElementById('chkCustomVector');
@@ -422,15 +485,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const vyInput = document.getElementById('vyInput');
     const valVxPrime = document.getElementById('valVxPrime');
     const valVyPrime = document.getElementById('valVyPrime');
+    const chkShowEigen = document.getElementById('chkShowEigen');
 
     // Estado da animação
     let startMatrix = { a: 1, b: 0, c: 0, d: 1 };
     let targetMatrix = { a: 1, b: 0, c: 0, d: 1 };
-    let currentProgress = 1.0;
     let animRequestId = null;
     let isAnimating = false;
 
-    // Inicialização do Canvas Responsivo
+    // Redimensionamento
     function handleResize() {
         plano.resize();
         plano.draw();
@@ -438,9 +501,14 @@ document.addEventListener('DOMContentLoaded', () => {
     window.addEventListener('resize', handleResize);
     handleResize();
 
-    /**
-     * Obtém os valores da matriz alvo configurada pelos inputs do usuário
-     */
+    // Modo Foco
+    if (btnFocus) {
+        btnFocus.addEventListener('click', () => {
+            const sidebar = document.getElementById('controls-panel');
+            if (sidebar) sidebar.classList.toggle('collapsed');
+        });
+    }
+
     function getTargetMatrixFromInputs() {
         return {
             a: parseFloat(inputM11.value) || 0,
@@ -450,9 +518,6 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     }
 
-    /**
-     * Atualiza os campos de input a partir de um objeto de matriz
-     */
     function setInputsFromMatrix(m) {
         inputM11.value = m.a.toFixed(2);
         inputM12.value = m.b.toFixed(2);
@@ -460,26 +525,21 @@ document.addEventListener('DOMContentLoaded', () => {
         inputM22.value = m.d.toFixed(2);
     }
 
-    /**
-     * Recalcula a posição atual interpolada entre startMatrix e targetMatrix
-     */
     function updateInterpolatedSpace(t) {
         const a = startMatrix.a + (targetMatrix.a - startMatrix.a) * t;
         const b = startMatrix.b + (targetMatrix.b - startMatrix.b) * t;
         const c = startMatrix.c + (targetMatrix.c - startMatrix.c) * t;
         const d = startMatrix.d + (targetMatrix.d - startMatrix.d) * t;
 
-        // Atualiza vetores base do plano
         plano.iHat = { x: a, y: c };
         plano.jHat = { x: b, y: d };
 
-        // Atualiza textos informativos
         valIx.textContent = a.toFixed(2);
         valIy.textContent = c.toFixed(2);
         valJx.textContent = b.toFixed(2);
         valJy.textContent = d.toFixed(2);
 
-        // Recalcular Determinante na configuração atual
+        // Determinante
         const det = a * d - b * c;
         detVal.textContent = det.toFixed(2);
         badgeDetValue.textContent = `det(M) = ${det.toFixed(2)}`;
@@ -498,7 +558,21 @@ document.addEventListener('DOMContentLoaded', () => {
             detOrientText.className = 'readout-value highlight-green';
         }
 
-        // Atualizar Vetor v' = Mv
+        // Análise de Autovalores via sim-ui.js
+        const analysis = eigen2x2({ a, b, c, d });
+        plano.currentAnalysis = analysis;
+
+        if (eigenValText) {
+            if (analysis.isReal) {
+                const [l1, l2] = analysis.eigenvalues;
+                eigenValText.textContent = `${l1.toFixed(2)}, ${l2.toFixed(2)}`;
+            } else {
+                const ev = analysis.eigenvalues[0];
+                eigenValText.textContent = `${ev.re.toFixed(2)} ± ${ev.im.toFixed(2)}i`;
+            }
+        }
+
+        // Vetor v' = Mv
         const vx = parseFloat(vxInput.value) || 0;
         const vy = parseFloat(vyInput.value) || 0;
         plano.vVec = { x: vx, y: vy };
@@ -510,13 +584,9 @@ document.addEventListener('DOMContentLoaded', () => {
         plano.draw();
     }
 
-    /**
-     * Inicia a animação fluida de transformação de t=0 até t=1
-     */
     function triggerAnimation() {
         if (isAnimating) cancelAnimationFrame(animRequestId);
 
-        // Estado inicial passa a ser os vetores atuais do plano
         startMatrix = {
             a: plano.iHat.x,
             b: plano.jHat.x,
@@ -525,25 +595,21 @@ document.addEventListener('DOMContentLoaded', () => {
         };
         targetMatrix = getTargetMatrixFromInputs();
 
-        const duration = 1200; // 1.2 segundos
+        const duration = 1000;
         const startTime = performance.now();
         isAnimating = true;
 
         function animateStep(now) {
             const elapsed = now - startTime;
             let p = Math.min(elapsed / duration, 1.0);
-
-            // Função de easing (cubic smoothstep)
             const easedP = p < 0.5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2;
 
-            currentProgress = easedP;
             updateInterpolatedSpace(easedP);
 
             if (p < 1.0) {
                 animRequestId = requestAnimationFrame(animateStep);
             } else {
                 isAnimating = false;
-                // Ajusta startMatrix para ser igual à targetMatrix para próximas iterações
                 startMatrix = { ...targetMatrix };
             }
         }
@@ -551,15 +617,13 @@ document.addEventListener('DOMContentLoaded', () => {
         animRequestId = requestAnimationFrame(animateStep);
     }
 
-    // --- EVENT LISTENERS DA INTERFACE ---
+    // --- LISTENERS DE INTERFACE ---
 
-    // Botão ▶ Aplicar Matriz (Para matrizes inseridas manualmente pelo usuário/professor)
     btnApply.addEventListener('click', () => {
         btnApply.classList.remove('pulse-accent');
         triggerAnimation();
     });
 
-    // Mudança direta em um dos 4 números da matriz (Apenas prepara a matriz sem rodar animação automática)
     [inputM11, inputM12, inputM21, inputM22].forEach(input => {
         input.addEventListener('input', () => {
             targetMatrix = getTargetMatrixFromInputs();
@@ -567,7 +631,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // Botão ↺ Resetar (Voltar à matriz Identidade)
     btnReset.addEventListener('click', () => {
         presetSelect.value = 'identity';
         rotationGroup.style.display = 'none';
@@ -578,7 +641,6 @@ document.addEventListener('DOMContentLoaded', () => {
         triggerAnimation();
     });
 
-    // Seleção de Presets
     presetSelect.addEventListener('change', (e) => {
         const val = e.target.value;
         rotationGroup.style.display = (val === 'rotation') ? 'block' : 'none';
@@ -617,7 +679,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (btnApply) btnApply.classList.add('pulse-accent');
     });
 
-    // Slider de Ângulo para Rotação
     function updateRotationFromSlider() {
         const deg = parseFloat(rotSlider.value);
         rotVal.textContent = `${deg}°`;
@@ -638,7 +699,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     rotSlider.addEventListener('input', updateRotationFromSlider);
 
-    // Controles do Vetor de Prova v
     chkCustomVector.addEventListener('change', (e) => {
         const isChecked = e.target.checked;
         plano.showVVec = isChecked;
@@ -646,24 +706,41 @@ document.addEventListener('DOMContentLoaded', () => {
         plano.draw();
     });
 
+    if (chkShowEigen) {
+        chkShowEigen.addEventListener('change', (e) => {
+            plano.showEigen = e.target.checked;
+            plano.draw();
+        });
+    }
+
     [vxInput, vyInput].forEach(input => {
         input.addEventListener('input', () => {
             updateInterpolatedSpace(1.0);
         });
     });
 
-    // --- INTERATIVIDADE DE ARRASTE NO CANVAS ---
+    // --- INTERAÇÃO UNIFICADA DE PONTEIRO (DESKTOP E TOQUE MOBILE) ---
 
-    canvas.addEventListener('mousemove', (e) => {
+    canvas.addEventListener('pointerdown', (e) => {
+        const rect = canvas.getBoundingClientRect();
+        const mouseX = e.clientX - rect.left;
+        const mouseY = e.clientY - rect.top;
+
+        const hit = plano.getHitTarget(mouseX, mouseY);
+        if (hit) {
+            plano.draggingTarget = hit;
+            canvas.style.cursor = 'grabbing';
+            canvas.setPointerCapture(e.pointerId);
+        }
+    });
+
+    canvas.addEventListener('pointermove', (e) => {
         const rect = canvas.getBoundingClientRect();
         const mouseX = e.clientX - rect.left;
         const mouseY = e.clientY - rect.top;
 
         if (plano.draggingTarget) {
-            // Convertemos clique para coordenadas matemáticas
             const mathPos = plano.toMath(mouseX, mouseY);
-
-            // Arredondar suavemente para 1 casa decimal para facilidade de uso
             const roundedX = Math.round(mathPos.x * 10) / 10;
             const roundedY = Math.round(mathPos.y * 10) / 10;
 
@@ -674,8 +751,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 inputM12.value = roundedX.toFixed(1);
                 inputM22.value = roundedY.toFixed(1);
             } else if (plano.draggingTarget === 'v') {
-                // Caso v = (vx, vy), transformar para achar as coordenadas no espaço original se arrastado v'
-                // Ou simplificado: v_math = v_novo
                 vxInput.value = roundedX.toFixed(1);
                 vyInput.value = roundedY.toFixed(1);
             }
@@ -684,7 +759,6 @@ document.addEventListener('DOMContentLoaded', () => {
             startMatrix = { ...targetMatrix };
             updateInterpolatedSpace(1.0);
         } else {
-            // Verificar hover
             const hit = plano.getHitTarget(mouseX, mouseY);
             if (hit !== plano.hoverTarget) {
                 plano.hoverTarget = hit;
@@ -694,25 +768,17 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    canvas.addEventListener('mousedown', (e) => {
-        const rect = canvas.getBoundingClientRect();
-        const mouseX = e.clientX - rect.left;
-        const mouseY = e.clientY - rect.top;
-
-        const hit = plano.getHitTarget(mouseX, mouseY);
-        if (hit) {
-            plano.draggingTarget = hit;
-            canvas.style.cursor = 'grabbing';
-        }
-    });
-
-    window.addEventListener('mouseup', () => {
+    const endPointer = (e) => {
         if (plano.draggingTarget) {
+            try { canvas.releasePointerCapture(e.pointerId); } catch (_) {}
             plano.draggingTarget = null;
             canvas.style.cursor = 'default';
             plano.draw();
         }
-    });
+    };
+
+    canvas.addEventListener('pointerup', endPointer);
+    canvas.addEventListener('pointercancel', endPointer);
 
     // Estado Inicial
     updateInterpolatedSpace(1.0);

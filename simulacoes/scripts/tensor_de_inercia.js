@@ -7,6 +7,14 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { DragControls } from 'three/addons/controls/DragControls.js';
+import {
+    initBottomSheet,
+    initSidebarCollapse,
+    initTabs,
+    inlineSVGImages,
+    initKaTeXAutoRender,
+    diagonalizeSymmetric3x3
+} from './sim-ui.js';
 
 // =============================================================================
 // CONSTANTES E CONFIGURAÇÃO
@@ -437,29 +445,20 @@ function momentAboutAxis(tensor, axis) {
 }
 
 /**
- * Diagonalização do tensor (autovalores e autovetores) via numeric.js
+ * Diagonalização exata do tensor simétrico via método de Jacobi nativo (sim-ui.js)
  */
 function diagonalizeTensor(tensor) {
     try {
-        const eig = numeric.eig(tensor);
-        const vals = eig.lambda.x || eig.lambda;
-        const vecs = eig.E.x || eig.E;
-        
-        // Organizar: índices ordenados por autovalor crescente
-        const indices = [0, 1, 2].sort((a, b) => vals[a] - vals[b]);
-        
-        return {
-            values: indices.map(i => vals[i]),
-            vectors: indices.map(i => [vecs[0][i], vecs[1][i], vecs[2][i]]),
-        };
+        return diagonalizeSymmetric3x3(tensor);
     } catch (e) {
         console.warn('Diagonalização falhou:', e);
         return {
             values: [tensor[0][0], tensor[1][1], tensor[2][2]],
-            vectors: [[1,0,0],[0,1,0],[0,0,1]],
+            vectors: [[1, 0, 0], [0, 1, 0], [0, 0, 1]],
         };
     }
 }
+
 
 // =============================================================================
 // RECONSTRUIR CENA
@@ -1043,10 +1042,26 @@ function initUI() {
         animateDiagonalization();
     });
 
+    // Inicializar subsistemas do Design System 2.0
+    inlineSVGImages();
+    initTabs();
+    initSidebarCollapse();
+    initBottomSheet('#controls-panel');
+    initKaTeXAutoRender();
+
+    const btnFocus = document.getElementById('btn-focus-mode');
+    if (btnFocus) {
+        btnFocus.addEventListener('click', () => {
+            const sidebar = document.getElementById('controls-panel');
+            if (sidebar) sidebar.classList.toggle('collapsed');
+        });
+    }
+
     // Inicializar UI
     showPartControls();
     updateBodyDimensionInputs();
 }
+
 
 function updateCustomAxis() {
     const nx = parseFloat(document.getElementById('axis-nx').value) || 0;

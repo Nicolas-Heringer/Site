@@ -941,3 +941,344 @@ export function initKaTeXAutoRender(root = document.body, customOptions = {}) {
     }
 }
 
+/**
+ * =============================================================================
+ * ÁLGEBRA LINEAR & TENSORES (MatrixMath & MatrixTensorEditor)
+ * =============================================================================
+ */
+
+/**
+ * Normaliza matriz 2x2 para array 2x2 [[a, b], [c, d]]
+ */
+function normalize2x2(M) {
+    if (Array.isArray(M)) return [[M[0][0], M[0][1]], [M[1][0], M[1][1]]];
+    return [[M.a ?? 1, M.b ?? 0], [M.c ?? 0, M.d ?? 1]];
+}
+
+/**
+ * Determinante de matriz 2x2
+ */
+export function det2x2(M) {
+    const m = normalize2x2(M);
+    return m[0][0] * m[1][1] - m[0][1] * m[1][0];
+}
+
+/**
+ * Traço de matriz 2x2
+ */
+export function trace2x2(M) {
+    const m = normalize2x2(M);
+    return m[0][0] + m[1][1];
+}
+
+/**
+ * Autovalores e Autovetores de matriz real 2x2
+ */
+export function eigen2x2(M) {
+    const m = normalize2x2(M);
+    const a = m[0][0], b = m[0][1], c = m[1][0], d = m[1][1];
+    const tr = a + d;
+    const det = a * d - b * c;
+    const disc = (a - d) * (a - d) + 4 * b * c;
+
+    if (disc < -1e-12) {
+        return {
+            isReal: false,
+            trace: tr,
+            determinant: det,
+            eigenvalues: [
+                { re: tr / 2, im: Math.sqrt(-disc) / 2 },
+                { re: tr / 2, im: -Math.sqrt(-disc) / 2 }
+            ],
+            eigenvectors: []
+        };
+    }
+
+    const sqrtDisc = Math.sqrt(Math.max(0, disc));
+    const lambda1 = (tr + sqrtDisc) / 2;
+    const lambda2 = (tr - sqrtDisc) / 2;
+
+    const findVector = (lambda) => {
+        let vx, vy;
+        if (Math.abs(b) > 1e-9) {
+            vx = b;
+            vy = lambda - a;
+        } else if (Math.abs(c) > 1e-9) {
+            vx = lambda - d;
+            vy = c;
+        } else {
+            if (Math.abs(lambda - a) < Math.abs(lambda - d)) {
+                vx = 1; vy = 0;
+            } else {
+                vx = 0; vy = 1;
+            }
+        }
+        const norm = Math.hypot(vx, vy) || 1;
+        return [vx / norm, vy / norm];
+    };
+
+    return {
+        isReal: true,
+        trace: tr,
+        determinant: det,
+        eigenvalues: [lambda1, lambda2],
+        eigenvectors: [findVector(lambda1), findVector(lambda2)]
+    };
+}
+
+/**
+ * Determinante de matriz 3x3
+ */
+export function det3x3(A) {
+    return A[0][0] * (A[1][1] * A[2][2] - A[1][2] * A[2][1]) -
+           A[0][1] * (A[1][0] * A[2][2] - A[1][2] * A[2][0]) +
+           A[0][2] * (A[1][0] * A[2][1] - A[1][1] * A[2][0]);
+}
+
+/**
+ * Traço de matriz 3x3
+ */
+export function trace3x3(A) {
+    return A[0][0] + A[1][1] + A[2][2];
+}
+
+/**
+ * Autovalores analíticos de matriz real simétrica 3x3 com clamp contra overflow de arco-cosseno (Smith/Cardano)
+ */
+export function solveEigenvaluesSymmetric3x3(A) {
+    const p1 = (A[0][1] ** 2) + (A[0][2] ** 2) + (A[1][2] ** 2);
+    if (p1 < 1e-14) {
+        return [A[0][0], A[1][1], A[2][2]].sort((a, b) => a - b);
+    }
+    const q = (A[0][0] + A[1][1] + A[2][2]) / 3;
+    const p2 = ((A[0][0] - q) ** 2) + ((A[1][1] - q) ** 2) + ((A[2][2] - q) ** 2) + 2 * p1;
+    const p = Math.sqrt(p2 / 6);
+    if (p < 1e-14) return [q, q, q];
+
+    const B = [
+        [(A[0][0] - q) / p, A[0][1] / p, A[0][2] / p],
+        [A[1][0] / p, (A[1][1] - q) / p, A[1][2] / p],
+        [A[2][0] / p, A[2][1] / p, (A[2][2] - q) / p]
+    ];
+    const detB = det3x3(B);
+    const r = Math.max(-1.0, Math.min(1.0, detB / 2));
+    const phi = Math.acos(r) / 3;
+
+    const eig1 = q + 2 * p * Math.cos(phi);
+    const eig3 = q + 2 * p * Math.cos(phi + (2 * Math.PI / 3));
+    const eig2 = 3 * q - eig1 - eig3;
+
+    return [eig1, eig2, eig3].sort((a, b) => a - b);
+}
+
+/**
+ * Diagonalização de matriz real simétrica 3x3 via algoritmo cíclico de Jacobi
+ * Retorna { values: [λ1, λ2, λ3], vectors: [[x1,y1,z1], [x2,y2,z2], [x3,y3,z3]] } (autovetores colunares ortonormais)
+ */
+export function diagonalizeSymmetric3x3(A_in, maxSweeps = 30) {
+    const A = [
+        [A_in[0][0], A_in[0][1], A_in[0][2]],
+        [A_in[1][0], A_in[1][1], A_in[1][2]],
+        [A_in[2][0], A_in[2][1], A_in[2][2]]
+    ];
+    const V = [
+        [1, 0, 0],
+        [0, 1, 0],
+        [0, 0, 1]
+    ];
+
+    for (let sweep = 0; sweep < maxSweeps; sweep++) {
+        const offDiag = Math.abs(A[0][1]) + Math.abs(A[0][2]) + Math.abs(A[1][2]);
+        if (offDiag < 1e-13) break;
+
+        const pairs = [[0, 1], [0, 2], [1, 2]];
+        for (const [p, q] of pairs) {
+            const app = A[p][p];
+            const aqq = A[q][q];
+            const apq = A[p][q];
+            if (Math.abs(apq) < 1e-15) continue;
+
+            const theta = (aqq - app) / (2 * apq);
+            const t = Math.sign(theta || 1) / (Math.abs(theta) + Math.sqrt(1 + theta * theta));
+            const c = 1 / Math.sqrt(1 + t * t);
+            const s = t * c;
+            const tau = s / (1 + c);
+
+            A[p][q] = 0;
+            A[q][p] = 0;
+            A[p][p] = app - t * apq;
+            A[q][q] = aqq + t * apq;
+
+            for (let i = 0; i < 3; i++) {
+                if (i !== p && i !== q) {
+                    const aip = A[i][p];
+                    const aiq = A[i][q];
+                    A[i][p] = aip - s * (aiq + tau * aip);
+                    A[p][i] = A[i][p];
+                    A[i][q] = aiq + s * (aip - tau * aiq);
+                    A[q][i] = A[i][q];
+                }
+            }
+
+            for (let i = 0; i < 3; i++) {
+                const vip = V[i][p];
+                const viq = V[i][q];
+                V[i][p] = vip - s * (viq + tau * vip);
+                V[i][q] = viq + s * (vip - tau * viq);
+            }
+        }
+    }
+
+    const vals = [A[0][0], A[1][1], A[2][2]];
+    const indices = [0, 1, 2].sort((i, j) => vals[i] - vals[j]);
+    return {
+        values: indices.map(i => vals[i]),
+        vectors: indices.map(i => [V[0][i], V[1][i], V[2][i]])
+    };
+}
+
+/**
+ * Componente Reativo de Edição e Análise de Matrizes/Tensores
+ */
+export class MatrixTensorEditor {
+    constructor(container, options = {}) {
+        this.container = typeof container === 'string' ? document.querySelector(container) : container;
+        this.options = {
+            dim: 2,
+            symmetric: false,
+            step: 0.1,
+            labels: null,
+            initialValue: null,
+            onChange: () => {},
+            ...options
+        };
+        this.inputs = [];
+        this.render();
+    }
+
+    render() {
+        if (!this.container) return;
+        this.container.innerHTML = '';
+        this.container.classList.add('sim-matrix-tensor-editor');
+
+        const dim = this.options.dim;
+        const box = document.createElement('div');
+        box.className = 'matrix-box';
+
+        const bracketLeft = document.createElement('span');
+        bracketLeft.className = 'matrix-bracket left';
+        bracketLeft.textContent = '[';
+        box.appendChild(bracketLeft);
+
+        const grid = document.createElement('div');
+        grid.className = `matrix-grid matrix-grid-${dim}x${dim}`;
+        grid.style.display = 'grid';
+        grid.style.gridTemplateColumns = `repeat(${dim}, 1fr)`;
+        grid.style.gap = '8px';
+
+        const initVal = this.options.initialValue;
+        this.inputs = [];
+
+        for (let r = 0; r < dim; r++) {
+            this.inputs[r] = [];
+            for (let c = 0; c < dim; c++) {
+                const cell = document.createElement('div');
+                cell.className = 'matrix-cell';
+
+                const inp = document.createElement('input');
+                inp.type = 'number';
+                inp.step = this.options.step;
+                inp.className = 'sim-input matrix-input';
+                inp.dataset.row = r;
+                inp.dataset.col = c;
+
+                let defaultVal = (r === c) ? 1 : 0;
+                if (initVal) {
+                    if (Array.isArray(initVal) && initVal[r] && initVal[r][c] !== undefined) {
+                        defaultVal = initVal[r][c];
+                    } else if (dim === 2 && typeof initVal === 'object') {
+                        const keys = [['a', 'b'], ['c', 'd']];
+                        defaultVal = initVal[keys[r][c]] ?? defaultVal;
+                    }
+                }
+                inp.value = defaultVal;
+
+                inp.addEventListener('input', () => {
+                    if (this.options.symmetric && r !== c) {
+                        const mirror = this.inputs[c][r];
+                        if (mirror) mirror.value = inp.value;
+                    }
+                    this.notifyChange();
+                });
+
+                cell.appendChild(inp);
+                if (this.options.labels && this.options.labels[r] && this.options.labels[r][c]) {
+                    const sub = document.createElement('span');
+                    sub.className = 'cell-sub';
+                    sub.textContent = this.options.labels[r][c];
+                    cell.appendChild(sub);
+                }
+
+                grid.appendChild(cell);
+                this.inputs[r][c] = inp;
+            }
+        }
+
+        box.appendChild(grid);
+
+        const bracketRight = document.createElement('span');
+        bracketRight.className = 'matrix-bracket right';
+        bracketRight.textContent = ']';
+        box.appendChild(bracketRight);
+
+        this.container.appendChild(box);
+    }
+
+    getMatrix() {
+        const dim = this.options.dim;
+        const res = [];
+        for (let r = 0; r < dim; r++) {
+            res[r] = [];
+            for (let c = 0; c < dim; c++) {
+                res[r][c] = parseFloat(this.inputs[r][c].value) || 0;
+            }
+        }
+        return res;
+    }
+
+    setMatrix(M) {
+        const dim = this.options.dim;
+        for (let r = 0; r < dim; r++) {
+            for (let c = 0; c < dim; c++) {
+                let v = 0;
+                if (Array.isArray(M)) {
+                    v = M[r]?.[c] ?? 0;
+                } else if (dim === 2 && typeof M === 'object') {
+                    const keys = [['a', 'b'], ['c', 'd']];
+                    v = M[keys[r][c]] ?? 0;
+                }
+                if (this.inputs[r]?.[c]) {
+                    this.inputs[r][c].value = Number.isInteger(v) ? v : v.toFixed(2);
+                }
+            }
+        }
+        this.notifyChange();
+    }
+
+    notifyChange() {
+        const M = this.getMatrix();
+        let analysis = null;
+        if (this.options.dim === 2) {
+            analysis = eigen2x2(M);
+        } else if (this.options.dim === 3) {
+            analysis = {
+                trace: trace3x3(M),
+                determinant: det3x3(M),
+                ...diagonalizeSymmetric3x3(M)
+            };
+        }
+        this.options.onChange(M, analysis);
+    }
+}
+
+

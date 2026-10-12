@@ -7,208 +7,286 @@
     <title>Tensor de Inércia — Visualização Interativa</title>
 
     <meta name="description"
-        content="Simulação interativa para visualizar o processo de obtenção e diagonalização do tensor de inércia. Massas pontuais, sistemas de partículas e corpos extensos em 3D com three.js." />
+        content="Simulação interativa para visualizar o processo de obtenção e diagonalização do tensor de inércia. Massas pontuais, sistemas de partículas e corpos extensos em 3D com Three.js." />
     <meta name="keywords"
-        content="tensor de inércia, momento de inércia, diagonalização, mecânica clássica, física, simulação 3D, three.js" />
+        content="tensor de inércia, momento de inércia, diagonalização, mecânica clássica, física, simulação 3D, three.js, autovalores" />
     <meta name="author" content="Nicolas Heringer" />
 
     <!-- Favicon -->
     <link rel="icon" type="image/svg+xml" href="../favicon.svg" />
 
-    <!-- Estilos CSS -->
-    <link rel="stylesheet" href="css/base.css" />
+    <!-- Design System Base & Estilos Específicos -->
+    <link rel="stylesheet" href="css/design-system.css" />
     <link rel="stylesheet" href="css/tensor_de_inercia.css" />
 
     <!-- Suporte a LaTeX com KaTeX -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" crossorigin="anonymous">
     <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" crossorigin="anonymous"></script>
-    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" crossorigin="anonymous"
-        onload="renderMathInElement(document.body, {
-            delimiters: [
-                {left: '$$', right: '$$', display: true},
-                {left: '$', right: '$', display: false},
-                {left: '\\(', right: '\\)', display: false},
-                {left: '\\[', right: '\\]', display: true}
-            ],
-            throwOnError: false
-        });"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" crossorigin="anonymous"></script>
 </head>
 <body>
     <!-- Cabeçalho da Simulação -->
     <header class="sim-header">
-        <a href="../index.html#secao-simulacoes" class="btn-back">← Voltar ao Hub</a>
+        <a href="../index.html#secao-simulacoes" class="btn-back">
+            <img src="../assets/icons/arrow-left.svg" class="icon-svg" alt="Voltar">
+            <span>Voltar ao Hub</span>
+        </a>
         <span class="sim-title">Tensor de Inércia: Visualização Interativa</span>
+        <div class="header-actions">
+            <button class="header-action-btn" id="btn-focus-mode" title="Modo Foco (F)">
+                <img src="../assets/icons/focus.svg" class="icon-svg" alt="Foco">
+            </button>
+        </div>
     </header>
 
     <!-- Conteúdo Principal -->
     <main class="sim-layout">
         <!-- Área de Visualização 3D -->
-        <div class="canvas-area" id="canvas-area">
-            <!-- three.js renderer mounts here -->
-
+        <div class="canvas-area" id="canvas-area" style="touch-action: none;">
             <!-- Badge de informação no canvas -->
             <div class="canvas-overlay-badge" id="inertia-badge">
                 I = <span id="badge-inertia-value">0.00</span> kg·m²
             </div>
 
             <div class="canvas-instructions" id="canvas-hint">
-                💡 Use o mouse para orbitar a cena. Arraste os objetos para reposicioná-los.
+                💡 Arraste com o mouse/toque para orbitar. Use o botão de diagonalização para alinhar aos eixos principais.
             </div>
         </div>
 
-        <!-- Painel de Controles -->
+        <!-- Painel de Controles e Teoria -->
         <aside class="controls-panel" id="controls-panel">
-
-            <!-- Seletor de Parte -->
-            <div class="control-group">
-                <label for="part-select" class="group-title">Modo da Simulação</label>
-                <select class="sim-control" id="part-select">
-                    <option value="1">Parte 1 – Massa pontual única</option>
-                    <option value="2">Parte 2 – Várias massas pontuais</option>
-                    <option value="3">Parte 3 – Corpos extensos</option>
-                </select>
+            <!-- Alça para Bottom Sheet Mobile -->
+            <div class="sheet-drag-handle">
+                <div class="sheet-drag-pill"></div>
             </div>
 
-            <!-- Controle do Eixo de Rotação -->
-            <div class="control-group" id="axis-group">
-                <label class="group-title">Eixo de Rotação</label>
-                <div class="axis-preset-row">
-                    <button class="btn-action axis-btn active" data-axis="y" id="axis-y-btn">Eixo Y</button>
-                    <button class="btn-action axis-btn" data-axis="x" id="axis-x-btn">Eixo X</button>
-                    <button class="btn-action axis-btn" data-axis="z" id="axis-z-btn">Eixo Z</button>
-                    <button class="btn-action axis-btn" data-axis="custom" id="axis-custom-btn">Personalizado</button>
-                </div>
-                <div class="custom-axis-inputs" id="custom-axis-inputs" style="display:none;">
-                    <div class="input-row">
-                        <label>n<sub>x</sub></label>
-                        <input type="number" class="sim-input" id="axis-nx" step="0.1" value="0" />
+            <!-- Navegação por Abas -->
+            <nav class="tab-nav">
+                <button class="tab-btn active" data-tab="tab-controls">
+                    <img src="../assets/icons/sliders.svg" class="icon-svg" alt="Controles">
+                    <span class="tab-label">Controles</span>
+                </button>
+                <button class="tab-btn" data-tab="tab-theory">
+                    <img src="../assets/icons/book.svg" class="icon-svg" alt="Teoria">
+                    <span class="tab-label">Teoria</span>
+                </button>
+                <button class="btn-collapse-sidebar" id="btn-collapse-sidebar" title="Recolher painel (F)">
+                    <img src="../assets/icons/chevron-right.svg" class="icon-svg" alt="Recolher">
+                </button>
+            </nav>
+
+            <div class="panel-body">
+                <!-- Aba de Controles -->
+                <div class="tab-pane active" id="tab-controls">
+
+                    <!-- Seletor de Modo -->
+                    <div class="control-group">
+                        <label for="part-select" class="group-title">Modo da Simulação</label>
+                        <select class="sim-control" id="part-select">
+                            <option value="1">Parte 1 – Massa pontual única</option>
+                            <option value="2">Parte 2 – Várias massas pontuais</option>
+                            <option value="3">Parte 3 – Corpos extensos</option>
+                        </select>
                     </div>
-                    <div class="input-row">
-                        <label>n<sub>y</sub></label>
-                        <input type="number" class="sim-input" id="axis-ny" step="0.1" value="1" />
+
+                    <!-- Controle do Eixo de Rotação -->
+                    <div class="control-group" id="axis-group">
+                        <label class="group-title">Eixo de Rotação</label>
+                        <div class="axis-preset-row">
+                            <button class="btn-action axis-btn active" data-axis="y" id="axis-y-btn">Eixo Y</button>
+                            <button class="btn-action axis-btn" data-axis="x" id="axis-x-btn">Eixo X</button>
+                            <button class="btn-action axis-btn" data-axis="z" id="axis-z-btn">Eixo Z</button>
+                            <button class="btn-action axis-btn" data-axis="custom" id="axis-custom-btn">Personalizado</button>
+                        </div>
+                        <div class="custom-axis-inputs" id="custom-axis-inputs" style="display:none;">
+                            <div class="input-row">
+                                <label>n<sub>x</sub></label>
+                                <input type="number" class="sim-input" id="axis-nx" step="0.1" value="0" />
+                            </div>
+                            <div class="input-row">
+                                <label>n<sub>y</sub></label>
+                                <input type="number" class="sim-input" id="axis-ny" step="0.1" value="1" />
+                            </div>
+                            <div class="input-row">
+                                <label>n<sub>z</sub></label>
+                                <input type="number" class="sim-input" id="axis-nz" step="0.1" value="0" />
+                            </div>
+                        </div>
                     </div>
-                    <div class="input-row">
-                        <label>n<sub>z</sub></label>
-                        <input type="number" class="sim-input" id="axis-nz" step="0.1" value="0" />
+
+                    <!-- Controles Parte 1: Massa pontual única -->
+                    <div class="control-group part-controls" id="part1-controls">
+                        <label class="group-title">Massa Pontual</label>
+                        <div class="input-row">
+                            <label>Massa (kg)</label>
+                            <input type="number" class="sim-input" id="mass-single" min="0.1" step="0.1" value="1.0" />
+                        </div>
+                        <div class="input-row">
+                            <label>x (m)</label>
+                            <input type="number" class="sim-input" id="pos-x" step="0.1" value="2.0" />
+                        </div>
+                        <div class="input-row">
+                            <label>y (m)</label>
+                            <input type="number" class="sim-input" id="pos-y" step="0.1" value="0.0" />
+                        </div>
+                        <div class="input-row">
+                            <label>z (m)</label>
+                            <input type="number" class="sim-input" id="pos-z" step="0.1" value="0.0" />
+                        </div>
                     </div>
-                </div>
-            </div>
 
-            <!-- Controles Parte 1: Massa pontual única -->
-            <div class="control-group part-controls" id="part1-controls">
-                <label class="group-title">Massa Pontual</label>
-                <div class="input-row">
-                    <label>Massa (kg)</label>
-                    <input type="number" class="sim-input" id="mass-single" min="0.1" step="0.1" value="1.0" />
-                </div>
-                <div class="input-row">
-                    <label>x (m)</label>
-                    <input type="number" class="sim-input" id="pos-x" step="0.1" value="2.0" />
-                </div>
-                <div class="input-row">
-                    <label>y (m)</label>
-                    <input type="number" class="sim-input" id="pos-y" step="0.1" value="0.0" />
-                </div>
-                <div class="input-row">
-                    <label>z (m)</label>
-                    <input type="number" class="sim-input" id="pos-z" step="0.1" value="0.0" />
-                </div>
-            </div>
-
-            <!-- Controles Parte 2: Várias massas pontuais -->
-            <div class="control-group part-controls" id="part2-controls" style="display:none;">
-                <label class="group-title">Massas Pontuais</label>
-                <div class="button-row">
-                    <button class="btn-action primary" id="add-mass-btn">+ Adicionar Massa</button>
-                    <button class="btn-action secondary" id="clear-masses-btn">Limpar Todas</button>
-                </div>
-                <div id="mass-list" class="mass-list"></div>
-            </div>
-
-            <!-- Controles Parte 3: Corpos extensos -->
-            <div class="control-group part-controls" id="part3-controls" style="display:none;">
-                <label class="group-title">Corpo Extenso</label>
-                <select class="sim-control" id="body-type-select">
-                    <option value="solid-sphere">Esfera Sólida</option>
-                    <option value="hollow-sphere">Esfera Oca</option>
-                    <option value="solid-cylinder">Cilindro / Disco Sólido</option>
-                    <option value="hollow-cylinder">Cilindro Oco</option>
-                    <option value="rod">Barra Fina</option>
-                    <option value="rectangular">Bloco Retangular</option>
-                </select>
-                <div class="input-row">
-                    <label>Massa (kg)</label>
-                    <input type="number" class="sim-input" id="body-mass" min="0.1" step="0.1" value="2.0" />
-                </div>
-                <div id="body-dimensions">
-                    <!-- Dimensões dinâmicas dependendo do tipo -->
-                </div>
-            </div>
-
-            <!-- Botões de Ação -->
-            <div class="control-group">
-                <div class="button-row">
-                    <button class="btn-action primary" id="play-pause-btn">▶ Play</button>
-                    <button class="btn-action secondary" id="reset-btn">↺ Resetar</button>
-                </div>
-                <div class="slider-header" style="margin-top: 10px;">
-                    <label for="speed-slider">Velocidade Angular (rad/s)</label>
-                    <span class="slider-val" id="speed-val">1.0</span>
-                </div>
-                <input type="range" id="speed-slider" class="sim-slider" min="0.1" max="5" step="0.1" value="1.0" />
-            </div>
-
-            <!-- Exibição do Tensor de Inércia -->
-            <div class="readout-card" id="tensor-card">
-                <div class="readout-header">📐 Tensor de Inércia (kg·m²)</div>
-                <div class="tensor-matrix" id="tensor-matrix">
-                    <span class="matrix-bracket left">[</span>
-                    <div class="tensor-grid">
-                        <span id="I00">0.00</span><span id="I01">0.00</span><span id="I02">0.00</span>
-                        <span id="I10">0.00</span><span id="I11">0.00</span><span id="I12">0.00</span>
-                        <span id="I20">0.00</span><span id="I21">0.00</span><span id="I22">0.00</span>
+                    <!-- Controles Parte 2: Várias massas pontuais -->
+                    <div class="control-group part-controls" id="part2-controls" style="display:none;">
+                        <label class="group-title">Massas Pontuais</label>
+                        <div class="button-row">
+                            <button class="btn-action primary" id="add-mass-btn">+ Adicionar Massa</button>
+                            <button class="btn-action secondary" id="clear-masses-btn">Limpar Todas</button>
+                        </div>
+                        <div id="mass-list" class="mass-list"></div>
                     </div>
-                    <span class="matrix-bracket right">]</span>
+
+                    <!-- Controles Parte 3: Corpos extensos -->
+                    <div class="control-group part-controls" id="part3-controls" style="display:none;">
+                        <label class="group-title">Corpo Extenso</label>
+                        <select class="sim-control" id="body-type-select">
+                            <option value="solid-sphere">Esfera Sólida</option>
+                            <option value="hollow-sphere">Esfera Oca</option>
+                            <option value="solid-cylinder">Cilindro / Disco Sólido</option>
+                            <option value="hollow-cylinder">Cilindro Oco</option>
+                            <option value="rod">Barra Fina</option>
+                            <option value="rectangular">Bloco Retangular</option>
+                        </select>
+                        <div class="input-row">
+                            <label>Massa (kg)</label>
+                            <input type="number" class="sim-input" id="body-mass" min="0.1" step="0.1" value="2.0" />
+                        </div>
+                        <div id="body-dimensions">
+                            <!-- Dimensões dinâmicas dependendo do tipo -->
+                        </div>
+                    </div>
+
+                    <!-- Botões de Ação e Reprodução -->
+                    <div class="control-group">
+                        <div class="button-row">
+                            <button class="btn-action primary" id="play-pause-btn">▶ Play</button>
+                            <button class="btn-action secondary" id="reset-btn">↺ Resetar</button>
+                        </div>
+                        <div class="slider-header" style="margin-top: 10px;">
+                            <label for="speed-slider">Velocidade Angular (rad/s)</label>
+                            <span class="slider-val" id="speed-val">1.0</span>
+                        </div>
+                        <input type="range" id="speed-slider" class="sim-slider" min="0.1" max="5" step="0.1" value="1.0" />
+                    </div>
+
+                    <!-- Exibição do Tensor de Inércia -->
+                    <div class="readout-card" id="tensor-card">
+                        <div class="readout-header">📐 Tensor de Inércia (kg·m²)</div>
+                        <div class="tensor-matrix" id="tensor-matrix">
+                            <span class="matrix-bracket left">[</span>
+                            <div class="tensor-grid">
+                                <span id="I00">0.00</span><span id="I01">0.00</span><span id="I02">0.00</span>
+                                <span id="I10">0.00</span><span id="I11">0.00</span><span id="I12">0.00</span>
+                                <span id="I20">0.00</span><span id="I21">0.00</span><span id="I22">0.00</span>
+                            </div>
+                            <span class="matrix-bracket right">]</span>
+                        </div>
+                        <div class="readout-item">
+                            <span class="readout-label">Momento de Inércia (eixo escolhido)</span>
+                            <span class="readout-value highlight-yellow" id="moment-value">0.00 kg·m²</span>
+                        </div>
+                        <div class="readout-item">
+                            <span class="readout-label">Autovalores (momentos principais)</span>
+                            <span class="readout-value highlight-cyan" id="eigenvalues">—</span>
+                        </div>
+                    </div>
+
+                    <!-- Ellipsoide de Inércia -->
+                    <div class="readout-card" id="ellipsoid-card">
+                        <div class="readout-header">🔮 Elipsoide de Inércia</div>
+                        <div id="ellipsoid-container">
+                            <!-- Mini Three.js renderer para elipsoide -->
+                        </div>
+                        <div class="readout-item">
+                            <span class="readout-label">Eixos Principais</span>
+                            <span class="readout-value highlight-green" id="principal-axes-info">—</span>
+                        </div>
+                    </div>
+
+                    <!-- Diagonalização -->
+                    <div class="control-group" id="diag-group">
+                        <button class="btn-action primary" id="diagonalize-btn">⚡ Diagonalizar Tensor</button>
+                    </div>
+
                 </div>
-                <div class="readout-item">
-                    <span class="readout-label">Momento de Inércia (eixo escolhido)</span>
-                    <span class="readout-value highlight-yellow" id="moment-value">0.00 kg·m²</span>
-                </div>
-                <div class="readout-item">
-                    <span class="readout-label">Autovalores (momentos principais)</span>
-                    <span class="readout-value highlight-cyan" id="eigenvalues">—</span>
+
+                <!-- Aba de Teoria -->
+                <div class="tab-pane" id="tab-theory">
+                    <article class="theory-content">
+                        <h3>O Tensor de Inércia na Mecânica Clássica</h3>
+                        <p>
+                            Em rotações tridimensionais de corpos rígidos, o momento angular $\mathbf{L}$ e a velocidade angular $\boldsymbol{\omega}$ geralmente não são paralelos. A relação entre ambos é mediada por um tensor de segunda ordem simétrico, o <strong>Tensor de Inércia</strong> $\mathbf{I}$:
+                        </p>
+                        $$\mathbf{L} = \mathbf{I} \boldsymbol{\omega}$$
+
+                        <h3>Formulação Discreta e Contínua</h3>
+                        <p>
+                            Para um sistema de $N$ partículas pontuais com massas $m_k$ e posições $\mathbf{r}_k = (x_k, y_k, z_k)$:
+                        </p>
+                        $$I_{ij} = \sum_{k=1}^N m_k \left( r_k^2 \delta_{ij} - r_{ki} r_{kj} \right)$$
+                        <p>
+                            Explicitamente, o tensor assume a forma matricial $3 \times 3$:
+                        </p>
+                        $$\mathbf{I} = \begin{bmatrix}
+                            I_{xx} & -I_{xy} & -I_{xz} \\
+                            -I_{yx} & I_{yy} & -I_{yz} \\
+                            -I_{zx} & -I_{zy} & I_{zz}
+                        \end{bmatrix}$$
+                        <p>
+                            onde os elementos diagonais são os <em>momentos de inércia</em> em torno dos eixos coordenados:
+                        </p>
+                        $$I_{xx} = \sum m_k (y_k^2 + z_k^2), \quad I_{yy} = \sum m_k (x_k^2 + z_k^2), \quad I_{zz} = \sum m_k (x_k^2 + y_k^2)$$
+                        <p>
+                            e os elementos fora da diagonal são os <em>produtos de inércia</em>:
+                        </p>
+                        $$I_{xy} = I_{yx} = \sum m_k x_k y_k, \quad I_{xz} = I_{zx} = \sum m_k x_k z_k, \quad I_{yz} = I_{zy} = \sum m_k y_k z_k$$
+
+                        <h3>Momento de Inércia em Torno de um Eixo Arbitrário</h3>
+                        <p>
+                            Para qualquer eixo definido por um vetor unitário $\mathbf{\hat{n}} = (n_x, n_y, n_z)$, o momento de inércia escalar efetivo é dado pelo produto bilinear:
+                        </p>
+                        $$I_{\mathbf{\hat{n}}} = \mathbf{\hat{n}}^T \mathbf{I} \mathbf{\hat{n}} = \sum_{i,j} n_i I_{ij} n_j$$
+
+                        <h3>Diagonalização e Eixos Principais</h3>
+                        <p>
+                            Como o tensor de inércia é sempre <strong>real e simétrico</strong> ($\mathbf{I} = \mathbf{I}^T$), pelo Teorema Espectral existem sempre três autovalores reais $I_1, I_2, I_3$ (os <em>momentos principais de inércia</em>) e uma base ortogonal correspondente de autovetores $\mathbf{v}_1, \mathbf{v}_2, \mathbf{v}_3$ (os <em>eixos principais de inércia</em>):
+                        </p>
+                        $$\mathbf{I}\mathbf{v}_k = I_k \mathbf{v}_k$$
+                        <p>
+                            Nesse sistema de coordenadas principal, os produtos de inércia se anulam e a rotação em torno de qualquer um dos eixos principais resulta em $\mathbf{L} \parallel \boldsymbol{\omega}$.
+                        </p>
+
+                        <h3>Elipsoide de Inércia (Poinsot)</h3>
+                        <p>
+                            A superfície geométrica definida pelos pontos $\mathbf{r}$ que satisfazem $\mathbf{r}^T \mathbf{I} \mathbf{r} = 1$ descreve um elipsoide tridimensional cujos semi-eixos são inversamente proporcionais às raízes quadradas dos momentos principais de inércia: $1/\sqrt{I_1}, 1/\sqrt{I_2}, 1/\sqrt{I_3}$.
+                        </p>
+                    </article>
                 </div>
             </div>
 
-            <!-- Ellipsoide de Inércia -->
-            <div class="readout-card" id="ellipsoid-card">
-                <div class="readout-header">🔮 Elipsoide de Inércia</div>
-                <div id="ellipsoid-container">
-                    <!-- Mini three.js renderer para elipsoide -->
-                </div>
-                <div class="readout-item">
-                    <span class="readout-label">Eixos Principais</span>
-                    <span class="readout-value highlight-green" id="principal-axes-info">—</span>
-                </div>
-            </div>
-
-            <!-- Diagonalização -->
-            <div class="control-group" id="diag-group">
-                <button class="btn-action primary" id="diagonalize-btn">⚡ Diagonalizar Tensor</button>
-            </div>
-
+            <!-- Rodapé do Painel -->
+            <footer class="panel-footer">
+                <span class="shortcut-tip">Pressione <kbd>F</kbd> para Modo Foco</span>
+                <span class="panel-version">DS 2.0 • Mecânica Clássica</span>
+            </footer>
         </aside>
     </main>
 
-    <!-- numeric.js para diagonalização de matrizes -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/numeric/1.2.6/numeric.min.js"></script>
-
-    <!-- three.js e OrbitControls via CDN (import map para ES modules) -->
+    <!-- Three.js 0.165 via Import Map -->
     <script type="importmap">
     {
         "imports": {
-            "three": "https://cdn.jsdelivr.net/npm/three@0.158.0/build/three.module.js",
-            "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.158.0/examples/jsm/"
+            "three": "https://cdn.jsdelivr.net/npm/three@0.165.0/build/three.module.js",
+            "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.165.0/examples/jsm/"
         }
     }
     </script>
