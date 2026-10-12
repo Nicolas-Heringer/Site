@@ -1561,6 +1561,49 @@ input[type="text"].sim-input:focus {
     to { transform: rotate(360deg); }
 }
 
+/* Ícones de Partículas & Física */
+.particle-dot,
+.icon-svg .particle-dot {
+    fill: currentColor !important;
+    stroke: none !important;
+}
+
+/* Vetor Velocidade Animado (particle-moving.svg) */
+.particle-stem {
+    transform-origin: 11px 12px;
+    animation: particleVectorStem 1.6s ease-in-out infinite;
+}
+
+.particle-head {
+    animation: particleVectorHead 1.6s ease-in-out infinite;
+}
+
+@keyframes particleVectorStem {
+    0%, 100% {
+        transform: scaleX(0.28);
+    }
+    50% {
+        transform: scaleX(1.02);
+    }
+}
+
+@keyframes particleVectorHead {
+    0%, 100% {
+        transform: translateX(-6.2px);
+    }
+    50% {
+        transform: translateX(0px);
+    }
+}
+
+.btn-preset:hover .particle-stem {
+    animation-duration: 1.0s;
+}
+
+.btn-preset:hover .particle-head {
+    animation-duration: 1.0s;
+}
+
 /* Utilitários de Grid */
 .control-grid-2x2 {
     display: grid;

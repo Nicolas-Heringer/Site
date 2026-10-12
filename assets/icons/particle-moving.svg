@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="none">
+  <style>
+    .particle-stem {
+      transform-origin: 11px 12px;
+      animation: particleVectorStem 1.6s ease-in-out infinite;
+    }
+    .particle-head {
+      animation: particleVectorHead 1.6s ease-in-out infinite;
+    }
+    @keyframes particleVectorStem {
+      0%, 100% { transform: scaleX(0.28); }
+      50% { transform: scaleX(1.02); }
+    }
+    @keyframes particleVectorHead {
+      0%, 100% { transform: translateX(-6.2px); }
+      50% { transform: translateX(0px); }
+    }
+  </style>
+  <circle cx="7.5" cy="12" r="3.2" fill="currentColor" stroke="none" class="particle-dot"/>
+  <line class="particle-stem" x1="11" y1="12" x2="20" y2="12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+  <path class="particle-head" d="M17.5 9 L20.5 12 L17.5 15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

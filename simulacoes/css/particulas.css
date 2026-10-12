@@ -9,3 +9,49 @@
     cursor: crosshair;
     background-color: #070b16;
 }
+
+/* =============================================================================
+   Ícones Customizados dos Seletores de Presets de Partículas
+   ============================================================================= */
+.particle-dot,
+.icon-svg .particle-dot {
+    fill: currentColor !important;
+    stroke: none !important;
+}
+
+/* Animação do Vetor Velocidade (1 Partícula Móvel) */
+.particle-stem {
+    transform-origin: 11px 12px;
+    animation: particleVectorStem 1.6s ease-in-out infinite;
+}
+
+.particle-head {
+    animation: particleVectorHead 1.6s ease-in-out infinite;
+}
+
+@keyframes particleVectorStem {
+    0%, 100% {
+        transform: scaleX(0.28);
+    }
+    50% {
+        transform: scaleX(1.02);
+    }
+}
+
+@keyframes particleVectorHead {
+    0%, 100% {
+        transform: translateX(-6.2px);
+    }
+    50% {
+        transform: translateX(0px);
+    }
+}
+
+/* Acelera levemente o vetor no hover para feedback tátil dinâmico */
+.btn-preset:hover .particle-stem {
+    animation-duration: 1.0s;
+}
+
+.btn-preset:hover .particle-head {
+    animation-duration: 1.0s;
+}

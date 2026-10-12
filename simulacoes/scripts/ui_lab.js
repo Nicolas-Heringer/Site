@@ -41,7 +41,9 @@ const ICONS_LIST = [
     'thermometer', 'cyclone', 'wind', 'compass', 'sparkles', 'lightbulb',
     'collapse', 'expand', 'gauge', 'pressure',
     'mouse', 'mouse-left', 'mouse-right', 'mouse-wheel', 'keyboard', 'key',
-    'smartphone', 'tablet', 'touch', 'touch-drag', 'touch-pinch', 'touch-pan', 'screen-rotate'
+    'smartphone', 'tablet', 'touch', 'touch-drag', 'touch-pinch', 'touch-pan', 'screen-rotate',
+    'particle-single', 'particle-moving', 'particles-double', 'particles-opposite',
+    'particles-three', 'particle-circle', 'particle-grid', 'salt-nacl'
 ];
 
 let clickCount = 0;

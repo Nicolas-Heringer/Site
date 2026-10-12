@@ -508,7 +508,7 @@ Em dispositivos móveis (smartphones e tablets), substitua ou complemente as ins
 
 ### 4.9 Galeria de Ícones Vetoriais Nativos (`assets/icons/`)
 
-Todos os 34 ícones vetoriais estão disponíveis em `assets/icons/` e adaptam-se automaticamente à cor do texto via `currentColor`:
+Todos os 42 ícones vetoriais estão disponíveis em `assets/icons/` e adaptam-se automaticamente à cor do texto via `currentColor`:
 
 | Nome do Ícone | Arquivo | Finalidade Sugerida |
 | :--- | :--- | :--- |
@@ -546,6 +546,14 @@ Todos os 34 ícones vetoriais estão disponíveis em `assets/icons/` e adaptam-s
 | `touch-pinch` | `touch-pinch.svg` | Gesto de pinça (Pinch to Zoom) |
 | `touch-pan` | `touch-pan.svg` | 2 dedos arrastar, Deslocar / Panning |
 | `screen-rotate` | `screen-rotate.svg` | Orientação de tela, Modo paisagem/retrato |
+| `particle-single` | `particle-single.svg` | 1 Partícula estática (ponto único no centro) |
+| `particle-moving` | `particle-moving.svg` | 1 Partícula móvel com vetor velocidade animado (pulsante) |
+| `particles-double` | `particles-double.svg` | 2 Partículas estáticas (duas bolinhas próximas) |
+| `particles-opposite` | `particles-opposite.svg` | 2 Partículas opostas (vetores $\downarrow$ e $\uparrow$) |
+| `particles-three` | `particles-three.svg` | 3 Corpos / tríade de partículas |
+| `particle-circle` | `particle-circle.svg` | Anel circular de partículas / anel |
+| `particle-grid` | `particle-grid.svg` | Grade periódica de partículas ($3\times 3$) |
+| `salt-nacl` | `salt-nacl.svg` | Par iônico / rede cristalina de sal ($\text{Na}^+$ e $\text{Cl}^-$) |
 
 Para renderizar um ícone com coloração automática:
 ```html
