@@ -8,9 +8,9 @@
     <title>Tesselação de Voronoi & Dinâmica Climática Planetária — Design System 2.0</title>
 
     <meta name="description"
-        content="Simulação educacional de Tesselação de Voronoi Esférica (SCVT), Escala Planetária, Estações do Ano e Dinâmica Climática Global com Gradiente Térmico, Força de Coriolis, Ventos Alísios e Ciclones Interativos.">
+        content="Simulação educacional de Tesselação de Voronoi Esférica (SCVT), Escala Planetária, Balanço Radiativo e Mecânica Celeste das Estações do Ano.">
     <meta name="keywords"
-        content="clima global, forca de coriolis, ventos alisios, celulas de hadley, termodinamica atmosferica, ciclones, voronoi, astronomia, física computacional, three.js">
+        content="clima global, voronoi esférico, malhas geodésicas, balanço radiativo, mecânica celeste, estações do ano, astronomia, física computacional, three.js">
     <meta name="author" content="Nicolas Heringer">
 
     <!-- Favicon -->
@@ -18,12 +18,13 @@
 
     <!-- Design System Unificado e Estilos Específicos -->
     <link rel="stylesheet" href="css/design-system.css">
-    <link rel="stylesheet" href="css/clima.css?v=3.4">
+    <link rel="stylesheet" href="css/clima.css?v=3.5">
 
     <!-- Suporte a Fórmulas Matemáticas com KaTeX -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" crossorigin="anonymous">
     <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" crossorigin="anonymous"></script>
-    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" crossorigin="anonymous"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"
+        crossorigin="anonymous"></script>
 
     <!-- Three.js via importmap (ES Modules) -->
     <script type="importmap">
@@ -41,7 +42,9 @@
     <!-- Cabeçalho da Simulação -->
     <header class="sim-header">
         <a href="../index.html#secao-simulacoes" class="btn-back">
-            <svg class="icon-svg" viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+            <svg class="icon-svg" viewBox="0 0 24 24">
+                <path d="M19 12H5M12 19l-7-7 7-7" />
+            </svg>
             Voltar ao Hub
         </a>
         <h1 class="sim-title">Tesselação de Voronoi & Dinâmica Climática Planetária (SCVT)</h1>
@@ -61,10 +64,12 @@
                     <span>Exibição</span>
                 </button>
                 <div class="toolbar-divider"></div>
-                <button id="btn-quick-generators" class="toolbar-btn active" title="Alternar Pontos Geradores (Centros)">
+                <button id="btn-quick-generators" class="toolbar-btn active"
+                    title="Alternar Pontos Geradores (Centros)">
                     <span class="btn-label-text">Centros</span>
                 </button>
-                <button id="btn-quick-wireframe" class="toolbar-btn active" title="Alternar Linhas das Células (Wireframe)">
+                <button id="btn-quick-wireframe" class="toolbar-btn active"
+                    title="Alternar Linhas das Células (Wireframe)">
                     <span class="btn-label-text">Wireframe</span>
                 </button>
                 <button id="btn-quick-graticule" class="toolbar-btn active" title="Alternar Equador & Linhas de Grade">
@@ -106,7 +111,8 @@
                     <img src="../assets/icons/rotate.svg" class="icon-svg icon-spin" alt="Rotação">
                     <span class="btn-label-text" id="label-quick-autorotate">Rotação da Terra</span>
                 </button>
-                <button id="btn-expand-sidebar" class="canvas-btn-expand-sidebar" title="Expandir Painel de Controles (F)">
+                <button id="btn-expand-sidebar" class="canvas-btn-expand-sidebar"
+                    title="Expandir Painel de Controles (F)">
                     <img src="../assets/icons/expand.svg" class="icon-svg" alt="Expandir">
                     <span class="btn-label-text">Controles</span>
                 </button>
@@ -164,7 +170,8 @@
             <!-- Dica Interativa Flutuante -->
             <div class="interactive-hint" id="canvas-interactive-hint">
                 <img src="../assets/icons/lightbulb.svg" class="icon-svg icon-accent" alt="Dica">
-                <span>Arraste para girar a esfera e passe o cursor sobre as células para inspecionar topologia e clima.</span>
+                <span>Arraste para girar a esfera e passe o cursor sobre as células para inspecionar topologia e
+                    clima.</span>
             </div>
         </div>
 
@@ -210,18 +217,22 @@
                     <div id="panel-tab-math">
                         <div class="climate-badge">
                             <span class="climate-title" id="span-badge-title">Malha Inicial (Pontos Aleatórios)</span>
-                            <span class="climate-status" id="span-topology-status">Etapa 1: Geometria Esférica Pura</span>
+                            <span class="climate-status" id="span-topology-status">Etapa 1: Geometria Esférica
+                                Pura</span>
                         </div>
+
+                        <!-- Divisores com Label: Resolução da Malha -->
+                        <div class="sim-divider-label"><span>Resolução da Malha</span></div>
 
                         <!-- Resolução & Sorteio -->
                         <div class="control-group">
-                            <label>Resolução da Malha Esférica</label>
                             <div class="slider-container">
                                 <div class="slider-header">
                                     <span>Número de Geradores ($N$)</span>
                                     <span id="val-num-cells" class="slider-val">500</span>
                                 </div>
-                                <input type="range" class="sim-slider" id="slider-num-cells" min="50" max="1200" step="50" value="500">
+                                <input type="range" class="sim-slider" id="slider-num-cells" min="50" max="1200"
+                                    step="50" value="500">
                             </div>
 
                             <button id="btn-random-mesh" class="btn-preset" style="width: 100%; margin-top: 8px;">
@@ -229,9 +240,11 @@
                             </button>
                         </div>
 
+                        <!-- Divisores com Label: Algoritmo de Lloyd -->
+                        <div class="sim-divider-label"><span>Relaxamento de Lloyd (SCVT)</span></div>
+
                         <!-- Algoritmo de Relaxamento de Lloyd -->
                         <div class="control-group">
-                            <label>Relaxamento de Lloyd (SCVT)</label>
                             <div class="control-grid-2x2">
                                 <button id="btn-auto-lloyd" class="btn-preset"
                                     style="background: rgba(34, 197, 94, 0.2); border-color: #22c55e;">
@@ -247,15 +260,25 @@
                                     <span>Velocidade de Relaxamento</span>
                                     <span id="val-speed" class="slider-val">10 passos/s</span>
                                 </div>
-                                <input type="range" class="sim-slider" id="slider-speed" min="1" max="30" step="1" value="10">
+                                <input type="range" class="sim-slider" id="slider-speed" min="1" max="30" step="1"
+                                    value="10">
                             </div>
+                        </div>
 
-                            <!-- Legenda de Cores de Topologia -->
+                        <!-- Divisores com Label: Classificação Topológica -->
+                        <div class="sim-divider-label"><span>Classificação dos Polígonos</span></div>
+
+                        <!-- Legenda de Cores de Topologia -->
+                        <div class="control-group">
                             <div class="topology-legend">
-                                <span class="topo-tag"><span class="topo-dot" style="background: #facc15;"></span> Pentágonos (5 lados)</span>
-                                <span class="topo-tag"><span class="topo-dot" style="background: #38bdf8;"></span> Hexágonos (6 lados)</span>
-                                <span class="topo-tag"><span class="topo-dot" style="background: #ec4899;"></span> Heptágonos (7 lados)</span>
-                                <span class="topo-tag"><span class="topo-dot" style="background: #ef4444;"></span> Outros (&le;4 ou &ge;8)</span>
+                                <span class="topo-tag"><span class="topo-dot" style="background: #facc15;"></span>
+                                    Pentágonos (5 lados)</span>
+                                <span class="topo-tag"><span class="topo-dot" style="background: #38bdf8;"></span>
+                                    Hexágonos (6 lados)</span>
+                                <span class="topo-tag"><span class="topo-dot" style="background: #ec4899;"></span>
+                                    Heptágonos (7 lados)</span>
+                                <span class="topo-tag"><span class="topo-dot" style="background: #ef4444;"></span>
+                                    Outros (&le;4 ou &ge;8)</span>
                             </div>
                         </div>
 
@@ -270,15 +293,17 @@
                             <span class="climate-status">Etapa 2: Geografia e Escala Planetária</span>
                         </div>
 
-                        <div class="control-group">
-                            <label>Escala Planetária & Atmosfera</label>
+                        <!-- Divisores com Label: Escala Planetária -->
+                        <div class="sim-divider-label"><span>Escala Planetária & Atmosfera</span></div>
 
+                        <div class="control-group">
                             <div class="slider-container">
                                 <div class="slider-header">
                                     <span>Raio do Núcleo Sólido</span>
                                     <span id="val-core-radius" class="slider-val">R_solo = 0.93 (7.0%)</span>
                                 </div>
-                                <input type="range" class="sim-slider" id="slider-core-radius" min="0.80" max="0.95" step="0.01" value="0.93">
+                                <input type="range" class="sim-slider" id="slider-core-radius" min="0.80" max="0.95"
+                                    step="0.01" value="0.93">
                             </div>
 
                             <div class="slider-container">
@@ -286,12 +311,15 @@
                                     <span>Opacidade da Camada de Ar</span>
                                     <span id="val-shell-opacity" class="slider-val">85%</span>
                                 </div>
-                                <input type="range" class="sim-slider" id="slider-shell-opacity" min="0.30" max="1.00" step="0.05" value="0.85">
+                                <input type="range" class="sim-slider" id="slider-shell-opacity" min="0.30" max="1.00"
+                                    step="0.05" value="0.85">
                             </div>
                         </div>
 
+                        <!-- Divisores com Label: Cenário Astronômico -->
+                        <div class="sim-divider-label"><span>Cenário Astronômico & Texturas</span></div>
+
                         <div class="control-group">
-                            <label>Cenário Astronômico & Texturas</label>
                             <div class="toggle-row">
                                 <label for="toggle-earth-texture">Textura da Terra (NASA Blue Marble)</label>
                                 <input type="checkbox" id="toggle-earth-texture" checked>
@@ -313,31 +341,39 @@
                     <div id="panel-tab-seasons" style="display: none;">
                         <div class="climate-badge">
                             <span class="climate-title" id="span-season-badge-title">Mecânica Orbital & Estações</span>
-                            <span class="climate-status" id="span-season-badge-status">Declinação Solar (δ): +23.4° N</span>
+                            <span class="climate-status" id="span-season-badge-status">Declinação Solar (δ): +23.4°
+                                N</span>
                         </div>
+
+                        <!-- Divisores com Label: Órbita 2D -->
+                        <div class="sim-divider-label"><span>Órbita Terrestre & Zodíaco 2D</span></div>
 
                         <!-- Mini-Orrery (Mapa 2D da Órbita Terrestre e Zodíaco) -->
                         <div class="mini-orrery-container">
                             <div class="mini-orrery-header">
                                 <span>Órbita Terrestre (Vista da Eclíptica)</span>
-                                <span id="label-orrery-month" style="font-family: monospace; color: #facc15;">21/Jun</span>
+                                <span id="label-orrery-month"
+                                    style="font-family: monospace; color: #facc15;">21/Jun</span>
                             </div>
                             <canvas id="canvas-mini-orrery" width="280" height="180"></canvas>
                             <div class="mini-orrery-caption">
-                                O Sol é projetado contra a <strong>Constelação de Gêmeos</strong>. À meia-noite, a Terra olha para <strong>Sagitário</strong>.
+                                O Sol é projetado contra a <strong>Constelação de Gêmeos</strong>. À meia-noite, a Terra
+                                olha para <strong>Sagitário</strong>.
                             </div>
                         </div>
 
+                        <!-- Divisores com Label: Posição Orbital -->
+                        <div class="sim-divider-label"><span>Posição Orbital & Hora Local</span></div>
+
                         <!-- Controles Orbitais e Temporais -->
                         <div class="control-group">
-                            <label>Posição na Órbita & Hora do Dia</label>
-
                             <div class="slider-container">
                                 <div class="slider-header">
                                     <span>Dia do Ano (Translação)</span>
                                     <span id="val-day-of-year" class="slider-val">Dia 172 • 21/Jun</span>
                                 </div>
-                                <input type="range" class="sim-slider" id="slider-day-of-year" min="1" max="365" step="1" value="172">
+                                <input type="range" class="sim-slider" id="slider-day-of-year" min="1" max="365"
+                                    step="1" value="172">
                             </div>
 
                             <div class="slider-container">
@@ -345,7 +381,8 @@
                                     <span>Rotação Diurna (Hora Local)</span>
                                     <span id="val-hour-of-day" class="slider-val">12:00 (Meio-dia)</span>
                                 </div>
-                                <input type="range" class="sim-slider" id="slider-hour-of-day" min="0" max="24" step="0.25" value="12">
+                                <input type="range" class="sim-slider" id="slider-hour-of-day" min="0" max="24"
+                                    step="0.25" value="12">
                             </div>
 
                             <div class="control-grid-2x2" style="margin-top: 8px;">
@@ -354,14 +391,17 @@
                                     <img src="../assets/icons/play.svg" class="icon-svg" alt="Play"> Translação Anual
                                 </button>
                                 <button id="btn-play-diurnal" class="btn-preset">
-                                    <img src="../assets/icons/rotate.svg" class="icon-svg" alt="Rotação"> Rotação Contínua
+                                    <img src="../assets/icons/rotate.svg" class="icon-svg" alt="Rotação"> Rotação
+                                    Contínua
                                 </button>
                             </div>
                         </div>
 
+                        <!-- Divisores com Label: Estações Cardeais -->
+                        <div class="sim-divider-label"><span>Estações Cardeais</span></div>
+
                         <!-- Botões Rápidos das 4 Estações Cardeais -->
                         <div class="control-group">
-                            <label>Estações Cardeais (Solstícios & Equinócios)</label>
                             <div class="control-grid-2x2">
                                 <button id="btn-season-jun" class="btn-preset active" title="21 de Junho">
                                     <img src="../assets/icons/sun.svg" class="icon-svg" alt="Sol"> Solstício Junho
@@ -373,14 +413,17 @@
                                     <img src="../assets/icons/snowflake.svg" class="icon-svg" alt="Neve"> Solstício Dez
                                 </button>
                                 <button id="btn-season-mar" class="btn-preset" title="20 de Março">
-                                    <img src="../assets/icons/flower.svg" class="icon-svg" alt="Primavera"> Equinócio Mar
+                                    <img src="../assets/icons/flower.svg" class="icon-svg" alt="Primavera"> Equinócio
+                                    Mar
                                 </button>
                             </div>
                         </div>
 
+                        <!-- Divisores com Label: Guias Astronômicas -->
+                        <div class="sim-divider-label"><span>Guias Astronômicas</span></div>
+
                         <!-- Guias Astronômicas -->
                         <div class="control-group">
-                            <label>Guias Astronômicas</label>
                             <div class="toggle-row">
                                 <label for="toggle-axial-tilt">Inclinação Axial Real (23,44°)</label>
                                 <input type="checkbox" id="toggle-axial-tilt" checked>
@@ -409,34 +452,30 @@
                             <span class="climate-status">Etapa 4: Da Geometria aos Supercomputadores</span>
                         </div>
 
-                        <!-- Card Didático 1: Conexão Conceitual -->
-                        <div class="control-group">
-                            <div class="theory-card">
-                                <h4><img src="../assets/icons/globe.svg" class="icon-svg icon-accent" alt="Globo"> Da Malha aos Modelos Operacionais</h4>
-                                <p>
-                                    As tesselações de Voronoi esféricas exploradas na <strong>Etapa 1</strong> e o forçamento solar orbital da <strong>Etapa 3</strong> constituem o alicerce matemático dos mais avançados modelos climáticos globais (como o <strong>MPAS</strong> da NOAA/NCAR e o <strong>ICON</strong> do Serviço Meteorológico Alemão).
-                                </p>
-                                <p>
-                                    Esses centros substituíram as grades tradicionais de latitude/longitude por malhas esféricas geodésicas para integrar as equações de Navier-Stokes sem singularidades polares.
-                                </p>
-                            </div>
-                        </div>
+                        <!-- Divisores com Label: Plataforma de Referência -->
+                        <div class="sim-divider-label"><span>Plataforma de Referência</span></div>
 
-                        <!-- Card Didático 2: Link Direto para Plataforma de Referência -->
+                        <!-- Card Didático: Link Direto para Plataforma de Referência -->
                         <div class="control-group">
-                            <div class="theory-card" style="border-color: rgba(56, 189, 248, 0.4); background: rgba(56, 189, 248, 0.06);">
-                                <h4><img src="../assets/icons/wind.svg" class="icon-svg icon-accent" alt="Vento"> Simulação Planetária em Tempo Real</h4>
+                            <div class="theory-card"
+                                style="border-color: rgba(56, 189, 248, 0.4); background: rgba(56, 189, 248, 0.06);">
+                                <h4><img src="../assets/icons/globe.svg" class="icon-svg icon-accent" alt="Globo">
+                                    Simulação Planetária em Tempo Real</h4>
                                 <p>
-                                    Para visualizar a dinâmica de ventos, temperaturas e correntes calculada com dados reais de supercomputadores, recomendamos a plataforma aberta:
+                                    Para visualizar a dinâmica global de ventos, temperaturas e correntes calculada com
+                                    dados reais de supercomputadores meteorológicos, recomendamos a plataforma aberta:
                                 </p>
-                                <p style="margin: 14px 0;">
-                                    <a href="https://earth.nullschool.net/pt/" target="_blank" rel="noopener noreferrer" class="btn-primary" style="display: flex; align-items: center; justify-content: center; gap: 8px; text-decoration: none; padding: 12px 16px; font-weight: 600; text-align: center;">
-                                        <img src="../assets/icons/globe.svg" class="icon-svg" alt="Globo" style="filter: brightness(0) invert(1);">
-                                        earth :: um mapa global do vento, tempo, e condições do oceano ↗
+                                <p style="margin: 16px 0;">
+                                    <a href="https://earth.nullschool.net/pt/" target="_blank" rel="noopener noreferrer"
+                                        class="external-sim-link">
+                                        <img src="../assets/icons/globe.svg" class="icon-svg" alt="Globo">
+                                        <span>Simulação climática NULLSCHOOL</span>
                                     </a>
                                 </p>
                                 <p style="font-size: 0.8rem; color: #94a3b8; line-height: 1.45;">
-                                    O <em>earth.nullschool</em> processa previsões numéricas globais geradas pelo NCEP/NOAA (GFS) e ECMWF, interpolando linhas de corrente e fluxos oceânicos sobre o globo terrestre.
+                                    O <em>earth.nullschool</em> processa previsões numéricas globais geradas pelo
+                                    NCEP/NOAA (GFS) e ECMWF, interpolando linhas de corrente e fluxos oceânicos sobre o
+                                    globo terrestre interativo.
                                 </p>
                             </div>
                         </div>
@@ -450,29 +489,42 @@
                             <h3 class="tab-title">Fundamentação Científica</h3>
                             <div class="sim-badge"><span class="status-dot"></span><span>$\KaTeX$</span></div>
                         </div>
-                        <p class="tab-subtitle">Topologia esférica, geometria solar e dinâmica de fluidos geofísicos.</p>
+                        <p class="tab-subtitle">Topologia esférica, escala planetária e mecânica celeste das estações.
+                        </p>
                     </div>
+
+                    <!-- Divisores com Label: Topologia Esférica -->
+                    <div class="sim-divider-label"><span>Topologia Esférica</span></div>
 
                     <!-- Card Didático 1: Teorema de Euler -->
                     <div class="control-group">
                         <div class="theory-card">
-                            <h4><img src="../assets/icons/compass.svg" class="icon-svg icon-accent" alt="Compasso"> Topologia de Euler na Esfera</h4>
+                            <h4><img src="../assets/icons/compass.svg" class="icon-svg icon-accent" alt="Compasso">
+                                Topologia de Euler na Esfera</h4>
                             <p>
-                                Para qualquer poliedro fechado homeomorfo à esfera $S^2$, a característica de Euler impõe:
+                                Para qualquer poliedro fechado homeomorfo à esfera $S^2$, a característica de Euler
+                                impõe:
                             </p>
                             $$\chi = V - E + F = 2 \implies \sum (6 - n) F_n = 12$$
                             <p>
-                                É matematicamente impossível ladrilhar uma esfera usando apenas hexágonos regulares ($n = 6$). São exigidos <strong>exatamente 12 pentágonos</strong> ($n = 5$) para fechar a curvatura global!
+                                É matematicamente impossível ladrilhar uma esfera usando apenas hexágonos regulares ($n
+                                = 6$). São exigidos <strong>exatamente 12 pentágonos</strong> ($n = 5$) para fechar a
+                                curvatura global!
                             </p>
                         </div>
                     </div>
 
+                    <!-- Divisores com Label: Escala Planetária -->
+                    <div class="sim-divider-label"><span>Escala Planetária</span></div>
+
                     <!-- Card Didático 2: Escala Planetária -->
                     <div class="control-group">
                         <div class="theory-card">
-                            <h4><img src="../assets/icons/globe.svg" class="icon-svg icon-accent" alt="Globo"> A Atmosfera e a "Casca da Maçã"</h4>
+                            <h4><img src="../assets/icons/globe.svg" class="icon-svg icon-accent" alt="Globo"> A
+                                Atmosfera e a "Casca da Maçã"</h4>
                             <p>
-                                O raio da Terra é $R \approx 6.371\text{ km}$, e a Troposfera tem apenas $H \approx 12\text{ km}$:
+                                O raio da Terra é $R \approx 6.371\text{ km}$, e a Troposfera tem apenas $H \approx
+                                12\text{ km}$:
                             </p>
                             $$\frac{H_{\text{atmosfera}}}{R_{\text{Terra}}} \approx \frac{12}{6371} \approx 0{,}19\%$$
                             <p>
@@ -481,33 +533,26 @@
                         </div>
                     </div>
 
+                    <!-- Divisores com Label: Geometria Solar -->
+                    <div class="sim-divider-label"><span>Geometria Solar & Estações</span></div>
+
                     <!-- Card Didático 3: Estações do Ano -->
                     <div class="control-group">
                         <div class="theory-card">
-                            <h4><img src="../assets/icons/sun.svg" class="icon-svg icon-accent" alt="Sol"> Geometria Solar & Declinação ($\delta_\odot$)</h4>
+                            <h4><img src="../assets/icons/sun.svg" class="icon-svg icon-accent" alt="Sol"> Geometria
+                                Solar & Declinação ($\delta_\odot$)</h4>
                             <p>
-                                A inclinação axial fixa de $\epsilon = 23{,}44^\circ$ modula a altura solar ao longo do ano orbital:
+                                A inclinação axial fixa de $\epsilon = 23{,}44^\circ$ modula a altura solar ao longo do
+                                ano orbital:
                             </p>
                             $$\sin\delta_\odot = \sin(23{,}44^\circ) \cdot \sin\lambda_\odot$$
                             <p>
-                                No Solstício de Junho, $\delta_\odot = +23{,}44^\circ$ (Norte aquecido). No Solstício de Dezembro, $\delta_\odot = -23{,}44^\circ$ (Sul aquecido).
-                            </p>
-                        </div>
-                    </div>
-
-                    <!-- Card Didático 4: Força de Coriolis -->
-                    <div class="control-group">
-                        <div class="theory-card">
-                            <h4><img src="../assets/icons/cyclone.svg" class="icon-svg icon-accent" alt="Ciclone"> Circulação Geral e Força de Coriolis</h4>
-                            <p>
-                                A rotação planetária introduz uma aceleração aparente perpendicular à velocidade:
-                            </p>
-                            $$\mathbf{a}_C = -2\mathbf{\Omega} \times \mathbf{v}$$
-                            <p>
-                                O ar desvia para a <strong>direita</strong> no Hemisfério Norte e para a <strong>esquerda</strong> no Hemisfério Sul, gerando ventos alísios e giro ciclônico oposto em cada hemisfério.
+                                No Solstício de Junho, $\delta_\odot = +23{,}44^\circ$ (Norte aquecido). No Solstício de
+                                Dezembro, $\delta_\odot = -23{,}44^\circ$ (Sul aquecido).
                             </p>
 
-                            <button class="btn-secondary" id="btn-open-theory-modal" style="width: 100%; margin-top: 12px;">
+                            <button class="btn-secondary" id="btn-open-theory-modal"
+                                style="width: 100%; margin-top: 14px;">
                                 <img src="../assets/icons/compass.svg" class="icon-svg" alt="Teoria">
                                 Ver Dedução Matemática Completa
                             </button>
@@ -536,7 +581,7 @@
             <div class="sim-modal-header">
                 <div class="sim-modal-title">
                     <img src="../assets/icons/compass.svg" class="icon-svg icon-accent" alt="Teoria">
-                    <span>Fundamentação Teórica: Tesselação Esférica & Dinâmica Climática</span>
+                    <span>Fundamentação Teórica: Tesselação Esférica, Escala & Mecânica Celeste</span>
                 </div>
                 <button class="sim-modal-close" data-modal-close title="Fechar Modal (Esc)">✕</button>
             </div>
@@ -545,65 +590,66 @@
                 <div class="theory-section">
                     <h4>1. Topologia Esférica, Dual de Voronoi e Relaxamento de Lloyd (SCVT)</h4>
                     <p>
-                        Dada uma distribuição de pontos geradores $\mathbf{p}_i \in S^2$, a célula esférica de Voronoi $V_i$ é o conjunto de todos os pontos na esfera mais próximos de $\mathbf{p}_i$ pela distância geodésica:
+                        Dada uma distribuição de pontos geradores $\mathbf{p}_i \in S^2$, a célula esférica de Voronoi
+                        $V_i$ é o conjunto de todos os pontos na esfera mais próximos de $\mathbf{p}_i$ pela distância
+                        geodésica:
                     </p>
-                    $$V_i = \{ \mathbf{x} \in S^2 \mid d(\mathbf{x}, \mathbf{p}_i) \le d(\mathbf{x}, \mathbf{p}_j), \, \forall j \ne i \}$$
+                    $$V_i = \{ \mathbf{x} \in S^2 \mid d(\mathbf{x}, \mathbf{p}_i) \le d(\mathbf{x}, \mathbf{p}_j), \,
+                    \forall j \ne i \}$$
                     <p>
                         A característica de Euler-Poincaré na esfera impõe uma restrição geométrica estrita:
                     </p>
                     $$V - E + F = 2 \implies \sum_{n} (6 - n) F_n = 12$$
                     <p>
-                        O <strong>Algoritmo de Lloyd</strong> move iterativamente cada gerador $\mathbf{p}_i$ em direção ao centro de massa esférico (baricentro) de sua célula:
+                        O <strong>Algoritmo de Lloyd</strong> move iterativamente cada gerador $\mathbf{p}_i$ em direção
+                        ao centro de massa esférico (baricentro) de sua célula:
                     </p>
                     $$\mathbf{c}_i = \frac{\int_{V_i} \mathbf{x} \, dA}{\left\| \int_{V_i} \mathbf{x} \, dA \right\|}$$
                     <p>
-                        Ao convergir para uma Tesselação Centroide de Voronoi Esférica (SCVT), os heptágonos e octágonos irregulares se extinguem, emergindo uma malha quase perfeitamente hexagonal contendo exatamente <strong>12 pentágonos dourados</strong>, análogo ao icosaedro truncado de uma bola de futebol clássica.
+                        Ao convergir para uma Tesselação Centroide de Voronoi Esférica (SCVT), os heptágonos e octágonos
+                        irregulares se extinguem, emergindo uma malha quase perfeitamente hexagonal contendo exatamente
+                        <strong>12 pentágonos dourados</strong>, análogo ao icosaedro truncado de uma bola de futebol
+                        clássica.
                     </p>
                 </div>
 
                 <div class="theory-callout">
                     <img src="../assets/icons/lightbulb.svg" class="icon-svg icon-accent" alt="Nota">
                     <strong>Teorema Topológico:</strong>
-                    Nenhuma esfera tridimensional pode ser particionada exclusivamente por polígonos de 6 lados. Os 12 pentágonos atuam como "defeitos topológicos" indispensáveis que absorvem a curvatura positiva gaussiana do espaço fechado.
+                    Nenhuma esfera tridimensional pode ser particionada exclusivamente por polígonos de 6 lados. Os 12
+                    pentágonos atuam como "defeitos topológicos" indispensáveis que absorvem a curvatura positiva
+                    gaussiana do espaço fechado.
                 </div>
 
                 <div class="theory-section">
                     <h4>2. Termodinâmica Atmosférica & Balanço Radiativo Global</h4>
                     <p>
-                        A insolação média absorvida por unidade de área depende fortemente da latitude $\phi$, modulada pela curvatura esférica e pelo albedo planetário $\alpha$:
+                        A insolação média absorvida por unidade de área depende fortemente da latitude $\phi$, modulada
+                        pela curvatura esférica e pelo albedo planetário $\alpha$:
                     </p>
                     $$F_{\text{solar}}(\phi) = \frac{S_0}{4} (1 - \alpha) \cos\phi$$
                     <p>
-                        O desequilíbrio radiativo resultante aquece o Equador ($+30^\circ\text{C}$) e resfria os Polos ($-35^\circ\text{C}$), estabelecendo um gradiente meridional de pressão barométrica que impulsiona o transporte de calor latente e sensível em direção às altas latitudes.
+                        O desequilíbrio radiativo resultante aquece o Equador ($+30^\circ\text{C}$) e resfria os Polos
+                        ($-35^\circ\text{C}$), estabelecendo um gradiente meridional de pressão barométrica que
+                        impulsiona o transporte de calor latente e sensível em direção às altas latitudes.
                     </p>
                 </div>
 
                 <div class="theory-section">
                     <h4>3. Mecânica Celeste, Eclíptica & Geometria Solar</h4>
                     <p>
-                        O eixo de rotação da Terra mantém uma orientação fixa no referencial inercial com inclinação de $\epsilon = 23{,}44^\circ$. A declinação do Sol $\delta_\odot$ ao longo da longitude eclíptica $\lambda_\odot$ é dada pela trigonometria esférica:
+                        O eixo de rotação da Terra mantém uma orientação fixa no referencial inercial com inclinação de
+                        $\epsilon = 23{,}44^\circ$. A declinação do Sol $\delta_\odot$ ao longo da longitude eclíptica
+                        $\lambda_\odot$ é dada pela trigonometria esférica:
                     </p>
                     $$\sin\delta_\odot = \sin\epsilon \cdot \sin\lambda_\odot$$
                     <ul>
-                        <li><strong>Solstício de Junho ($\lambda_\odot = 90^\circ$):</strong> $\delta_\odot = +23{,}44^\circ$ — Verão Boreal e Inverno Austral.</li>
-                        <li><strong>Solstício de Dezembro ($\lambda_\odot = 270^\circ$):</strong> $\delta_\odot = -23{,}44^\circ$ — Verão Austral e Inverno Boreal.</li>
-                        <li><strong>Equinócios de Março e Setembro ($\lambda_\odot = 0^\circ, 180^\circ$):</strong> $\delta_\odot = 0^\circ$ — Dia e noite de igual duração global.</li>
-                    </ul>
-                </div>
-
-                <div class="theory-section">
-                    <h4>4. Dinâmica dos Fluidos Geofísicos & Aceleração de Coriolis</h4>
-                    <p>
-                        No referencial em rotação com velocidade angular $\mathbf{\Omega} = \Omega \hat{\mathbf{k}}$, a conservação do momento linear resulta na equação de Navier-Stokes rotacional:
-                    </p>
-                    $$\frac{D\mathbf{v}}{Dt} = -\frac{1}{\rho}\nabla p + \mathbf{g} - 2\mathbf{\Omega} \times \mathbf{v} + \mathbf{F}_{\text{visc}}$$
-                    <p>
-                        O termo $-2\mathbf{\Omega} \times \mathbf{v}$ representa a <strong>Aceleração de Coriolis</strong>:
-                    </p>
-                    <ul>
-                        <li><strong>Hemisfério Norte ($f > 0$):</strong> O fluxo sofre deflexão para a direita, fazendo com que sistemas de baixa pressão (ciclones) girem no sentido <strong>anti-horário</strong>.</li>
-                        <li><strong>Hemisfério Sul ($f < 0$):</strong> O fluxo sofre deflexão para a esquerda, forçando os ciclones a girar no sentido <strong>horário</strong>.</li>
-                        <li><strong>Células Convectivas:</strong> A atmosfera fragmenta-se em três células meridionais por hemisfério — Célula de Hadley (ventos alísios de leste), Célula de Ferrel (ventos de oeste / <em>westerlies</em>) e Célula Polar.</li>
+                        <li><strong>Solstício de Junho ($\lambda_\odot = 90^\circ$):</strong> $\delta_\odot =
+                            +23{,}44^\circ$ — Verão Boreal e Inverno Austral.</li>
+                        <li><strong>Solstício de Dezembro ($\lambda_\odot = 270^\circ$):</strong> $\delta_\odot =
+                            -23{,}44^\circ$ — Verão Austral e Inverno Boreal.</li>
+                        <li><strong>Equinócios de Março e Setembro ($\lambda_\odot = 0^\circ, 180^\circ$):</strong>
+                            $\delta_\odot = 0^\circ$ — Dia e noite de igual duração global.</li>
                     </ul>
                 </div>
             </div>
@@ -616,7 +662,7 @@
     </div>
 
     <!-- Script Principal da Simulação -->
-    <script type="module" src="scripts/clima.js?v=3.4"></script>
+    <script type="module" src="scripts/clima.js?v=3.5"></script>
 </body>
 
 </html>

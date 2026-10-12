@@ -418,3 +418,37 @@
     }
 }
 
+/* Link Externo em Destaque para Plataforma Global */
+.external-sim-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    background: #0284c7;
+    color: #ffffff !important;
+    text-decoration: none !important;
+    padding: 13px 18px;
+    border-radius: var(--radius-md);
+    font-weight: 600;
+    font-size: 0.88rem;
+    box-shadow: 0 4px 14px rgba(2, 132, 199, 0.35);
+    transition: all var(--trans-fast);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    text-align: center;
+    width: 100%;
+    cursor: pointer;
+}
+
+.external-sim-link:hover {
+    background: #0369a1;
+    color: #ffffff !important;
+    box-shadow: 0 6px 20px rgba(2, 132, 199, 0.5);
+    transform: translateY(-1px);
+}
+
+.external-sim-link .icon-svg {
+    filter: brightness(0) invert(1);
+    width: 18px;
+    height: 18px;
+}
+
