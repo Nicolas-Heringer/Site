@@ -8,7 +8,7 @@
     <title>Átomo de Hidrogênio — Orbitais Quânticos</title>
 
     <meta name="description"
-        content="Visualização interativa 3D dos orbitais do átomo de hidrogênio. Selecione os números quânticos n, l, mₗ e mₛ para ver a distribuição da função de onda Ψ(r,θ,φ).">
+        content="Visualização interativa 3D dos orbitais do átomo de hidrogênio. Selecione os números quânticos n, l, m_l e m_s para ver a distribuição da função de onda Ψ(r,θ,φ).">
     <meta name="keywords"
         content="átomo de hidrogênio, orbitais quânticos, números quânticos, física quântica, simulação 3D, harmônicos esféricos, função de onda, Monte Carlo, Three.js">
     <meta name="author" content="Nicolas Heringer">
@@ -23,7 +23,16 @@
     <!-- Suporte a LaTeX com KaTeX -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" crossorigin="anonymous">
     <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" crossorigin="anonymous"></script>
-    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" crossorigin="anonymous"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"
+        crossorigin="anonymous" onload="renderMathInElement(document.body, {
+            delimiters: [
+                {left: '$$', right: '$$', display: true},
+                {left: '$', right: '$', display: false},
+                {left: '\\(', right: '\\)', display: false},
+                {left: '\\[', right: '\\]', display: true}
+            ],
+            throwOnError: false
+        });"></script>
 
     <!-- Three.js via importmap (ES Modules) -->
     <script type="importmap">
@@ -41,7 +50,9 @@
     <!-- Cabeçalho da Simulação -->
     <header class="sim-header">
         <a href="../index.html#secao-simulacoes" class="btn-back">
-            <svg class="icon-svg" viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+            <svg class="icon-svg" viewBox="0 0 24 24">
+                <path d="M19 12H5M12 19l-7-7 7-7" />
+            </svg>
             Voltar ao Hub
         </a>
         <h1 class="sim-title">Átomo de Hidrogênio — Orbitais Quânticos</h1>
@@ -55,13 +66,14 @@
             <div id="three-container"></div>
 
             <!-- Menu de Contexto Rápido no Topo Esquerdo (Ativado no Modo Foco / Sidebar Ocultada) -->
-            <div class="canvas-toolbar pos-top-left quantum-context-toolbar" id="quantum-context-toolbar" title="Menu de Contexto — Números Quânticos">
+            <div class="canvas-toolbar pos-top-left quantum-context-toolbar" id="quantum-context-toolbar"
+                title="Menu de Contexto — Números Quânticos">
                 <span class="toolbar-orbital-title">⚛</span>
                 <span class="toolbar-orbital-badge" id="quick-badge-orbital">1s</span>
                 <div class="toolbar-divider"></div>
 
                 <div class="quick-qn-group">
-                    <label for="quick-select-n" class="quick-qn-label">n</label>
+                    <label for="quick-select-n" class="quick-qn-label">$n$</label>
                     <select id="quick-select-n" class="quick-qn-select" title="Número quântico principal (n)">
                         <option value="1">1</option>
                         <option value="2">2</option>
@@ -70,11 +82,12 @@
                         <option value="5">5</option>
                     </select>
 
-                    <label for="quick-select-l" class="quick-qn-label">l</label>
+                    <label for="quick-select-l" class="quick-qn-label">$l$</label>
                     <select id="quick-select-l" class="quick-qn-select" title="Momento angular azimutal (l)"></select>
 
-                    <label for="quick-select-ml" class="quick-qn-label">m&#8467;</label>
-                    <select id="quick-select-ml" class="quick-qn-select" title="Número quântico magnético (ml)"></select>
+                    <label for="quick-select-ml" class="quick-qn-label">$m_l$</label>
+                    <select id="quick-select-ml" class="quick-qn-select"
+                        title="Número quântico magnético (ml)"></select>
                 </div>
 
                 <div class="toolbar-divider"></div>
@@ -82,7 +95,8 @@
                     <img src="../assets/icons/rotate.svg" class="icon-svg" alt="Gerar">
                     <span>Gerar</span>
                 </button>
-                <button id="btn-toggle-quantum-popover" class="toolbar-btn" title="Mais opções quânticas (Spin, Amostragem, Cor)">
+                <button id="btn-toggle-quantum-popover" class="toolbar-btn"
+                    title="Mais opções quânticas (Spin, Amostragem, Cor)">
                     <img src="../assets/icons/sparkles.svg" class="icon-svg" alt="Opções">
                     <span>Mais</span>
                 </button>
@@ -100,7 +114,8 @@
 
                 <div class="quantum-popover-content">
                     <div class="orbital-badge orbital-badge-compact">
-                        <span class="orbital-name" id="popover-orbital-name">1s &nbsp;(m&#8467;=0)</span>
+                        <span class="orbital-name" id="popover-orbital-name">1s <span class="badge-math">$(m_l =
+                                0)$</span></span>
                         <span class="orbital-energy" id="popover-orbital-energy">E = −13.600 eV</span>
                     </div>
 
@@ -128,8 +143,8 @@
                             <label for="quick-slider-pontos" class="popover-field-label">Pontos amostrados:</label>
                             <span class="slider-val" id="quick-span-pontos">5.000</span>
                         </div>
-                        <input type="range" id="quick-slider-pontos" class="sim-slider"
-                               min="500" max="20000" step="500" value="5000">
+                        <input type="range" id="quick-slider-pontos" class="sim-slider" min="500" max="20000" step="500"
+                            value="5000">
                     </div>
 
                     <button id="btn-popover-gerar" class="sim-btn" style="width: 100%; margin-top: 4px;">
@@ -185,19 +200,32 @@
 
                 <!-- ABA 1: PARÂMETROS E CONTROLES -->
                 <div id="panel-tab-params">
+                    <!-- Cabeçalho da Aba -->
+                    <div class="tab-header">
+                        <div class="tab-header-row">
+                            <h3 class="tab-title">Parâmetros do Orbital</h3>
+                            <div class="sim-badge" id="header-status-badge"><span
+                                    class="status-dot"></span><span>Pronto</span></div>
+                        </div>
+                        <p class="tab-subtitle">Configuração dos números quânticos e amostragem Monte Carlo de
+                            Schrödinger.</p>
+                    </div>
+
                     <!-- Badge do orbital atual -->
                     <div class="orbital-badge">
-                        <span class="orbital-name" id="span-orbital">1s &nbsp;(m&#8467;=0)</span>
+                        <span class="orbital-name" id="span-orbital">1s <span class="badge-math">$(m_l =
+                                0)$</span></span>
                         <span class="orbital-energy" id="span-energia">E = −13.600 eV</span>
                     </div>
 
-                    <!-- Números Quânticos -->
+                    <!-- Seção 1: Números Quânticos -->
+                    <div class="sim-divider-label"><span>Números Quânticos</span></div>
+
                     <div class="control-group">
-                        <label>Números Quânticos</label>
                         <div class="quantum-grid">
 
                             <div class="qn-cell">
-                                <span class="qn-symbol">n</span>
+                                <span class="qn-symbol">$n$</span>
                                 <select id="select-n" class="sim-control qn-select">
                                     <option value="1">1</option>
                                     <option value="2">2</option>
@@ -209,19 +237,19 @@
                             </div>
 
                             <div class="qn-cell">
-                                <span class="qn-symbol">l</span>
+                                <span class="qn-symbol">$l$</span>
                                 <select id="select-l" class="sim-control qn-select"></select>
                                 <span class="qn-desc">azimutal</span>
                             </div>
 
                             <div class="qn-cell">
-                                <span class="qn-symbol">m&#8467;</span>
+                                <span class="qn-symbol">$m_l$</span>
                                 <select id="select-ml" class="sim-control qn-select"></select>
                                 <span class="qn-desc">magnético</span>
                             </div>
 
                             <div class="qn-cell">
-                                <span class="qn-symbol">m&#8163;</span>
+                                <span class="qn-symbol">$m_s$</span>
                                 <select id="select-ms" class="sim-control qn-select">
                                     <option value="+0.5">+½</option>
                                     <option value="-0.5">−½</option>
@@ -232,14 +260,17 @@
                         </div>
                     </div>
 
+                    <!-- Seção 2: Amostragem & Visualização -->
+                    <div class="sim-divider-label"><span>Amostragem & Cores</span></div>
+
                     <!-- Número de pontos -->
                     <div class="control-group">
                         <label for="slider-pontos">
                             Pontos amostrados
                             <strong class="slider-val" id="span-pontos">5.000</strong>
                         </label>
-                        <input type="range" id="slider-pontos" class="sim-slider"
-                            min="500" max="20000" step="500" value="5000">
+                        <input type="range" id="slider-pontos" class="sim-slider" min="500" max="20000" step="500"
+                            value="5000">
                     </div>
 
                     <!-- Modo de colorização -->
@@ -254,7 +285,7 @@
                     <!-- Legenda de cores -->
                     <div class="color-legend">
                         <div id="legend-fase">
-                            <p class="legend-title">Fase: arg(Ψ) = m&#8467;·φ + arg(R·P)</p>
+                            <p class="legend-title">Fase: $\arg(\Psi) = m_l \phi + \arg(R \cdot Y)$</p>
                             <div class="phase-gradient"></div>
                             <div class="legend-labels">
                                 <span>0</span><span>π</span><span>2π</span>
@@ -269,26 +300,41 @@
                         </div>
                     </div>
 
+                    <!-- Seção 3: Ação & Execução -->
+                    <div class="sim-divider-label"><span>Execução</span></div>
+
                     <!-- Botão -->
                     <button id="btn-gerar" class="sim-btn">⚛ Gerar Orbital</button>
 
                     <!-- Status -->
                     <p id="status-msg" class="status"></p>
 
+                    <!-- Seção 4: Instruções de Navegação -->
+                    <div class="sim-divider-label"><span>Instruções & Ajuda</span></div>
+
                     <!-- Info com ícones vetoriais responsivos (Desktop & Mobile) -->
                     <div class="info-section">
                         <p>
-                            <strong>m&#8163; (spin)</strong> não altera a distribuição espacial $\Psi(r,\theta,\phi)$ — afeta apenas o estado quântico interno do elétron.
+                            <strong>$m_s$ (spin)</strong> não altera a distribuição espacial $\Psi(r,\theta,\phi)$ —
+                            afeta apenas o estado quântico interno do elétron.
                         </p>
 
                         <!-- Instruções Desktop -->
                         <div class="instructions-block desktop-only">
                             <span class="instructions-title">Controles Desktop</span>
                             <ul class="sim-instructions-list">
-                                <li><img src="../assets/icons/mouse-left.svg" class="icon-svg" alt="Arrastar"> <span><strong>Arrastar:</strong> orbitar câmera 3D</span></li>
-                                <li><img src="../assets/icons/mouse-wheel.svg" class="icon-svg" alt="Scroll"> <span><strong>Scroll:</strong> zoom aproximar/afastar</span></li>
-                                <li><img src="../assets/icons/mouse-right.svg" class="icon-svg" alt="Botão direito"> <span><strong>Botão dir.:</strong> deslocar câmera (pan)</span></li>
-                                <li><img src="../assets/icons/keyboard.svg" class="icon-svg" alt="Teclado"> <span><strong>F ou [:</strong> alternar modo foco</span></li>
+                                <li><img src="../assets/icons/mouse-left.svg" class="icon-svg" alt="Arrastar">
+                                    <span><strong>Arrastar:</strong> orbitar câmera 3D</span>
+                                </li>
+                                <li><img src="../assets/icons/mouse-wheel.svg" class="icon-svg" alt="Scroll">
+                                    <span><strong>Scroll:</strong> zoom aproximar/afastar</span>
+                                </li>
+                                <li><img src="../assets/icons/mouse-right.svg" class="icon-svg" alt="Botão direito">
+                                    <span><strong>Botão dir.:</strong> deslocar câmera (pan)</span>
+                                </li>
+                                <li><img src="../assets/icons/keyboard.svg" class="icon-svg" alt="Teclado">
+                                    <span><strong>F ou [:</strong> alternar modo foco</span>
+                                </li>
                             </ul>
                         </div>
 
@@ -296,10 +342,18 @@
                         <div class="instructions-block mobile-only">
                             <span class="instructions-title">Gestos Touch / Mobile</span>
                             <ul class="sim-instructions-list">
-                                <li><img src="../assets/icons/touch-drag.svg" class="icon-svg" alt="1 dedo"> <span><strong>1 dedo:</strong> orbitar nuvem 3D</span></li>
-                                <li><img src="../assets/icons/touch-pinch.svg" class="icon-svg" alt="Pinçar"> <span><strong>Pinçar (2 dedos):</strong> zoom</span></li>
-                                <li><img src="../assets/icons/touch-pan.svg" class="icon-svg" alt="2 dedos"> <span><strong>2 dedos arrastar:</strong> deslocar câmera</span></li>
-                                <li><img src="../assets/icons/smartphone.svg" class="icon-svg" alt="Painel"> <span><strong>Deslizar barra:</strong> expandir/recolher controles</span></li>
+                                <li><img src="../assets/icons/touch-drag.svg" class="icon-svg" alt="1 dedo">
+                                    <span><strong>1 dedo:</strong> orbitar nuvem 3D</span>
+                                </li>
+                                <li><img src="../assets/icons/touch-pinch.svg" class="icon-svg" alt="Pinçar">
+                                    <span><strong>Pinçar (2 dedos):</strong> zoom</span>
+                                </li>
+                                <li><img src="../assets/icons/touch-pan.svg" class="icon-svg" alt="2 dedos">
+                                    <span><strong>2 dedos arrastar:</strong> deslocar câmera</span>
+                                </li>
+                                <li><img src="../assets/icons/smartphone.svg" class="icon-svg" alt="Painel">
+                                    <span><strong>Deslizar barra:</strong> expandir/recolher controles</span>
+                                </li>
                             </ul>
                         </div>
                     </div>
@@ -307,32 +361,53 @@
 
                 <!-- ABA 2: TEORIA E FÓRMULAS MATEMÁTICAS -->
                 <div id="panel-tab-theory" style="display: none;">
-                    <div class="theory-card">
-                        <h4><img src="../assets/icons/compass.svg" class="icon-svg icon-accent" alt="Teoria"> Função de Onda $\Psi(\mathbf{r})$</h4>
-                        <p>
-                            A solução da Equação de Schrödinger estacionária para o potencial coulombiano $V(r) = -\frac{e^2}{4\pi \varepsilon_0 r}$ decompõe-se exatamente em coordenadas esféricas:
-                        </p>
-                        $$\Psi_{n,\ell,m_\ell}(r,\theta,\phi) = R_{n\ell}(r) \, Y_\ell^{m_\ell}(\theta,\phi)$$
+                    <div class="tab-header">
+                        <div class="tab-header-row">
+                            <h3 class="tab-title">Fundamentação Teórica</h3>
+                            <div class="sim-badge"><span class="status-dot"></span><span>$\LaTeX$</span></div>
+                        </div>
+                        <p class="tab-subtitle">Solução analítica da Equação de Schrödinger para o potencial
+                            coulombiano.</p>
                     </div>
 
+                    <div class="sim-divider-label"><span>Função de Onda</span></div>
+
                     <div class="theory-card">
-                        <h4>Parte Radial $R_{n\ell}(r)$</h4>
+                        <h4><img src="../assets/icons/compass.svg" class="icon-svg icon-accent" alt="Teoria"> Função de
+                            Onda $\Psi(\mathbf{r})$</h4>
+                        <p>
+                            A solução da Equação de Schrödinger estacionária para o potencial coulombiano $V(r) =
+                            -\frac{1}{4\pi \varepsilon_0}\frac{e}{r}$ decompõe-se exatamente em coordenadas esféricas:
+                        </p>
+                        $$\Psi_{n,l,m_l}(r,\theta,\phi) = R_{nl}(r) \, Y_l^{m_l}(\theta,\phi)$$
+                    </div>
+
+                    <div class="sim-divider-label"><span>Decomposição Radial & Angular</span></div>
+
+                    <div class="theory-card">
+                        <h4>Parte Radial $R_{nl}(r)$</h4>
                         <p>
                             Expressa via <strong>Polinômios Generalizados de Laguerre</strong>:
                         </p>
-                        $$R_{n\ell}(r) = N_{n\ell} \, e^{-\rho/2} \, \rho^\ell \, L_{n-\ell-1}^{2\ell+1}(\rho)$$
+                        $$R_{nl}(r) = N_{nl} \, e^{-\rho/2} \, \rho^l \, L_{n-l-1}^{2l+1}(\rho)$$
                         <p>
-                            onde $\rho = \frac{2r}{n a_0}$ e $a_0$ é o raio de Bohr. O orbital possui $n - \ell - 1$ nós radiais esféricos.
+                            onde $\rho = \frac{2r}{n a_0}$ e $a_0$ é o raio de Bohr. O orbital possui $n - l - 1$ nós
+                            radiais esféricos.
                         </p>
                     </div>
 
                     <div class="theory-card">
-                        <h4>Harmônicos Esféricos $Y_\ell^{m_\ell}(\theta,\phi)$</h4>
+                        <h4>Harmônicos Esféricos $Y_l^{m_l}(\theta,\phi)$</h4>
                         <p>
-                            A parte angular utiliza os <strong>Polinômios de Legendre Associados</strong> $P_\ell^{|m_\ell|}(\cos\theta)$ com fase de Condon–Shortley:
+                            A parte angular utiliza os <strong>Polinômios de Legendre Associados</strong>
+                            $P_l^{|m_l|}(\cos\theta)$ com fase de Condon–Shortley:
                         </p>
-                        $$Y_\ell^{m_\ell}(\theta,\phi) = \sqrt{\frac{2\ell+1}{4\pi}\frac{(\ell-|m_\ell|)!}{(\ell+|m_\ell|)!}} P_\ell^{|m_\ell|}(\cos\theta) \, e^{i m_\ell \phi}$$
+                        $$Y_l^{m_l}(\theta,\phi) =
+                        \sqrt{\frac{2l+1}{4\pi}\frac{(l-|m_l|)!}{(l+|m_l|)!}}
+                        P_l^{|m_l|}(\cos\theta) \, e^{i m_l \phi}$$
                     </div>
+
+                    <div class="sim-divider-label"><span>Energia do Estado</span></div>
 
                     <div class="theory-card">
                         <h4>Energia do Orbital</h4>

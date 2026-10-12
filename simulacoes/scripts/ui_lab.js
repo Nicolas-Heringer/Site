@@ -15,7 +15,9 @@ import {
     RealtimePlot,
     initModal,
     initSidebarCollapse,
-    initBottomSheet
+    initBottomSheet,
+    renderMath,
+    renderMathToString
 } from './sim-ui.js';
 
 // Re-exporta para retrocompatibilidade
@@ -28,7 +30,9 @@ export {
     initBottomSheet,
     inlineSVGImages,
     setElementIcon,
-    setGlobalAccent
+    setGlobalAccent,
+    renderMath,
+    renderMathToString
 };
 
 const ICONS_LIST = [
@@ -579,8 +583,47 @@ function setupListeners() {
         });
     }
 
+    // --- PLAYGROUND DE LATEX DINÂMICO ---
+    setupMathPlayground();
+
     // --- GALERIA DE ÍCONES ---
     populateIconGallery();
+}
+
+/** Configura o playground de fórmulas matemáticas interativas dinâmicas via KaTeX */
+function setupMathPlayground() {
+    const displayEl = document.getElementById('math-live-display');
+    const modelSelect = document.getElementById('select-math-model');
+    const sliderA = document.getElementById('slider-math-a');
+    const inputA = document.getElementById('input-math-a');
+    const sliderW = document.getElementById('slider-math-w');
+    const inputW = document.getElementById('input-math-w');
+
+    if (!displayEl || !modelSelect || !sliderA || !inputA || !sliderW || !inputW) return;
+
+    function updateLiveMath() {
+        const model = modelSelect.value;
+        const aVal = parseFloat(inputA.value || sliderA.value || 1.5).toFixed(1);
+        const wVal = parseFloat(inputW.value || sliderW.value || 3.0).toFixed(1);
+
+        let tex = '';
+        if (model === 'wave') {
+            tex = `\\psi(x, t) = ${aVal} \\cos(k x - ${wVal} t)`;
+        } else if (model === 'quantum') {
+            tex = `\\Psi(x, t) = ${aVal} e^{i(k x - ${wVal} t)}`;
+        } else if (model === 'decay') {
+            tex = `x(t) = ${aVal} e^{-\\gamma t} \\cos(${wVal} t + \\phi_0)`;
+        }
+
+        renderMath(displayEl, tex, { displayMode: true });
+    }
+
+    syncDualSlider('#slider-math-a', '#input-math-a', () => updateLiveMath());
+    syncDualSlider('#slider-math-w', '#input-math-w', () => updateLiveMath());
+    modelSelect.addEventListener('change', updateLiveMath);
+
+    // Render inicial
+    updateLiveMath();
 }
 
 function populateIconGallery() {

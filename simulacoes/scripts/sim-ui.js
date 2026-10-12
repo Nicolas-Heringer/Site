@@ -559,3 +559,52 @@ export function initBottomSheet({
     };
 }
 
+// =============================================================================
+// UTILITÁRIOS DE RENDERIZAÇÃO MATEMÁTICA (KATEX)
+// =============================================================================
+
+/**
+ * Renderiza uma expressão LaTeX em um elemento DOM via KaTeX síncrono.
+ * @param {HTMLElement|string} target - Elemento ou seletor CSS
+ * @param {string} tex - Código LaTeX
+ * @param {object} options - Opções do KaTeX (displayMode, throwOnError, etc.)
+ */
+export function renderMath(target, tex, options = {}) {
+    const el = typeof target === 'string' ? document.querySelector(target) : target;
+    if (!el) return;
+    if (window.katex && typeof window.katex.render === 'function') {
+        try {
+            window.katex.render(tex, el, {
+                throwOnError: false,
+                displayMode: false,
+                ...options
+            });
+            return;
+        } catch (e) {
+            console.warn('[sim-ui] Erro ao renderizar KaTeX:', e);
+        }
+    }
+    el.textContent = tex;
+}
+
+/**
+ * Converte uma expressão LaTeX diretamente em string HTML compilada pelo KaTeX.
+ * @param {string} tex - Código LaTeX
+ * @param {object} options - Opções do KaTeX
+ * @returns {string} HTML renderizado ou fallback em texto plano
+ */
+export function renderMathToString(tex, options = {}) {
+    if (window.katex && typeof window.katex.renderToString === 'function') {
+        try {
+            return window.katex.renderToString(tex, {
+                throwOnError: false,
+                displayMode: false,
+                ...options
+            });
+        } catch (e) {
+            console.warn('[sim-ui] Erro ao compilar KaTeX:', e);
+        }
+    }
+    return tex;
+}
+

@@ -481,22 +481,37 @@ const tabBtnTheory         = document.getElementById('tab-btn-theory');
 const panelTabParams       = document.getElementById('panel-tab-params');
 const panelTabTheory       = document.getElementById('panel-tab-theory');
 
+/** Formata o badge do orbital com tipografia matemática via KaTeX quando disponível */
+function formatarBadgeOrbital(n, l, ml) {
+    const subshell = NOMES_L[l] || 's';
+    const nomeOrbital = `${n}${subshell}`;
+    const mlStr = ml >= 0 ? `+${ml}` : `${ml}`;
+    const texStr = `(m_l = ${mlStr})`;
+
+    if (window.katex && typeof window.katex.renderToString === 'function') {
+        try {
+            const mathHtml = window.katex.renderToString(texStr, { throwOnError: false });
+            return `${nomeOrbital} <span class="badge-math">${mathHtml}</span>`;
+        } catch (e) {
+            // fallback em caso de erro de renderização
+        }
+    }
+    return `${nomeOrbital} <span class="badge-math">(${texStr})</span>`;
+}
+
 /** Atualiza todos os badges do orbital em tempo real */
 function atualizarBadges() {
     const n = parseInt(selectN.value) || 1;
     const l = parseInt(selectL.value) || 0;
     const ml = parseInt(selectMl.value) || 0;
-    const mlStr = ml >= 0 ? `+${ml}` : `${ml}`;
-    const subshell = NOMES_L[l] || 's';
-    const nomeOrbital = `${n}${subshell}`;
-    const descCompleta = `${nomeOrbital}\u00A0\u00A0(m\u2113=${mlStr})`;
+    const descCompleta = formatarBadgeOrbital(n, l, ml);
     const energiaVal = (-13.6 / (n * n)).toFixed(3);
     const energiaStr = `E = ${energiaVal} eV`;
 
-    if (spanOrbital) spanOrbital.textContent = descCompleta;
+    if (spanOrbital) spanOrbital.innerHTML = descCompleta;
     if (spanEnergia) spanEnergia.textContent = energiaStr;
-    if (quickBadgeOrbital) quickBadgeOrbital.textContent = `${nomeOrbital} (m\u2113=${mlStr})`;
-    if (popoverOrbitalName) popoverOrbitalName.textContent = descCompleta;
+    if (quickBadgeOrbital) quickBadgeOrbital.innerHTML = descCompleta;
+    if (popoverOrbitalName) popoverOrbitalName.innerHTML = descCompleta;
     if (popoverOrbitalEnergy) popoverOrbitalEnergy.textContent = energiaStr;
     if (footerEnergyMeta) footerEnergyMeta.textContent = energiaStr;
 }
@@ -532,7 +547,7 @@ function atualizarSelectL() {
     atualizarBadges();
 }
 
-/** Preenche os <select> de mₗ no painel lateral e no menu de contexto (−l … +l). */
+/** Preenche os <select> de m_l no painel lateral e no menu de contexto (−l … +l). */
 function atualizarSelectMl() {
     const l = parseInt(selectL.value) || 0;
     const mlPrev = parseInt(selectMl.value) || 0;
