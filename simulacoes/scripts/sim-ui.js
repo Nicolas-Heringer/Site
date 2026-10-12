@@ -620,3 +620,44 @@ export function renderMathToString(tex, options = {}) {
     return tex;
 }
 
+/**
+ * Inicializa a renderização automática de fórmulas matemáticas KaTeX ($...$ e $$...$$).
+ * Trata carregamento assíncrono do CDN com tentativas de contingência imediatas.
+ * @param {HTMLElement|string} [root=document.body] - Elemento raiz para varredura
+ * @param {object} [customOptions] - Opções personalizadas de delimitadores
+ */
+export function initKaTeXAutoRender(root = document.body, customOptions = {}) {
+    const el = typeof root === 'string' ? document.querySelector(root) : root;
+    if (!el) return;
+
+    const defaultOptions = {
+        delimiters: [
+            { left: '$$', right: '$$', display: true },
+            { left: '$', right: '$', display: false },
+            { left: '\\(', right: '\\)', display: false },
+            { left: '\\[', right: '\\]', display: true }
+        ],
+        throwOnError: false,
+        ...customOptions
+    };
+
+    const runRender = () => {
+        if (typeof window.renderMathInElement === 'function') {
+            try {
+                window.renderMathInElement(el, defaultOptions);
+            } catch (err) {
+                console.warn('[sim-ui] Erro durante auto-render do KaTeX:', err);
+            }
+        }
+    };
+
+    if (typeof window.renderMathInElement === 'function') {
+        runRender();
+    } else {
+        window.addEventListener('load', runRender, { once: true });
+        setTimeout(runRender, 150);
+        setTimeout(runRender, 500);
+        setTimeout(runRender, 1200);
+    }
+}
+

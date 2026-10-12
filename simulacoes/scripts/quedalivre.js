@@ -3,7 +3,8 @@ import {
     syncDualSlider,
     RealtimePlot,
     initSidebarCollapse,
-    initBottomSheet
+    initBottomSheet,
+    initKaTeXAutoRender
 } from './sim-ui.js';
 
 // =============================================================================
@@ -415,7 +416,10 @@ function setupUI() {
         tabTheory.classList.add('active');
         tabParams?.classList.remove('active');
         if (panelParams) panelParams.style.display = 'none';
-        if (panelTheory) panelTheory.style.display = 'block';
+        if (panelTheory) {
+            panelTheory.style.display = 'block';
+            initKaTeXAutoRender(panelTheory);
+        }
     });
 
     // Inicialização do Mini-Gráfico RealtimePlot para Energia Mecânica
@@ -475,5 +479,6 @@ window.addEventListener('DOMContentLoaded', () => {
     setupPointerEvents();
     setupUI();
     resetBall();
+    initKaTeXAutoRender(document.body);
     requestAnimationFrame(animate);
 });

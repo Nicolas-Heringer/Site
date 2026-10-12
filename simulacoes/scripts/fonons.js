@@ -3,7 +3,8 @@ import {
     syncDualSlider,
     RealtimePlot,
     initSidebarCollapse,
-    initBottomSheet
+    initBottomSheet,
+    initKaTeXAutoRender
 } from './sim-ui.js';
 
 // =============================================================================
@@ -506,7 +507,10 @@ function setupUI() {
         tabTheory.classList.add('active');
         tabParams?.classList.remove('active');
         if (panelParams) panelParams.style.display = 'none';
-        if (panelTheory) panelTheory.style.display = 'block';
+        if (panelTheory) {
+            panelTheory.style.display = 'block';
+            initKaTeXAutoRender(panelTheory);
+        }
     });
 
     // Mini-Gráfico RealtimePlot
@@ -561,5 +565,6 @@ window.addEventListener('DOMContentLoaded', () => {
     setupPointerEvents();
     setupUI();
     atualizarHUDInfo();
+    initKaTeXAutoRender(document.body);
     requestAnimationFrame(animate);
 });
