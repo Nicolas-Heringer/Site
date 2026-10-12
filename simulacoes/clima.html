@@ -18,7 +18,7 @@
 
     <!-- Design System Unificado e Estilos Específicos -->
     <link rel="stylesheet" href="css/design-system.css">
-    <link rel="stylesheet" href="css/clima.css">
+    <link rel="stylesheet" href="css/clima.css?v=3.4">
 
     <!-- Suporte a Fórmulas Matemáticas com KaTeX -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" crossorigin="anonymous">
@@ -53,6 +53,49 @@
         <!-- 1. Área do Canvas 3D Interativo -->
         <div class="canvas-area">
             <div id="three-container"></div>
+
+            <!-- Barra de Ferramentas Flutuante no Topo Esquerdo (Opções de Exibição / Camadas) -->
+            <div class="canvas-toolbar pos-top-left" id="display-toolbar">
+                <button id="btn-toggle-layers-popover" class="toolbar-btn" title="Menu de Camadas & Exibição">
+                    <img src="../assets/icons/globe.svg" class="icon-svg" alt="Exibição">
+                    <span>Exibição</span>
+                </button>
+                <div class="toolbar-divider"></div>
+                <button id="btn-quick-generators" class="toolbar-btn active" title="Alternar Pontos Geradores (Centros)">
+                    <span class="btn-label-text">Centros</span>
+                </button>
+                <button id="btn-quick-wireframe" class="toolbar-btn active" title="Alternar Linhas das Células (Wireframe)">
+                    <span class="btn-label-text">Wireframe</span>
+                </button>
+                <button id="btn-quick-graticule" class="toolbar-btn active" title="Alternar Equador & Linhas de Grade">
+                    <span class="btn-label-text">Grade</span>
+                </button>
+            </div>
+
+            <!-- Popover de Opções de Exibição (Pequeno Menu Flutuante) -->
+            <div id="layers-popover" class="sim-popover hidden">
+                <div class="popover-header">
+                    <div class="popover-title">
+                        <img src="../assets/icons/globe.svg" class="icon-svg icon-accent" alt="Exibição">
+                        <span>Opções de Exibição</span>
+                    </div>
+                    <button id="btn-close-layers-popover" class="popover-close" title="Fechar">✕</button>
+                </div>
+                <div class="popover-body">
+                    <div class="toggle-row">
+                        <label for="toggle-generators">Pontos Geradores (Centros)</label>
+                        <input type="checkbox" id="toggle-generators" checked>
+                    </div>
+                    <div class="toggle-row">
+                        <label for="toggle-wireframe">Linhas das Células (Wireframe)</label>
+                        <input type="checkbox" id="toggle-wireframe" checked>
+                    </div>
+                    <div class="toggle-row">
+                        <label for="toggle-graticule">Equador & Linhas de Grade</label>
+                        <input type="checkbox" id="toggle-graticule" checked>
+                    </div>
+                </div>
+            </div>
 
             <!-- Tooltip Flutuante de Inspeção de Célula (Hover) -->
             <div id="cell-tooltip" class="cell-tooltip"></div>
@@ -105,20 +148,6 @@
                 <div class="hud-item" id="hud-row-zodiac" style="display: none;">
                     <span class="hud-label">Sol no Zodíaco:</span>
                     <span class="hud-val" id="stat-zodiac-sign" style="color: #a855f7;">Gêmeos (Gemini)</span>
-                </div>
-
-                <!-- Métricas Climáticas da Etapa 4 -->
-                <div class="hud-item" id="hud-row-climate-field" style="display: none;">
-                    <span class="hud-label">Campo Ativo:</span>
-                    <span class="hud-val" id="stat-climate-field" style="color: #facc15;">Temperatura ($T$)</span>
-                </div>
-                <div class="hud-item" id="hud-row-temp-range" style="display: none;">
-                    <span class="hud-label">Temp. Eq / Polos:</span>
-                    <span class="hud-val" id="stat-temp-range" style="color: #ec4899;">+32°C / -18°C</span>
-                </div>
-                <div class="hud-item" id="hud-row-max-wind" style="display: none;">
-                    <span class="hud-label">Vento Máximo:</span>
-                    <span class="hud-val" id="stat-max-wind" style="color: #38bdf8;">65 km/h</span>
                 </div>
 
                 <hr id="hud-separator">
@@ -230,22 +259,6 @@
                             </div>
                         </div>
 
-                        <!-- Visualização Geométrica -->
-                        <div class="control-group">
-                            <label>Elementos Visuais</label>
-                            <div class="toggle-row">
-                                <label for="toggle-generators">Pontos Geradores (Centros)</label>
-                                <input type="checkbox" id="toggle-generators" checked>
-                            </div>
-                            <div class="toggle-row">
-                                <label for="toggle-wireframe">Linhas das Células (Wireframe)</label>
-                                <input type="checkbox" id="toggle-wireframe" checked>
-                            </div>
-                            <div class="toggle-row">
-                                <label for="toggle-graticule">Equador & Linhas de Grade</label>
-                                <input type="checkbox" id="toggle-graticule" checked>
-                            </div>
-                        </div>
                     </div>
 
                     <!-- ============================================================= -->
@@ -388,116 +401,44 @@
                     </div>
 
                     <!-- ============================================================= -->
-                    <!-- ETAPA 4: DINÂMICA CLIMÁTICA & CIRCULAÇÃO DE CORIOLIS          -->
+                    <!-- ETAPA 4: MODELOS CLIMÁTICOS GLOBAIS (EARTH NULLSCHOOL)        -->
                     <!-- ============================================================= -->
                     <div id="panel-tab-atmosphere" style="display: none;">
                         <div class="climate-badge">
-                            <span class="climate-title">Dinâmica Climática Global</span>
-                            <span class="climate-status">Etapa 4: Termodinâmica, Coriolis & Ciclones</span>
+                            <span class="climate-title">Modelos Climáticos Globais</span>
+                            <span class="climate-status">Etapa 4: Da Geometria aos Supercomputadores</span>
                         </div>
 
-                        <!-- Seletor de Campo Físico -->
+                        <!-- Card Didático 1: Conexão Conceitual -->
                         <div class="control-group">
-                            <label>Campo Escalar da Atmosfera</label>
-                            <div class="field-selector-grid">
-                                <button class="field-btn active" id="btn-field-temp">
-                                    <img src="../assets/icons/thermometer.svg" class="icon-svg" alt="Temperatura">
-                                    <span>Temp (T)</span>
-                                </button>
-                                <button class="field-btn" id="btn-field-pressure">
-                                    <img src="../assets/icons/pressure.svg" class="icon-svg" alt="Pressão">
-                                    <span>Pressão (P)</span>
-                                </button>
-                                <button class="field-btn" id="btn-field-wind">
-                                    <img src="../assets/icons/wind.svg" class="icon-svg" alt="Vento">
-                                    <span>Vento (v)</span>
-                                </button>
-                            </div>
-
-                            <div class="climate-colorbar-container">
-                                <div class="climate-colorbar" id="climate-colorbar"></div>
-                                <div class="climate-colorbar-labels">
-                                    <span id="colorbar-min-lbl">-30°C</span>
-                                    <span id="colorbar-mid-lbl">+15°C</span>
-                                    <span id="colorbar-max-lbl">+35°C</span>
-                                </div>
+                            <div class="theory-card">
+                                <h4><img src="../assets/icons/globe.svg" class="icon-svg icon-accent" alt="Globo"> Da Malha aos Modelos Operacionais</h4>
+                                <p>
+                                    As tesselações de Voronoi esféricas exploradas na <strong>Etapa 1</strong> e o forçamento solar orbital da <strong>Etapa 3</strong> constituem o alicerce matemático dos mais avançados modelos climáticos globais (como o <strong>MPAS</strong> da NOAA/NCAR e o <strong>ICON</strong> do Serviço Meteorológico Alemão).
+                                </p>
+                                <p>
+                                    Esses centros substituíram as grades tradicionais de latitude/longitude por malhas esféricas geodésicas para integrar as equações de Navier-Stokes sem singularidades polares.
+                                </p>
                             </div>
                         </div>
 
-                        <!-- Parâmetros Termodinâmicos -->
+                        <!-- Card Didático 2: Link Direto para Plataforma de Referência -->
                         <div class="control-group">
-                            <label>Termodinâmica & Rotação Planetária</label>
-
-                            <div class="slider-container">
-                                <div class="slider-header">
-                                    <span>Contraste Equador-Polo ($\Delta T$)</span>
-                                    <span id="val-temp-delta" class="slider-val">50 °C</span>
-                                </div>
-                                <input type="range" class="sim-slider" id="slider-temp-delta" min="15" max="75" step="1" value="50">
+                            <div class="theory-card" style="border-color: rgba(56, 189, 248, 0.4); background: rgba(56, 189, 248, 0.06);">
+                                <h4><img src="../assets/icons/wind.svg" class="icon-svg icon-accent" alt="Vento"> Simulação Planetária em Tempo Real</h4>
+                                <p>
+                                    Para visualizar a dinâmica de ventos, temperaturas e correntes calculada com dados reais de supercomputadores, recomendamos a plataforma aberta:
+                                </p>
+                                <p style="margin: 14px 0;">
+                                    <a href="https://earth.nullschool.net/pt/" target="_blank" rel="noopener noreferrer" class="btn-primary" style="display: flex; align-items: center; justify-content: center; gap: 8px; text-decoration: none; padding: 12px 16px; font-weight: 600; text-align: center;">
+                                        <img src="../assets/icons/globe.svg" class="icon-svg" alt="Globo" style="filter: brightness(0) invert(1);">
+                                        earth :: um mapa global do vento, tempo, e condições do oceano ↗
+                                    </a>
+                                </p>
+                                <p style="font-size: 0.8rem; color: #94a3b8; line-height: 1.45;">
+                                    O <em>earth.nullschool</em> processa previsões numéricas globais geradas pelo NCEP/NOAA (GFS) e ECMWF, interpolando linhas de corrente e fluxos oceânicos sobre o globo terrestre.
+                                </p>
                             </div>
-
-                            <div class="slider-container">
-                                <div class="slider-header">
-                                    <span>Temperatura Média Global</span>
-                                    <span id="val-temp-mean" class="slider-val">15 °C</span>
-                                </div>
-                                <input type="range" class="sim-slider" id="slider-temp-mean" min="0" max="30" step="1" value="15">
-                            </div>
-
-                            <div class="slider-container">
-                                <div class="slider-header">
-                                    <span>Rotação / Força de Coriolis ($\Omega$)</span>
-                                    <span id="val-coriolis" class="slider-val">1.0x (Terra)</span>
-                                </div>
-                                <input type="range" class="sim-slider" id="slider-coriolis" min="0" max="3.0" step="0.1" value="1.0">
-                            </div>
-                        </div>
-
-                        <!-- Fluxo de Vento & Partículas -->
-                        <div class="control-group">
-                            <label>Fluxo de Vento & Partículas</label>
-                            <div class="toggle-row">
-                                <label for="toggle-wind-particles">Partículas de Ar em Fluxo (Streamlines)</label>
-                                <input type="checkbox" id="toggle-wind-particles" checked>
-                            </div>
-                            <div class="toggle-row">
-                                <label for="toggle-wind-vectors">Vetores de Vento nas Células</label>
-                                <input type="checkbox" id="toggle-wind-vectors" checked>
-                            </div>
-
-                            <div class="slider-container" style="margin-top: 6px;">
-                                <div class="slider-header">
-                                    <span>Velocidade do Fluxo de Ar</span>
-                                    <span id="val-wind-speed" class="slider-val">1.0x</span>
-                                </div>
-                                <input type="range" class="sim-slider" id="slider-wind-speed" min="0.2" max="3.0" step="0.2" value="1.0">
-                            </div>
-
-                            <div class="slider-container" style="margin-top: 6px;">
-                                <div class="slider-header">
-                                    <span>Densidade de Partículas</span>
-                                    <span id="val-num-particles" class="slider-val">2.500</span>
-                                </div>
-                                <input type="range" class="sim-slider" id="slider-num-particles" min="500" max="5000" step="500" value="2500">
-                            </div>
-                        </div>
-
-                        <!-- Laboratório Interativo de Ciclones -->
-                        <div class="control-group">
-                            <label>Laboratório Interativo de Ciclones</label>
-                            <div class="control-grid-2x2">
-                                <button id="btn-tool-cyclone" class="btn-preset"
-                                    title="Clique no globo para semear uma Baixa Pressão">
-                                    <img src="../assets/icons/cyclone.svg" class="icon-svg" alt="Ciclone"> Criar Ciclone
-                                </button>
-                                <button id="btn-tool-anticyclone" class="btn-preset"
-                                    title="Clique no globo para semear uma Alta Pressão">
-                                    <img src="../assets/icons/wind.svg" class="icon-svg" alt="Anticiclone"> Anticiclone
-                                </button>
-                            </div>
-                            <button id="btn-reset-atmosphere" class="btn-preset" style="width: 100%; margin-top: 6px;">
-                                <img src="../assets/icons/refresh.svg" class="icon-svg" alt="Reset"> Resetar Perturbações
-                            </button>
                         </div>
                     </div>
                 </div>
@@ -675,7 +616,7 @@
     </div>
 
     <!-- Script Principal da Simulação -->
-    <script type="module" src="scripts/clima.js"></script>
+    <script type="module" src="scripts/clima.js?v=3.4"></script>
 </body>
 
 </html>

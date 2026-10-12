@@ -11,8 +11,12 @@
 // =============================================================================
 
 function generateUniformRandomSpherePoints(numPoints) {
-    const points = [];
-    for (let i = 0; i < numPoints; i++) {
+    const points = [
+        [1, 0, 0], [-1, 0, 0],
+        [0, 1, 0], [0, -1, 0],
+        [0, 0, 1], [0, 0, -1]
+    ];
+    for (let i = 6; i < numPoints; i++) {
         const z = 2.0 * Math.random() - 1.0;
         const theta = 2.0 * Math.PI * Math.random();
         const r = Math.sqrt(Math.max(0.0, 1.0 - z * z));
@@ -41,18 +45,7 @@ function computeCircumcenter(pa, pb, pc) {
 
 function buildSphericalDelaunayAndVoronoi(points) {
     const numPoints = points.length;
-
-    // Inicialização com octaedro canônico de 6 vértices base
-    const allPoints = [
-        [1, 0, 0], [-1, 0, 0],
-        [0, 1, 0], [0, -1, 0],
-        [0, 0, 1], [0, 0, -1]
-    ];
-
-    for (let i = 0; i < numPoints; i++) {
-        allPoints.push(points[i].slice());
-    }
-
+    const allPoints = points.map(p => p.slice());
     const totalPts = allPoints.length;
 
     const triangles = [
@@ -234,7 +227,7 @@ function buildSphericalDelaunayAndVoronoi(points) {
 
     const cellPolygons = [];
 
-    for (let pIdx = 6; pIdx < totalPts; pIdx++) {
+    for (let pIdx = 0; pIdx < totalPts; pIdx++) {
         const incTris = pointToTriangles[pIdx];
         if (incTris.length < 3) {
             cellPolygons.push([]);
@@ -390,12 +383,17 @@ function packDirectBuffersForThreeJS(points, voronoiData, iteration = 0, avgShif
     const meshColors = new Float32Array(totalTriangles * 9);
 
     const generatorPositions = new Float32Array(numCells * 3);
+    const cellAreas = new Float32Array(numCells);
+    const cellVertexOffsets = new Int32Array(numCells);
+    const cellVertexCounts = new Int32Array(numCells);
 
-    // Mapa para deduplicação estrita de arestas do wireframe
+    // Mapa para deduplicação estrita de arestas do wireframe e conectividade de vizinhos
     const uniqueEdges = new Set();
     const wireframePairs = [];
+    const edgeToCells = new Map();
 
     let vCursor = 0;
+    let currentVertOffset = 0;
 
     for (let i = 0; i < numCells; i++) {
         const [cx, cy, cz] = points[i];
@@ -405,6 +403,11 @@ function packDirectBuffersForThreeJS(points, voronoiData, iteration = 0, avgShif
 
         const poly = cellPolygons[i];
         const deg = poly.length;
+        cellVertexOffsets[i] = currentVertOffset;
+        cellVertexCounts[i] = deg * 3;
+        currentVertOffset += deg * 3;
+
+        let cellArea = 0;
         if (deg < 3) continue;
 
         let col = TOPOLOGY_RGB.other;
@@ -418,6 +421,14 @@ function packDirectBuffersForThreeJS(points, voronoiData, iteration = 0, avgShif
 
             const v1 = voronoiVertices[v1Idx];
             const v2 = voronoiVertices[v2Idx];
+
+            // Área esférica da célula: triângulo fan a partir do gerador c
+            const d1x = v1[0] - cx, d1y = v1[1] - cy, d1z = v1[2] - cz;
+            const d2x = v2[0] - cx, d2y = v2[1] - cy, d2z = v2[2] - cz;
+            const crx = d1y * d2z - d1z * d2y;
+            const cry = d1z * d2x - d1x * d2z;
+            const crz = d1x * d2y - d1y * d2x;
+            cellArea += 0.5 * Math.hypot(crx, cry, crz);
 
             // Triangulação leque estrita e individual para esta célula
             // Garantia de orientação anti-horária voltada para fora
@@ -456,11 +467,78 @@ function packDirectBuffersForThreeJS(points, voronoiData, iteration = 0, avgShif
 
             if (!uniqueEdges.has(edgeKey)) {
                 uniqueEdges.add(edgeKey);
-                wireframePairs.push(v1[0] * 1.001, v1[1] * 1.001, v1[2] * 1.001);
-                wireframePairs.push(v2[0] * 1.001, v2[1] * 1.001, v2[2] * 1.001);
+                wireframePairs.push(v1[0] * 1.002, v1[1] * 1.002, v1[2] * 1.002);
+                wireframePairs.push(v2[0] * 1.002, v2[1] * 1.002, v2[2] * 1.002);
             }
+
+            const strKey = minIdx + '_' + maxIdx;
+            if (!edgeToCells.has(strKey)) edgeToCells.set(strKey, []);
+            edgeToCells.get(strKey).push({ cell: i, v1Idx, v2Idx });
+        }
+
+        cellAreas[i] = Math.max(1e-5, cellArea);
+    }
+
+    // Construção das conexões topológicas de volumes finitos entre células vizinhas
+    const cellNeighbors = Array.from({ length: numCells }, () => []);
+    for (const [key, list] of edgeToCells.entries()) {
+        if (list.length === 2) {
+            const c1 = list[0].cell;
+            const c2 = list[1].cell;
+            const v1 = voronoiVertices[list[0].v1Idx];
+            const v2 = voronoiVertices[list[0].v2Idx];
+            const edgeLen = Math.hypot(v1[0] - v2[0], v1[1] - v2[1], v1[2] - v2[2]);
+
+            const [c1x, c1y, c1z] = points[c1];
+            const [c2x, c2y, c2z] = points[c2];
+
+            // Normal unitária tangente em c1 apontando em direção a c2
+            let d12x = c2x - c1x, d12y = c2y - c1y, d12z = c2z - c1z;
+            const dot1 = d12x * c1x + d12y * c1y + d12z * c1z;
+            let n1x = d12x - dot1 * c1x, n1y = d12y - dot1 * c1y, n1z = d12z - dot1 * c1z;
+            const len1 = Math.hypot(n1x, n1y, n1z) || 1.0;
+            n1x /= len1; n1y /= len1; n1z /= len1;
+
+            // Normal unitária tangente em c2 apontando em direção a c1
+            let d21x = c1x - c2x, d21y = c1y - c2y, d21z = c1z - c2z;
+            const dot2 = d21x * c2x + d21y * c2y + d21z * c2z;
+            let n2x = d21x - dot2 * c2x, n2y = d21y - dot2 * c2y, n2z = d21z - dot2 * c2z;
+            const len2 = Math.hypot(n2x, n2y, n2z) || 1.0;
+            n2x /= len2; n2y /= len2; n2z /= len2;
+
+            const dist = Math.hypot(d12x, d12y, d12z) || 1e-4;
+
+            cellNeighbors[c1].push({ j: c2, edgeLen, dist, nx: n1x, ny: n1y, nz: n1z });
+            cellNeighbors[c2].push({ j: c1, edgeLen, dist, nx: n2x, ny: n2y, nz: n2z });
         }
     }
+
+    // Empacotamento em formato CSR (Compressed Sparse Row) para cálculos de alta performance
+    let totalNbrs = 0;
+    for (let i = 0; i < numCells; i++) totalNbrs += cellNeighbors[i].length;
+
+    const nbrOffset = new Int32Array(numCells + 1);
+    const nbrIndex = new Int32Array(totalNbrs);
+    const nbrDist = new Float32Array(totalNbrs);
+    const nbrEdgeLen = new Float32Array(totalNbrs);
+    const nbrNormal = new Float32Array(totalNbrs * 3);
+
+    let nbrCursor = 0;
+    for (let i = 0; i < numCells; i++) {
+        nbrOffset[i] = nbrCursor;
+        const nList = cellNeighbors[i];
+        for (let k = 0; k < nList.length; k++) {
+            const nb = nList[k];
+            nbrIndex[nbrCursor] = nb.j;
+            nbrDist[nbrCursor] = nb.dist;
+            nbrEdgeLen[nbrCursor] = nb.edgeLen;
+            nbrNormal[nbrCursor * 3] = nb.nx;
+            nbrNormal[nbrCursor * 3 + 1] = nb.ny;
+            nbrNormal[nbrCursor * 3 + 2] = nb.nz;
+            nbrCursor++;
+        }
+    }
+    nbrOffset[numCells] = nbrCursor;
 
     const wireframePositions = new Float32Array(wireframePairs);
 
@@ -476,7 +554,16 @@ function packDirectBuffersForThreeJS(points, voronoiData, iteration = 0, avgShif
         meshNormals,
         meshColors,
         wireframePositions,
-        generatorPositions
+        generatorPositions,
+        cellNeighbors,
+        nbrOffset,
+        nbrIndex,
+        nbrDist,
+        nbrEdgeLen,
+        nbrNormal,
+        cellAreas,
+        cellVertexOffsets,
+        cellVertexCounts
     };
 }
 
@@ -508,7 +595,15 @@ self.onmessage = function (e) {
                     packed.meshNormals.buffer,
                     packed.meshColors.buffer,
                     packed.wireframePositions.buffer,
-                    packed.generatorPositions.buffer
+                    packed.generatorPositions.buffer,
+                    packed.cellAreas.buffer,
+                    packed.cellVertexOffsets.buffer,
+                    packed.cellVertexCounts.buffer,
+                    packed.nbrOffset.buffer,
+                    packed.nbrIndex.buffer,
+                    packed.nbrDist.buffer,
+                    packed.nbrEdgeLen.buffer,
+                    packed.nbrNormal.buffer
                 ]
             );
             break;
@@ -538,7 +633,15 @@ self.onmessage = function (e) {
                     packed.meshNormals.buffer,
                     packed.meshColors.buffer,
                     packed.wireframePositions.buffer,
-                    packed.generatorPositions.buffer
+                    packed.generatorPositions.buffer,
+                    packed.cellAreas.buffer,
+                    packed.cellVertexOffsets.buffer,
+                    packed.cellVertexCounts.buffer,
+                    packed.nbrOffset.buffer,
+                    packed.nbrIndex.buffer,
+                    packed.nbrDist.buffer,
+                    packed.nbrEdgeLen.buffer,
+                    packed.nbrNormal.buffer
                 ]
             );
             break;

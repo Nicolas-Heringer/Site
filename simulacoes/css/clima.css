@@ -23,8 +23,12 @@
 }
 
 /* ---------- Botão de Rotação Automática Flutuante ---------- */
+.canvas-btn-floating .icon-spin {
+    animation: none !important;
+}
+
 .canvas-btn-floating.active .icon-spin {
-    animation: sim-spin 8s linear infinite;
+    animation: sim-spin 8s linear infinite !important;
 }
 
 @keyframes sim-spin {
@@ -396,3 +400,21 @@
     border-top: 1px solid rgba(255, 255, 255, 0.1);
     margin: 4px 0;
 }
+
+/* Popover de Camadas & Exibição no Topo Esquerdo */
+#layers-popover {
+    min-width: 260px;
+    max-width: 300px;
+    top: 52px;
+    left: 15px;
+}
+
+@media (max-width: 640px) {
+    #btn-quick-generators,
+    #btn-quick-wireframe,
+    #btn-quick-graticule,
+    #display-toolbar .toolbar-divider {
+        display: none !important;
+    }
+}
+

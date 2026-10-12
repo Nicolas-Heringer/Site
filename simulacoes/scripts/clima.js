@@ -50,17 +50,8 @@ const state = {
     showSunTerminator: true,
     showEclipticPlane: true,
 
-    // Parâmetros de Dinâmica Climática (Aba 4)
-    climateField: 'temp',    // 'temp', 'pressure', 'wind'
-    tempDelta: 50,           // Contraste térmico Equador-Polo (°C)
-    tempMean: 15,            // Temperatura média global (°C)
-    coriolisScale: 1.0,      // Parâmetro de rotação de Coriolis (0x a 3x)
-    showWindParticles: true, // Partículas de fluxo (Streamlines)
-    numWindParticles: 2500,  // Densidade de partículas no fluxo
-    showWindVectors: true,   // Vetores de vento nas células
-    windSpeedScale: 1.0,     // Escala de velocidade do fluxo
-    activeTool: null,        // 'cyclone' ou 'anticyclone'
-    perturbations: [],       // Lista de ciclones / anticiclones ativos
+    // Parâmetros Astronômicos Acoplados
+    sunDeclinationRad: 0.0,  // Declinação solar orbital acoplada (δ em radianos)
 
     // Visualização 3D Comum
     showEarthTexture: true,
@@ -163,174 +154,7 @@ function getZodiacConstellationInfo(dayOfYear) {
 }
 
 // =============================================================================
-// 3. FÍSICA CLIMÁTICA & GRADIENTES DE CAMPO EM S² (ABA 4)
-// =============================================================================
-
-// Calcula os campos escalares (Temperatura, Pressão, Vento) para uma posição na esfera
-function sampleClimateField(x, y, z) {
-    const latRad = Math.asin(Math.max(-1, Math.min(1, y)));
-    const lonRad = Math.atan2(z, x);
-    const cosLat = Math.cos(latRad);
-    const sinLat = Math.sin(latRad);
-
-    // 1. Temperatura Base: Insolação Solar cos²(latitude)
-    let tempC = state.tempMean + state.tempDelta * (cosLat * cosLat - 0.5);
-
-    // 2. Pressão Base: 3 Células de Circulação (Hadley, Ferrel, Polar)
-    let pBase = 1013.25;
-    if (state.coriolisScale === 0) {
-        // Célula única de Hadley: Baixa no Equador, Alta nos Polos
-        pBase = 1005 + 25 * Math.abs(sinLat);
-    } else {
-        // Padrão real de 3 Células da Terra
-        const latDeg = (latRad * 180.0) / Math.PI;
-        const hadleyLow = -12.0 * Math.exp(-Math.pow(latDeg / 15.0, 2)); // ZCIT
-        const subtropicalHigh = +14.0 * (Math.exp(-Math.pow((latDeg - 32) / 14.0, 2)) + Math.exp(-Math.pow((latDeg + 32) / 14.0, 2))); // Altas subtropicais
-        const subpolarLow = -16.0 * (Math.exp(-Math.pow((latDeg - 60) / 12.0, 2)) + Math.exp(-Math.pow((latDeg + 60) / 12.0, 2))); // Frente polar
-        const polarHigh = +10.0 * Math.pow(Math.abs(sinLat), 4); // Altas polares
-        pBase += (hadleyLow + subtropicalHigh + subpolarLow + polarHigh) * Math.min(1.5, state.coriolisScale);
-    }
-
-    // 3. Vetores de Vento Zonal (u) e Meridional (v)
-    let uZonal = 0.0;     // Leste (+) / Oeste (-)
-    let vMeridional = 0.0; // Norte (+) / Sul (-)
-
-    if (state.coriolisScale === 0) {
-        // Terra Parada: Vento superficial sopra estritamente para o Equador
-        vMeridional = -Math.sign(y) * 22.0 * cosLat;
-        uZonal = 0.0;
-    } else {
-        const absLat = Math.abs(latRad);
-        const signLat = Math.sign(latRad) || 1.0;
-
-        if (absLat <= Math.PI / 6.0) {
-            // Célula de Hadley: Ventos Alísios (NE no Norte, SE no Sul)
-            vMeridional = -signLat * 14.0 * Math.sin(6.0 * absLat);
-            uZonal = -28.0 * state.coriolisScale * cosLat;
-        } else if (absLat <= Math.PI / 3.0) {
-            // Célula de Ferrel: Ventos de Oeste (Westerlies)
-            vMeridional = +signLat * 12.0 * Math.sin(6.0 * absLat);
-            uZonal = +42.0 * state.coriolisScale * Math.sin(2.0 * absLat);
-        } else {
-            // Célula Polar: Ventos Polares de Leste
-            vMeridional = -signLat * 10.0 * Math.cos(absLat);
-            uZonal = -18.0 * state.coriolisScale * cosLat;
-        }
-    }
-
-    // 4. Injeção de Perturbações (Ciclones e Anticiclones)
-    let v3dX = 0.0, v3dY = 0.0, v3dZ = 0.0;
-
-    // Converte uZonal e vMeridional para vetor 3D tangente à esfera
-    const eEast = [-Math.sin(lonRad), 0, Math.cos(lonRad)];
-    const eNorth = [-sinLat * Math.cos(lonRad), cosLat, -sinLat * Math.sin(lonRad)];
-
-    v3dX = uZonal * eEast[0] + vMeridional * eNorth[0];
-    v3dY = uZonal * eEast[1] + vMeridional * eNorth[1];
-    v3dZ = uZonal * eEast[2] + vMeridional * eNorth[2];
-
-    for (const pert of state.perturbations) {
-        const dot = x * pert.x + y * pert.y + z * pert.z;
-        const angDist = Math.acos(Math.max(-1, Math.min(1, dot)));
-        const sigma = pert.radiusRad;
-
-        if (angDist < 3.5 * sigma) {
-            const decay = Math.exp(-Math.pow(angDist / sigma, 2));
-
-            // Impacto na Pressão e Temperatura
-            const pDelta = (pert.isLow ? -28.0 : +24.0) * decay * pert.intensity;
-            pBase += pDelta;
-            tempC += (pert.isLow ? +3.5 : -2.5) * decay;
-
-            // Rotação Ciclônica (Anti-horária no Norte / Horária no Sul)
-            // Vetor tangente azimutal ao redor do centro da perturbação: c x p
-            const tx = pert.y * z - pert.z * y;
-            const ty = pert.z * x - pert.x * z;
-            const tz = pert.x * y - pert.y * x;
-            const tLen = Math.sqrt(tx * tx + ty * ty + tz * tz) || 1.0;
-
-            const rx = pert.x - dot * x;
-            const ry = pert.y - dot * y;
-            const rz = pert.z - dot * z;
-            const rLen = Math.sqrt(rx * rx + ry * ry + rz * rz) || 1.0;
-
-            const rotSense = (pert.latRad >= 0) ? +1.0 : -1.0; // Anti-horário no Norte
-            const vVortex = 55.0 * decay * pert.intensity * (pert.isLow ? 1.0 : -1.0);
-            const vConverge = (pert.isLow ? 14.0 : -10.0) * decay * pert.intensity;
-
-            v3dX += rotSense * vVortex * (tx / tLen) + vConverge * (rx / rLen);
-            v3dY += rotSense * vVortex * (ty / tLen) + vConverge * (ry / rLen);
-            v3dZ += rotSense * vVortex * (tz / tLen) + vConverge * (rz / rLen);
-        }
-    }
-
-    const windSpeedKmH = Math.sqrt(v3dX * v3dX + v3dY * v3dY + v3dZ * v3dZ);
-
-    return {
-        tempC,
-        pressureHpa: pBase,
-        windSpeedKmH,
-        windVelocity3D: [v3dX, v3dY, v3dZ],
-        latRad,
-        lonRad
-    };
-}
-
-// Mapas de Cores Científicos
-function getTemperatureColor(tempC) {
-    // Escala de -35°C a +40°C
-    const tNorm = Math.max(0.0, Math.min(1.0, (tempC - (-35.0)) / (40.0 - (-35.0))));
-    if (tNorm < 0.25) {
-        // Azul escuro -> Ciano
-        const f = tNorm / 0.25;
-        return [0.1 + 0.1 * f, 0.2 + 0.5 * f, 0.9];
-    } else if (tNorm < 0.55) {
-        // Ciano -> Verde/Amarelo
-        const f = (tNorm - 0.25) / 0.30;
-        return [0.2 + 0.7 * f, 0.7 + 0.25 * f, 0.9 - 0.7 * f];
-    } else if (tNorm < 0.80) {
-        // Amarelo -> Laranja
-        const f = (tNorm - 0.55) / 0.25;
-        return [0.9 + 0.1 * f, 0.95 - 0.4 * f, 0.2 - 0.15 * f];
-    } else {
-        // Laranja -> Vermelho Carmim
-        const f = (tNorm - 0.80) / 0.20;
-        return [1.0, 0.55 - 0.45 * f, 0.05 + 0.1 * f];
-    }
-}
-
-function getPressureColor(pressureHpa) {
-    // Escala de 980 hPa (Baixa - Roxo/Azul) a 1035 hPa (Alta - Laranja/Vermelho)
-    const pNorm = Math.max(0.0, Math.min(1.0, (pressureHpa - 980.0) / (1035.0 - 980.0)));
-    if (pNorm < 0.45) {
-        const f = pNorm / 0.45;
-        return [0.5 - 0.4 * f, 0.2 + 0.6 * f, 0.9];
-    } else if (pNorm < 0.75) {
-        const f = (pNorm - 0.45) / 0.30;
-        return [0.1 + 0.8 * f, 0.8 + 0.15 * f, 0.9 - 0.7 * f];
-    } else {
-        const f = (pNorm - 0.75) / 0.25;
-        return [0.9 + 0.1 * f, 0.95 - 0.65 * f, 0.2 - 0.15 * f];
-    }
-}
-
-function getWindSpeedColor(windSpeedKmH) {
-    // Escala de 0 a 90 km/h
-    const wNorm = Math.max(0.0, Math.min(1.0, windSpeedKmH / 90.0));
-    if (wNorm < 0.3) {
-        const f = wNorm / 0.3;
-        return [0.1, 0.3 + 0.5 * f, 0.8];
-    } else if (wNorm < 0.7) {
-        const f = (wNorm - 0.3) / 0.4;
-        return [0.1 + 0.8 * f, 0.8 + 0.15 * f, 0.8 - 0.6 * f];
-    } else {
-        const f = (wNorm - 0.7) / 0.3;
-        return [0.9 + 0.1 * f, 0.95 - 0.7 * f, 0.2 + 0.6 * f];
-    }
-}
-
-// =============================================================================
-// 4. CENA THREE.JS, HIERARQUIA DE TRANSFORMAÇÃO & ILUMINAÇÃO
+// 3. CENA THREE.JS, HIERARQUIA DE TRANSFORMAÇÃO & ILUMINAÇÃO
 // =============================================================================
 
 const container = document.getElementById('three-container');
@@ -355,13 +179,6 @@ let polarAxisLineGroup = null;
 let eclipticPlaneMesh = null;
 let sunVisualGroup = null;
 let hoverHighlightMesh = null;
-
-// Sistema de Partículas de Vento (Streamlines) & Vetores
-let windParticlesMesh = null;
-let windParticlePositions = null;
-let windParticleAges = null;
-let windParticleTexture = null;
-let windVectorsMesh = null;
 
 let ambientLight = null, sunLight = null;
 let globeGeometry = null, globeMaterial = null;
@@ -443,6 +260,7 @@ function initThreeScene() {
     globeCoreMesh = new THREE.Mesh(coreGeo, earthSolidMaterial);
     globeCoreMesh.scale.setScalar(state.coreRadius);
     globeCoreMesh.visible = (state.activeTab !== 'tab-math');
+    globeCoreMesh.renderOrder = 1;
     earthSpinGroup.add(globeCoreMesh);
 
     // Iluminação
@@ -464,12 +282,12 @@ function initThreeScene() {
     });
     hoverHighlightMesh = new THREE.Mesh(highlightGeo, highlightMat);
     hoverHighlightMesh.visible = false;
+    hoverHighlightMesh.renderOrder = 6;
     earthSpinGroup.add(hoverHighlightMesh);
 
     createGraticuleLines();
     createStarfieldAndConstellations();
     createAstronomicalGuides();
-    initWindParticleSystem();
 
     window.addEventListener('resize', onWindowResize);
 
@@ -481,7 +299,6 @@ function initThreeScene() {
     }
 
     setupHoverRaycasting();
-    setupCycloneInjectionClick();
 }
 
 function createProceduralEarthTexture() {
@@ -583,6 +400,7 @@ function createGraticuleLines() {
     }
 
     graticuleGroup.visible = state.showGraticule;
+    graticuleGroup.renderOrder = 3;
     earthSpinGroup.add(graticuleGroup);
 }
 
@@ -791,126 +609,8 @@ function createAstronomicalGuides() {
 // 5. SISTEMA DE PARTÍCULAS DE VENTO & STREAMLINES (ABA 4)
 // =============================================================================
 
-function createWindParticleTexture() {
-    const canvas = document.createElement('canvas');
-    canvas.width = 32;
-    canvas.height = 32;
-    const ctx = canvas.getContext('2d');
-
-    const grad = ctx.createRadialGradient(16, 16, 0, 16, 16, 16);
-    grad.addColorStop(0.0, 'rgba(255, 255, 255, 1.0)');
-    grad.addColorStop(0.35, 'rgba(125, 211, 252, 0.9)');
-    grad.addColorStop(0.7, 'rgba(56, 189, 248, 0.4)');
-    grad.addColorStop(1.0, 'rgba(14, 165, 233, 0.0)');
-
-    ctx.fillStyle = grad;
-    ctx.beginPath();
-    ctx.arc(16, 16, 16, 0, Math.PI * 2);
-    ctx.fill();
-
-    const texture = new THREE.CanvasTexture(canvas);
-    return texture;
-}
-
-function initWindParticleSystem(count = state.numWindParticles) {
-    state.numWindParticles = count;
-
-    if (windParticlesMesh) {
-        earthSpinGroup.remove(windParticlesMesh);
-        if (windParticlesMesh.geometry) windParticlesMesh.geometry.dispose();
-        if (windParticlesMesh.material) windParticlesMesh.material.dispose();
-        windParticlesMesh = null;
-    }
-
-    windParticlePositions = new Float32Array(state.numWindParticles * 3);
-    windParticleAges = new Float32Array(state.numWindParticles);
-
-    const R = 1.008;
-    for (let i = 0; i < state.numWindParticles; i++) {
-        resetWindParticle(i, R);
-        windParticleAges[i] = Math.random() * 240.0;
-    }
-
-    const partGeo = new THREE.BufferGeometry();
-    partGeo.setAttribute('position', new THREE.BufferAttribute(windParticlePositions, 3));
-
-    if (!windParticleTexture) {
-        windParticleTexture = createWindParticleTexture();
-    }
-
-    const partMat = new THREE.PointsMaterial({
-        size: 0.028,
-        map: windParticleTexture,
-        color: 0x7dd3fc,
-        transparent: true,
-        opacity: 0.9,
-        blending: THREE.AdditiveBlending,
-        depthTest: true,
-        depthWrite: false
-    });
-
-    windParticlesMesh = new THREE.Points(partGeo, partMat);
-    windParticlesMesh.visible = (state.activeTab === 'tab-atmosphere' && state.showWindParticles);
-    earthSpinGroup.add(windParticlesMesh);
-}
-
-function resetWindParticle(i, R = 1.008) {
-    const z = 2.0 * Math.random() - 1.0;
-    const theta = 2.0 * Math.PI * Math.random();
-    const r = Math.sqrt(Math.max(0.0, 1.0 - z * z));
-
-    windParticlePositions[3 * i] = r * Math.cos(theta) * R;
-    windParticlePositions[3 * i + 1] = z * R;
-    windParticlePositions[3 * i + 2] = r * Math.sin(theta) * R;
-    windParticleAges[i] = 0;
-}
-
-function updateWindParticles(dt) {
-    if (!windParticlesMesh || state.activeTab !== 'tab-atmosphere' || !state.showWindParticles) return;
-
-    const R = 1.008;
-    // Multiplicador ajustado para velocidade visual fluida e dinâmica
-    const speedMultiplier = 0.008 * state.windSpeedScale;
-    const count = state.numWindParticles;
-    const maxAge = 240.0;
-
-    for (let i = 0; i < count; i++) {
-        windParticleAges[i] += dt * 60.0;
-        if (windParticleAges[i] > maxAge) {
-            resetWindParticle(i, R);
-            continue;
-        }
-
-        let px = windParticlePositions[3 * i];
-        let py = windParticlePositions[3 * i + 1];
-        let pz = windParticlePositions[3 * i + 2];
-
-        // Normaliza para amostrar o campo de vento
-        const pLen = Math.sqrt(px * px + py * py + pz * pz) || 1.0;
-        const nx = px / pLen;
-        const ny = py / pLen;
-        const nz = pz / pLen;
-
-        const sample = sampleClimateField(nx, ny, nz);
-        const [vx, vy, vz] = sample.windVelocity3D;
-
-        // Integração Euleriana na Esfera
-        px += vx * speedMultiplier * dt;
-        py += vy * speedMultiplier * dt;
-        pz += vz * speedMultiplier * dt;
-
-        // Projeção esférica mantendo raio R
-        const newLen = Math.sqrt(px * px + py * py + pz * pz) || 1.0;
-        windParticlePositions[3 * i] = (px / newLen) * R;
-        windParticlePositions[3 * i + 1] = (py / newLen) * R;
-        windParticlePositions[3 * i + 2] = (pz / newLen) * R;
-    }
-
-    windParticlesMesh.geometry.attributes.position.needsUpdate = true;
-}
-
 // =============================================================================
-// 6. ATUALIZAÇÃO DOS DIRECT BUFFERS NATIVOS (CASCA ATMOSFÉRICA)
+// 5. ATUALIZAÇÃO DOS DIRECT BUFFERS NATIVOS (MALHA DE VORONOI)
 // =============================================================================
 
 function applyDirectBuffersToScene(payload) {
@@ -933,30 +633,30 @@ function applyDirectBuffersToScene(payload) {
     globeGeometry = new THREE.BufferGeometry();
     globeGeometry.setAttribute('position', new THREE.BufferAttribute(meshPositions, 3));
     globeGeometry.setAttribute('normal', new THREE.BufferAttribute(meshNormals, 3));
-
-    // Define as cores com base na aba ativa
-    updateMeshColorsForCurrentTab();
-
     globeGeometry.setAttribute('color', new THREE.BufferAttribute(meshColors, 3));
 
     const isMathTab = (state.activeTab === 'tab-math');
-    const isClimateTab = (state.activeTab === 'tab-atmosphere');
-    const currentOpacity = isMathTab ? 1.0 : state.shellOpacity;
+    const isAtmosphereTab = (state.activeTab === 'tab-atmosphere');
+    const currentOpacity = isMathTab ? 1.0 : isAtmosphereTab ? 0.35 : state.shellOpacity;
 
     globeMaterial = new THREE.MeshStandardMaterial({
-        vertexColors: (isMathTab || isClimateTab),
-        color: (isMathTab || isClimateTab) ? 0xffffff : 0x38bdf8,
+        vertexColors: isMathTab,
+        color: isMathTab ? 0xffffff : 0x38bdf8,
         roughness: 0.55,
         metalness: 0.05,
         flatShading: true,
         side: THREE.FrontSide,
         transparent: currentOpacity < 1.0,
         opacity: currentOpacity,
-        depthWrite: true,
-        depthTest: true
+        depthWrite: isMathTab,
+        depthTest: true,
+        polygonOffset: true,
+        polygonOffsetFactor: 1.0,
+        polygonOffsetUnits: 1.0
     });
 
     globeMesh = new THREE.Mesh(globeGeometry, globeMaterial);
+    globeMesh.renderOrder = 2;
     earthSpinGroup.add(globeMesh);
 
     // --- MALHA 3: WIREFRAME DEDUPLICADO ---
@@ -967,12 +667,13 @@ function applyDirectBuffersToScene(payload) {
     const wireMat = new THREE.LineBasicMaterial({
         color: 0x0f172a,
         transparent: true,
-        opacity: 0.65,
+        opacity: 0.75,
         depthTest: true,
         depthWrite: false
     });
     wireframeMesh = new THREE.LineSegments(wireGeo, wireMat);
     wireframeMesh.visible = state.showWireframe;
+    wireframeMesh.renderOrder = 4;
     earthSpinGroup.add(wireframeMesh);
 
     // --- MALHA 4: MARCADORES DOS CENTROS ---
@@ -988,57 +689,8 @@ function applyDirectBuffersToScene(payload) {
     });
     generatorPointsMesh = new THREE.Points(genGeo, genMat);
     generatorPointsMesh.visible = state.showGenerators;
+    generatorPointsMesh.renderOrder = 5;
     earthSpinGroup.add(generatorPointsMesh);
-
-    // Recalcula cores climáticas se na Aba 4
-    if (state.activeTab === 'tab-atmosphere') {
-        refreshClimateMeshColors();
-    }
-}
-
-function updateMeshColorsForCurrentTab() {
-    if (!lastMeshPayload) return;
-
-    if (state.activeTab === 'tab-atmosphere') {
-        refreshClimateMeshColors();
-    }
-}
-
-function refreshClimateMeshColors() {
-    if (!globeGeometry || !lastMeshPayload) return;
-
-    const positions = lastMeshPayload.meshPositions;
-    const numVerts = positions.length / 3;
-    const colorsAttr = globeGeometry.attributes.color;
-
-    if (!colorsAttr || colorsAttr.count !== numVerts) {
-        globeGeometry.setAttribute('color', new THREE.BufferAttribute(new Float32Array(numVerts * 3), 3));
-    }
-
-    const colorsArray = globeGeometry.attributes.color.array;
-
-    for (let v = 0; v < numVerts; v++) {
-        const x = positions[3 * v];
-        const y = positions[3 * v + 1];
-        const z = positions[3 * v + 2];
-
-        const sample = sampleClimateField(x, y, z);
-        let rgb = [0.2, 0.7, 1.0];
-
-        if (state.climateField === 'temp') {
-            rgb = getTemperatureColor(sample.tempC);
-        } else if (state.climateField === 'pressure') {
-            rgb = getPressureColor(sample.pressureHpa);
-        } else if (state.climateField === 'wind') {
-            rgb = getWindSpeedColor(sample.windSpeedKmH);
-        }
-
-        colorsArray[3 * v] = rgb[0];
-        colorsArray[3 * v + 1] = rgb[1];
-        colorsArray[3 * v + 2] = rgb[2];
-    }
-
-    globeGeometry.attributes.color.needsUpdate = true;
 }
 
 // =============================================================================
@@ -1099,48 +751,6 @@ function setupHoverRaycasting() {
     container.addEventListener('pointerleave', hideTooltip);
 }
 
-function setupCycloneInjectionClick() {
-    const raycaster = new THREE.Raycaster();
-    const mouse = new THREE.Vector2();
-
-    container.addEventListener('click', (e) => {
-        if (state.activeTab !== 'tab-atmosphere' || !state.activeTool) return;
-
-        const rect = container.getBoundingClientRect();
-        mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
-        mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
-
-        raycaster.setFromCamera(mouse, camera);
-        const intersects = raycaster.intersectObject(globeMesh, false);
-
-        if (intersects.length > 0) {
-            const localHit = earthSpinGroup.worldToLocal(intersects[0].point.clone()).normalize();
-            const latRad = Math.asin(Math.max(-1, Math.min(1, localHit.y)));
-            const lonRad = Math.atan2(localHit.z, localHit.x);
-
-            const isLow = (state.activeTool === 'cyclone');
-
-            state.perturbations.push({
-                x: localHit.x,
-                y: localHit.y,
-                z: localHit.z,
-                latRad,
-                lonRad,
-                radiusRad: 0.28,
-                intensity: 1.0,
-                isLow
-            });
-
-            refreshClimateMeshColors();
-
-            // Desativa a ferramenta após o clique
-            state.activeTool = null;
-            document.querySelectorAll('#btn-tool-cyclone, #btn-tool-anticyclone').forEach(b => b.classList.remove('active'));
-            container.style.cursor = 'grab';
-        }
-    });
-}
-
 function hideTooltip() {
     if (cellTooltip) cellTooltip.classList.remove('visible');
     if (hoverHighlightMesh) hoverHighlightMesh.visible = false;
@@ -1149,9 +759,10 @@ function hideTooltip() {
 function displayTooltip(screenX, screenY, x, y, z, cellIndex) {
     if (!cellTooltip) return;
 
-    const sample = sampleClimateField(x, y, z);
-    const latDeg = (sample.latRad * 180.0 / Math.PI);
-    const lonDeg = (sample.lonRad * 180.0 / Math.PI);
+    const latRad = Math.asin(Math.max(-1.0, Math.min(1.0, y)));
+    const lonRad = Math.atan2(-z, x);
+    const latDeg = (latRad * 180.0 / Math.PI);
+    const lonDeg = (lonRad * 180.0 / Math.PI);
     const latStr = `${Math.abs(latDeg).toFixed(1)}° ${latDeg >= 0 ? 'N' : 'S'}`;
     const lonStr = `${Math.abs(lonDeg).toFixed(1)}° ${lonDeg >= 0 ? 'E' : 'W'}`;
     const geoName = getGeographicLocation(latDeg, lonDeg);
@@ -1177,36 +788,9 @@ function displayTooltip(screenX, screenY, x, y, z, cellIndex) {
             </div>
             <div class="tooltip-geo">Célula relaxada sobre a esfera S²</div>
         `;
-    } else if (state.activeTab === 'tab-atmosphere') {
-        let circZone = 'Ventos Alísios Tropicais';
-        if (Math.abs(latDeg) < 8) circZone = 'ZCIT (Doldrums Equatorial)';
-        else if (Math.abs(latDeg) > 25 && Math.abs(latDeg) < 38) circZone = 'Altas Subtropicais (Célula Hadley/Ferrel)';
-        else if (Math.abs(latDeg) >= 38 && Math.abs(latDeg) <= 65) circZone = 'Ventos de Oeste (Westerlies / Ferrel)';
-        else if (Math.abs(latDeg) > 65) circZone = 'Célula Polar (Ventos de Leste)';
-
-        cellTooltip.innerHTML = `
-            <div class="tooltip-header">Célula Atmosférica #${cellIndex + 1}</div>
-            <div class="tooltip-row">
-                <span class="tooltip-lbl">Temperatura (T):</span>
-                <span class="tooltip-v" style="color: #facc15;">${sample.tempC.toFixed(1)} °C</span>
-            </div>
-            <div class="tooltip-row">
-                <span class="tooltip-lbl">Pressão ao Solo (P):</span>
-                <span class="tooltip-v" style="color: #38bdf8;">${sample.pressureHpa.toFixed(1)} hPa</span>
-            </div>
-            <div class="tooltip-row">
-                <span class="tooltip-lbl">Vento Superficial:</span>
-                <span class="tooltip-v" style="color: #4ade80;">${sample.windSpeedKmH.toFixed(1)} km/h</span>
-            </div>
-            <div class="tooltip-row">
-                <span class="tooltip-lbl">Posição:</span>
-                <span class="tooltip-v">${latStr}, ${lonStr}</span>
-            </div>
-            <div class="tooltip-geo">${circZone} • ${geoName}</div>
-        `;
     } else {
         cellTooltip.innerHTML = `
-            <div class="tooltip-header">Célula Atmosférica #${cellIndex + 1}</div>
+            <div class="tooltip-header">Célula Geodésica #${cellIndex + 1}</div>
             <div class="tooltip-row">
                 <span class="tooltip-lbl">Latitude:</span>
                 <span class="tooltip-v">${latStr}</span>
@@ -1264,19 +848,22 @@ function switchTab(newTab) {
         if (polarAxisLineGroup) polarAxisLineGroup.visible = false;
         if (eclipticPlaneMesh) eclipticPlaneMesh.visible = false;
         if (sunVisualGroup) sunVisualGroup.visible = false;
-        if (windParticlesMesh) windParticlesMesh.visible = false;
 
         earthTiltGroup.rotation.z = 0;
         ambientLight.intensity = 1.35;
         sunLight.intensity = 1.4;
         sunLight.position.set(5, 3, 4);
 
-        if (globeMaterial && lastMeshPayload) {
+        if (globeGeometry && lastMeshPayload) {
             globeGeometry.setAttribute('color', new THREE.BufferAttribute(lastMeshPayload.meshColors, 3));
             globeMaterial.vertexColors = true;
             globeMaterial.color.set(0xffffff);
             globeMaterial.transparent = false;
             globeMaterial.opacity = 1.0;
+            globeMaterial.depthWrite = true;
+            globeMaterial.polygonOffset = true;
+            globeMaterial.polygonOffsetFactor = 1.0;
+            globeMaterial.polygonOffsetUnits = 1.0;
             globeMaterial.needsUpdate = true;
         }
     } else if (newTab === 'tab-science') {
@@ -1292,7 +879,6 @@ function switchTab(newTab) {
         if (polarAxisLineGroup) polarAxisLineGroup.visible = false;
         if (eclipticPlaneMesh) eclipticPlaneMesh.visible = false;
         if (sunVisualGroup) sunVisualGroup.visible = false;
-        if (windParticlesMesh) windParticlesMesh.visible = false;
 
         earthTiltGroup.rotation.z = 0;
         ambientLight.intensity = 1.35;
@@ -1304,6 +890,10 @@ function switchTab(newTab) {
             globeMaterial.color.set(0x38bdf8);
             globeMaterial.transparent = state.shellOpacity < 1.0;
             globeMaterial.opacity = state.shellOpacity;
+            globeMaterial.depthWrite = (state.shellOpacity >= 1.0);
+            globeMaterial.polygonOffset = true;
+            globeMaterial.polygonOffsetFactor = 1.0;
+            globeMaterial.polygonOffsetUnits = 1.0;
             globeMaterial.needsUpdate = true;
         }
     } else if (newTab === 'tab-seasons') {
@@ -1319,7 +909,6 @@ function switchTab(newTab) {
         if (polarAxisLineGroup) polarAxisLineGroup.visible = state.showPolarAxis;
         if (eclipticPlaneMesh) eclipticPlaneMesh.visible = state.showEclipticPlane;
         if (sunVisualGroup) sunVisualGroup.visible = true;
-        if (windParticlesMesh) windParticlesMesh.visible = false;
 
         earthTiltGroup.rotation.z = state.showAxialTilt ? AXIAL_TILT_RAD : 0;
 
@@ -1333,6 +922,10 @@ function switchTab(newTab) {
             globeMaterial.color.set(0x38bdf8);
             globeMaterial.transparent = state.shellOpacity < 1.0;
             globeMaterial.opacity = state.shellOpacity;
+            globeMaterial.depthWrite = (state.shellOpacity >= 1.0);
+            globeMaterial.polygonOffset = true;
+            globeMaterial.polygonOffsetFactor = 1.0;
+            globeMaterial.polygonOffsetUnits = 1.0;
             globeMaterial.needsUpdate = true;
         }
 
@@ -1349,24 +942,24 @@ function switchTab(newTab) {
         if (constellationsGroup) constellationsGroup.visible = false;
         if (polarAxisLineGroup) polarAxisLineGroup.visible = false;
         if (eclipticPlaneMesh) eclipticPlaneMesh.visible = false;
-        if (sunVisualGroup) sunVisualGroup.visible = true;
-        if (windParticlesMesh) windParticlesMesh.visible = state.showWindParticles;
+        if (sunVisualGroup) sunVisualGroup.visible = false;
 
-        earthTiltGroup.rotation.z = 0; // Eixo vertical limpo para estudo dos cinturões de Coriolis
-        ambientLight.intensity = 1.15;
-        sunLight.intensity = 1.5;
-        sunLight.position.set(6, 2, 4);
+        earthTiltGroup.rotation.z = AXIAL_TILT_RAD;
+        ambientLight.intensity = 1.35;
+        sunLight.intensity = 1.4;
+        sunLight.position.set(5, 3, 4);
 
         if (globeMaterial) {
-            globeMaterial.vertexColors = true;
-            globeMaterial.color.set(0xffffff);
-            globeMaterial.transparent = state.shellOpacity < 1.0;
-            globeMaterial.opacity = Math.max(0.75, state.shellOpacity);
+            globeMaterial.vertexColors = false;
+            globeMaterial.color.set(0x38bdf8);
+            globeMaterial.transparent = true;
+            globeMaterial.opacity = 0.35;
+            globeMaterial.depthWrite = false;
+            globeMaterial.polygonOffset = true;
+            globeMaterial.polygonOffsetFactor = 1.0;
+            globeMaterial.polygonOffsetUnits = 1.0;
             globeMaterial.needsUpdate = true;
         }
-
-        refreshClimateMeshColors();
-        updateClimateUI();
     }
 
     const footerInfo = document.getElementById('footer-sim-info');
@@ -1374,7 +967,7 @@ function switchTab(newTab) {
         if (newTab === 'tab-math') footerInfo.textContent = 'Etapa 1: Geometria (SCVT)';
         else if (newTab === 'tab-science') footerInfo.textContent = 'Etapa 2: Escala Planetária';
         else if (newTab === 'tab-seasons') footerInfo.textContent = 'Etapa 3: Estações do Ano';
-        else if (newTab === 'tab-atmosphere') footerInfo.textContent = 'Etapa 4: Dinâmica Climática';
+        else if (newTab === 'tab-atmosphere') footerInfo.textContent = 'Etapa 4: Modelos Globais de Previsão';
     }
 
     updateHUDVisibility(newTab);
@@ -1383,8 +976,13 @@ function switchTab(newTab) {
 
 function updateHUDVisibility(currentTab) {
     const isMath = (currentTab === 'tab-math');
+    const isScience = (currentTab === 'tab-science');
     const isSeasons = (currentTab === 'tab-seasons');
-    const isAtmosphere = (currentTab === 'tab-atmosphere');
+
+    const simHud = document.getElementById('sim-hud');
+    if (simHud) {
+        simHud.style.display = (isMath || isScience || isSeasons) ? 'block' : 'none';
+    }
 
     const rowIter = document.getElementById('hud-row-iter');
     const rowShift = document.getElementById('hud-row-shift');
@@ -1398,10 +996,7 @@ function updateHUDVisibility(currentTab) {
     const rowSunDecl = document.getElementById('hud-row-sun-decl');
     const rowZodiac = document.getElementById('hud-row-zodiac');
 
-    const rowClimateField = document.getElementById('hud-row-climate-field');
-    const rowTempRange = document.getElementById('hud-row-temp-range');
-    const rowMaxWind = document.getElementById('hud-row-max-wind');
-
+    // Métricas Topológicas de Voronoi: exclusivo da Etapa 1
     if (rowIter) rowIter.style.display = isMath ? 'flex' : 'none';
     if (rowShift) rowShift.style.display = isMath ? 'flex' : 'none';
     if (rowPent) rowPent.style.display = isMath ? 'flex' : 'none';
@@ -1409,53 +1004,16 @@ function updateHUDVisibility(currentTab) {
     if (rowHept) rowHept.style.display = isMath ? 'flex' : 'none';
 
     const hudSeparator = document.getElementById('hud-separator');
-    if (hudSeparator) hudSeparator.style.display = isMath ? 'none' : 'block';
-    if (rowThickness) rowThickness.style.display = isMath ? 'none' : 'flex';
-    if (rowExag) rowExag.style.display = isMath ? 'none' : 'flex';
+    if (hudSeparator) hudSeparator.style.display = 'none';
 
+    // Espessura Visual & Exagero Vertical: exclusivo da Etapa 2 (Escala Planetária)
+    if (rowThickness) rowThickness.style.display = isScience ? 'flex' : 'none';
+    if (rowExag) rowExag.style.display = isScience ? 'flex' : 'none';
+
+    // Métricas Astronômicas & Estações: exclusivo da Etapa 3 (Estações do Ano)
     if (rowSeasonDate) rowSeasonDate.style.display = isSeasons ? 'flex' : 'none';
     if (rowSunDecl) rowSunDecl.style.display = isSeasons ? 'flex' : 'none';
     if (rowZodiac) rowZodiac.style.display = isSeasons ? 'flex' : 'none';
-
-    if (rowClimateField) rowClimateField.style.display = isAtmosphere ? 'flex' : 'none';
-    if (rowTempRange) rowTempRange.style.display = isAtmosphere ? 'flex' : 'none';
-    if (rowMaxWind) rowMaxWind.style.display = isAtmosphere ? 'flex' : 'none';
-}
-
-function updateClimateUI() {
-    const spanField = document.getElementById('stat-climate-field');
-    const spanTempRange = document.getElementById('stat-temp-range');
-    const spanMaxWind = document.getElementById('stat-max-wind');
-    const colorbar = document.getElementById('climate-colorbar');
-    const minLbl = document.getElementById('colorbar-min-lbl');
-    const midLbl = document.getElementById('colorbar-mid-lbl');
-    const maxLbl = document.getElementById('colorbar-max-lbl');
-
-    const tEq = (state.tempMean + state.tempDelta * 0.5).toFixed(0);
-    const tPol = (state.tempMean - state.tempDelta * 0.5).toFixed(0);
-
-    if (spanTempRange) spanTempRange.textContent = `+${tEq}°C / ${tPol}°C`;
-    if (spanMaxWind) spanMaxWind.textContent = `${(55 * state.coriolisScale + 15).toFixed(0)} km/h`;
-
-    if (state.climateField === 'temp') {
-        if (spanField) spanField.textContent = 'Temperatura (T)';
-        if (colorbar) colorbar.style.background = 'linear-gradient(to right, #1e3a8a, #38bdf8, #4ade80, #facc15, #f97316, #dc2626)';
-        if (minLbl) minLbl.textContent = '-35°C';
-        if (midLbl) midLbl.textContent = `Méd: ${state.tempMean}°C`;
-        if (maxLbl) maxLbl.textContent = '+40°C';
-    } else if (state.climateField === 'pressure') {
-        if (spanField) spanField.textContent = 'Pressão Atmosférica (P)';
-        if (colorbar) colorbar.style.background = 'linear-gradient(to right, #8b5cf6, #3b82f6, #06b6d4, #10b981, #eab308, #ef4444)';
-        if (minLbl) minLbl.textContent = '980 hPa (Baixa)';
-        if (midLbl) midLbl.textContent = '1013 hPa';
-        if (maxLbl) maxLbl.textContent = '1035 hPa (Alta)';
-    } else if (state.climateField === 'wind') {
-        if (spanField) spanField.textContent = 'Velocidade do Vento (|v|)';
-        if (colorbar) colorbar.style.background = 'linear-gradient(to right, #0f172a, #0284c7, #22c55e, #facc15, #ec4899)';
-        if (minLbl) minLbl.textContent = '0 km/h (Calmaria)';
-        if (midLbl) midLbl.textContent = '45 km/h';
-        if (maxLbl) maxLbl.textContent = '90+ km/h';
-    }
 }
 
 // =============================================================================
@@ -1463,9 +1021,10 @@ function updateClimateUI() {
 // =============================================================================
 
 function updateAstronomicalState() {
-    if (state.activeTab !== 'tab-seasons') return;
-
     const info = getZodiacConstellationInfo(state.dayOfYear);
+    state.sunDeclinationRad = (info.sunDeclDeg * Math.PI) / 180.0;
+
+    if (state.activeTab !== 'tab-seasons') return;
 
     const R_SUN = 6.0;
     const sunX = R_SUN * Math.cos(info.lambdaOrbit);
@@ -1597,7 +1156,7 @@ let lastStepTimestamp = 0;
 let lastOrbitTimestamp = 0;
 
 function initWorker() {
-    worker = new Worker('scripts/clima.worker.js');
+    worker = new Worker('scripts/clima.worker.js?v=2.2');
 
     worker.onmessage = function (e) {
         const { type, payload } = e.data;
@@ -1727,11 +1286,6 @@ function animate(timestamp) {
             if (sliderHour) sliderHour.value = state.hourOfDay.toFixed(2);
             updateAstronomicalState();
         }
-    }
-
-    // Advecção de Partículas de Vento (Aba 4)
-    if (state.activeTab === 'tab-atmosphere') {
-        updateWindParticles(dt);
     }
 
     renderer.render(scene, camera);
@@ -1897,6 +1451,10 @@ function setupUIListeners() {
             if (globeMaterial && state.activeTab !== 'tab-math') {
                 globeMaterial.transparent = state.shellOpacity < 1.0;
                 globeMaterial.opacity = state.shellOpacity;
+                globeMaterial.depthWrite = (state.shellOpacity >= 1.0);
+                globeMaterial.polygonOffset = true;
+                globeMaterial.polygonOffsetFactor = 1.0;
+                globeMaterial.polygonOffsetUnits = 1.0;
                 globeMaterial.needsUpdate = true;
             }
         });
@@ -2027,153 +1585,81 @@ function setupUIListeners() {
         });
     }
 
-    // --- CONTROLES DA ABA 4 (DINÂMICA CLIMÁTICA) ---
-    const btnFieldTemp = document.getElementById('btn-field-temp');
-    const btnFieldPressure = document.getElementById('btn-field-pressure');
-    const btnFieldWind = document.getElementById('btn-field-wind');
-    const fieldBtns = [btnFieldTemp, btnFieldPressure, btnFieldWind];
+    // Barra de Ferramentas e Popover de Camadas / Exibição (Topo Esquerdo)
+    const btnOpenLayersPopover = document.getElementById('btn-toggle-layers-popover');
+    const btnCloseLayersPopover = document.getElementById('btn-close-layers-popover');
+    const layersPopover = document.getElementById('layers-popover');
 
-    function setClimateField(field, activeBtn) {
-        state.climateField = field;
-        fieldBtns.forEach(b => b && b.classList.remove('active'));
-        if (activeBtn) activeBtn.classList.add('active');
-        refreshClimateMeshColors();
-        updateClimateUI();
-    }
-
-    if (btnFieldTemp) btnFieldTemp.addEventListener('click', () => setClimateField('temp', btnFieldTemp));
-    if (btnFieldPressure) btnFieldPressure.addEventListener('click', () => setClimateField('pressure', btnFieldPressure));
-    if (btnFieldWind) btnFieldWind.addEventListener('click', () => setClimateField('wind', btnFieldWind));
-
-    const sliderTempDelta = document.getElementById('slider-temp-delta');
-    const valTempDelta = document.getElementById('val-temp-delta');
-    if (sliderTempDelta && valTempDelta) {
-        sliderTempDelta.addEventListener('input', (e) => {
-            state.tempDelta = parseFloat(e.target.value);
-            valTempDelta.textContent = `${state.tempDelta} °C`;
-            refreshClimateMeshColors();
-            updateClimateUI();
+    if (btnOpenLayersPopover && layersPopover) {
+        btnOpenLayersPopover.addEventListener('click', (e) => {
+            e.stopPropagation();
+            layersPopover.classList.toggle('hidden');
+            btnOpenLayersPopover.classList.toggle('active', !layersPopover.classList.contains('hidden'));
         });
-    }
 
-    const sliderTempMean = document.getElementById('slider-temp-mean');
-    const valTempMean = document.getElementById('val-temp-mean');
-    if (sliderTempMean && valTempMean) {
-        sliderTempMean.addEventListener('input', (e) => {
-            state.tempMean = parseFloat(e.target.value);
-            valTempMean.textContent = `${state.tempMean} °C`;
-            refreshClimateMeshColors();
-            updateClimateUI();
-        });
-    }
+        if (btnCloseLayersPopover) {
+            btnCloseLayersPopover.addEventListener('click', () => {
+                layersPopover.classList.add('hidden');
+                btnOpenLayersPopover.classList.remove('active');
+            });
+        }
 
-    const sliderCoriolis = document.getElementById('slider-coriolis');
-    const valCoriolis = document.getElementById('val-coriolis');
-    if (sliderCoriolis && valCoriolis) {
-        sliderCoriolis.addEventListener('input', (e) => {
-            state.coriolisScale = parseFloat(e.target.value);
-            valCoriolis.textContent = `${state.coriolisScale.toFixed(1)}x ${state.coriolisScale === 1 ? '(Terra)' : state.coriolisScale === 0 ? '(Sem Rotação)' : ''}`;
-            refreshClimateMeshColors();
-            updateClimateUI();
-        });
-    }
-
-    const toggleWindParticles = document.getElementById('toggle-wind-particles');
-    if (toggleWindParticles) {
-        toggleWindParticles.addEventListener('change', (e) => {
-            state.showWindParticles = e.target.checked;
-            if (windParticlesMesh) windParticlesMesh.visible = (state.activeTab === 'tab-atmosphere' && state.showWindParticles);
-        });
-    }
-
-    const sliderWindSpeed = document.getElementById('slider-wind-speed');
-    const valWindSpeed = document.getElementById('val-wind-speed');
-    if (sliderWindSpeed && valWindSpeed) {
-        sliderWindSpeed.addEventListener('input', (e) => {
-            state.windSpeedScale = parseFloat(e.target.value);
-            valWindSpeed.textContent = `${state.windSpeedScale.toFixed(1)}x`;
-        });
-    }
-
-    const sliderNumParticles = document.getElementById('slider-num-particles');
-    const valNumParticles = document.getElementById('val-num-particles');
-    if (sliderNumParticles && valNumParticles) {
-        sliderNumParticles.addEventListener('input', (e) => {
-            const count = parseInt(e.target.value, 10);
-            valNumParticles.textContent = count.toLocaleString('pt-BR');
-            initWindParticleSystem(count);
-        });
-    }
-
-    // Ferramentas de Ciclone
-    const btnToolCyclone = document.getElementById('btn-tool-cyclone');
-    const btnToolAnticyclone = document.getElementById('btn-tool-anticyclone');
-    const btnResetAtmosphere = document.getElementById('btn-reset-atmosphere');
-
-    if (btnToolCyclone) {
-        btnToolCyclone.addEventListener('click', () => {
-            if (state.activeTool === 'cyclone') {
-                state.activeTool = null;
-                btnToolCyclone.classList.remove('active');
-                container.style.cursor = 'grab';
-            } else {
-                state.activeTool = 'cyclone';
-                btnToolCyclone.classList.add('active');
-                if (btnToolAnticyclone) btnToolAnticyclone.classList.remove('active');
-                container.style.cursor = 'crosshair';
+        document.addEventListener('click', (e) => {
+            if (!layersPopover.contains(e.target) && !btnOpenLayersPopover.contains(e.target)) {
+                layersPopover.classList.add('hidden');
+                btnOpenLayersPopover.classList.remove('active');
             }
         });
     }
 
-    if (btnToolAnticyclone) {
-        btnToolAnticyclone.addEventListener('click', () => {
-            if (state.activeTool === 'anticyclone') {
-                state.activeTool = null;
-                btnToolAnticyclone.classList.remove('active');
-                container.style.cursor = 'grab';
-            } else {
-                state.activeTool = 'anticyclone';
-                btnToolAnticyclone.classList.add('active');
-                if (btnToolCyclone) btnToolCyclone.classList.remove('active');
-                container.style.cursor = 'crosshair';
-            }
-        });
-    }
+    const btnQuickGenerators = document.getElementById('btn-quick-generators');
+    const btnQuickWireframe = document.getElementById('btn-quick-wireframe');
+    const btnQuickGraticule = document.getElementById('btn-quick-graticule');
 
-    if (btnResetAtmosphere) {
-        btnResetAtmosphere.addEventListener('click', () => {
-            state.perturbations = [];
-            state.activeTool = null;
-            if (btnToolCyclone) btnToolCyclone.classList.remove('active');
-            if (btnToolAnticyclone) btnToolAnticyclone.classList.remove('active');
-            container.style.cursor = 'grab';
-            refreshClimateMeshColors();
-        });
-    }
-
-    // Toggles Comuns
     const toggleGenerators = document.getElementById('toggle-generators');
-    if (toggleGenerators) {
-        toggleGenerators.addEventListener('change', (e) => {
-            state.showGenerators = e.target.checked;
-            if (generatorPointsMesh) generatorPointsMesh.visible = state.showGenerators;
-        });
-    }
-
     const toggleWireframe = document.getElementById('toggle-wireframe');
-    if (toggleWireframe) {
-        toggleWireframe.addEventListener('change', (e) => {
-            state.showWireframe = e.target.checked;
-            if (wireframeMesh) wireframeMesh.visible = state.showWireframe;
-        });
+    const toggleGraticule = document.getElementById('toggle-graticule');
+
+    function setGeneratorsVisible(visible) {
+        state.showGenerators = visible;
+        if (generatorPointsMesh) generatorPointsMesh.visible = visible;
+        if (toggleGenerators) toggleGenerators.checked = visible;
+        if (btnQuickGenerators) btnQuickGenerators.classList.toggle('active', visible);
     }
 
-    const toggleGraticule = document.getElementById('toggle-graticule');
+    function setWireframeVisible(visible) {
+        state.showWireframe = visible;
+        if (wireframeMesh) wireframeMesh.visible = visible;
+        if (toggleWireframe) toggleWireframe.checked = visible;
+        if (btnQuickWireframe) btnQuickWireframe.classList.toggle('active', visible);
+    }
+
+    function setGraticuleVisible(visible) {
+        state.showGraticule = visible;
+        if (graticuleGroup) graticuleGroup.visible = visible;
+        if (toggleGraticule) toggleGraticule.checked = visible;
+        if (btnQuickGraticule) btnQuickGraticule.classList.toggle('active', visible);
+    }
+
+    if (btnQuickGenerators) {
+        btnQuickGenerators.addEventListener('click', () => setGeneratorsVisible(!state.showGenerators));
+    }
+    if (toggleGenerators) {
+        toggleGenerators.addEventListener('change', (e) => setGeneratorsVisible(e.target.checked));
+    }
+
+    if (btnQuickWireframe) {
+        btnQuickWireframe.addEventListener('click', () => setWireframeVisible(!state.showWireframe));
+    }
+    if (toggleWireframe) {
+        toggleWireframe.addEventListener('change', (e) => setWireframeVisible(e.target.checked));
+    }
+
+    if (btnQuickGraticule) {
+        btnQuickGraticule.addEventListener('click', () => setGraticuleVisible(!state.showGraticule));
+    }
     if (toggleGraticule) {
-        toggleGraticule.addEventListener('change', (e) => {
-            state.showGraticule = e.target.checked;
-            if (graticuleGroup) graticuleGroup.visible = state.showGraticule;
-        });
+        toggleGraticule.addEventListener('change', (e) => setGraticuleVisible(e.target.checked));
     }
 }
 
