@@ -737,25 +737,71 @@ export function initSidebarCollapse({
 }
 
 /**
+ * Inicializa a navegação de abas no Design System 2.0.
+ * Sincroniza botões .tab-btn com os painéis .tab-pane ou .tab-content correspondentes
+ * e executa auto-render do KaTeX na aba selecionada.
+ * @param {HTMLElement|string} [root=document]
+ * @param {Function} [onTabChange] - Callback opcional: (tabId) => void
+ */
+export function initTabs(root = document, onTabChange = null) {
+    const el = typeof root === 'string' ? document.querySelector(root) : root;
+    if (!el) return;
+
+    const tabNavs = el.querySelectorAll('.tab-nav');
+    tabNavs.forEach(nav => {
+        const buttons = nav.querySelectorAll('.tab-btn');
+        buttons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const targetId = btn.dataset.tab;
+                if (!targetId) return;
+
+                buttons.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+
+                const panelContainer = nav.closest('.controls-panel')?.querySelector('.panel-body') || el;
+                const panes = panelContainer.querySelectorAll('.tab-pane, .tab-content');
+                panes.forEach(pane => {
+                    const matches = pane.id === targetId || pane.dataset.tab === targetId;
+                    if (matches) {
+                        pane.classList.add('active');
+                        pane.style.display = 'block';
+                        initKaTeXAutoRender(pane);
+                    } else {
+                        pane.classList.remove('active');
+                        pane.style.display = 'none';
+                    }
+                });
+
+                if (typeof onTabChange === 'function') {
+                    onTabChange(targetId);
+                }
+            });
+        });
+    });
+}
+
+/**
  * Inicializa o componente Bottom Sheet para telas móveis e tablets (<= 900px)
  * Gerencia snap points ('peek', 'half', 'expanded'), gestos touch e cliques nas abas.
- * @param {Object} [options]
- * @param {string} [options.panelSelector='.controls-panel']
- * @param {string} [options.handleSelector='.sheet-drag-handle']
- * @param {string} [options.tabNavSelector='.tab-nav']
- * @param {string} [options.collapseBtnSelector='.btn-collapse-sidebar']
- * @param {string} [options.defaultState='peek'] - 'peek' | 'half' | 'expanded'
- * @param {Function} [options.onStateChange] - Callback: (state) => void
+ * @param {Object|string} [opts] - Opções ou seletor CSS do painel
+ * @param {string} [opts.panelSelector='.controls-panel']
+ * @param {string} [opts.handleSelector='.sheet-drag-handle']
+ * @param {string} [opts.tabNavSelector='.tab-nav']
+ * @param {string} [opts.collapseBtnSelector='.btn-collapse-sidebar']
+ * @param {string} [opts.defaultState='peek'] - 'peek' | 'half' | 'expanded'
+ * @param {Function} [opts.onStateChange] - Callback: (state) => void
  * @returns {Object} Controlador com .setState(state), .getState(), .toggle()
  */
-export function initBottomSheet({
-    panelSelector = '.controls-panel',
-    handleSelector = '.sheet-drag-handle',
-    tabNavSelector = '.tab-nav',
-    collapseBtnSelector = '.btn-collapse-sidebar',
-    defaultState = 'peek',
-    onStateChange
-} = {}) {
+export function initBottomSheet(opts = {}) {
+    const options = typeof opts === 'string' ? { panelSelector: opts } : (opts || {});
+    const {
+        panelSelector = '.controls-panel',
+        handleSelector = '.sheet-drag-handle',
+        tabNavSelector = '.tab-nav',
+        collapseBtnSelector = '.btn-collapse-sidebar',
+        defaultState = 'peek',
+        onStateChange
+    } = options;
     const panel = document.querySelector(panelSelector);
     const handle = document.querySelector(handleSelector);
     const tabNav = document.querySelector(tabNavSelector);
