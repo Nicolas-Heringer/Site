@@ -47,13 +47,26 @@
         <div class="canvas-area">
             <canvas id="simCanvas" style="touch-action: none;"></canvas>
 
+            <!-- Ações Flutuantes no Topo Direito -->
+            <div class="canvas-top-actions">
+                <button id="btn-quick-reset" class="canvas-btn-floating" title="Resetar para Matriz Identidade">
+                    <img src="../assets/icons/refresh.svg" class="icon-svg" alt="Reset">
+                    <span class="btn-label-text">Resetar</span>
+                </button>
+                <button id="btn-expand-sidebar" class="canvas-btn-expand-sidebar" title="Expandir Painel de Controles (F)">
+                    <img src="../assets/icons/expand.svg" class="icon-svg" alt="Expandir">
+                    <span class="btn-label-text">Controles</span>
+                </button>
+            </div>
+
             <!-- Badges e Dicas no Canvas -->
             <div class="canvas-overlay-badge" id="determinantBadge">
                 Determinante: <span id="badgeDetValue">det(M) = 1.00</span>
             </div>
 
-            <div class="canvas-instructions" id="canvasHint">
-                💡 Arraste as pontas dos vetores <strong>î</strong> (amarelo) ou <strong>ĵ</strong> (ciano) no gráfico!
+            <div class="interactive-hint" id="canvasHint">
+                <img src="../assets/icons/lightbulb.svg" class="icon-svg icon-accent" alt="Dica">
+                Arraste as pontas dos vetores <strong>î</strong> (amarelo) ou <strong>ĵ</strong> (ciano) no gráfico!
             </div>
         </div>
 
@@ -206,58 +219,200 @@
                 </div>
 
                 <!-- Aba de Teoria -->
-                <div class="tab-pane" id="tab-theory">
-                    <article class="theory-content">
-                        <h3>Transformações Lineares no Plano ($\mathbb{R}^2$)</h3>
-                        <p>
-                            Uma transformação linear $T: \mathbb{R}^2 \to \mathbb{R}^2$ mapeia cada vetor $\mathbf{v}$ em outro vetor $T(\mathbf{v})$ preservando a adição de vetores e a multiplicação por escalar:
-                        </p>
-                        $$T(c\mathbf{u} + \mathbf{v}) = cT(\mathbf{u}) + T(\mathbf{v})$$
-                        
-                        <h3>As Colunas da Matriz como Imagens da Base</h3>
-                        <p>
-                            No plano bidimensional com a base canônica $\hat{i} = \begin{bmatrix}1 \\ 0\end{bmatrix}$ e $\hat{j} = \begin{bmatrix}0 \\ 1\end{bmatrix}$, toda a transformação linear é completamente determinada pelo destino desses dois vetores:
-                        </p>
-                        $$M = \begin{bmatrix} T(\hat{i}) & T(\hat{j}) \end{bmatrix} = \begin{bmatrix} a & b \\ c & d \end{bmatrix}$$
-                        <p>
-                            Assim, para transformar qualquer vetor arbitrário $\mathbf{v} = \begin{bmatrix}x \\ y\end{bmatrix}$:
-                        </p>
-                        $$\mathbf{v}' = M\mathbf{v} = x T(\hat{i}) + y T(\hat{j}) = \begin{bmatrix} ax + by \\ cx + dy \end{bmatrix}$$
+                <div class="tab-pane" id="tab-theory" style="display: none;">
+                    <div class="tab-header">
+                        <div class="tab-header-row">
+                            <h3 class="tab-title">Fundamentação Teórica</h3>
+                            <div class="sim-badge"><span class="status-dot"></span><span>$\KaTeX$</span></div>
+                        </div>
+                        <p class="tab-subtitle">Álgebra linear geométrica: bases, determinantes e autovetores em $\mathbb{R}^2$.</p>
+                    </div>
 
-                        <h3>O Determinante como Dilatação de Área Orientada</h3>
-                        <p>
-                            O determinante de uma matriz $2 \times 2$, dado por $\det(M) = ad - bc$, possui um significado geométrico concreto:
-                        </p>
-                        <ul>
-                            <li><strong>$|\det(M)|$</strong> é o fator de escala de qualquer área no plano. O quadrado unitário formado por $\hat{i}$ e $\hat{j}$ (área $1$) é deformado em um paralelogramo de área exata $|\det(M)|$.</li>
-                            <li><strong>Sinal positivo ($\det > 0$)</strong>: a orientação relativa dos eixos é preservada (sentido anti-horário de $\hat{i}$ para $\hat{j}$).</li>
-                            <li><strong>Sinal negativo ($\det < 0$)</strong>: o plano sofreu um espelhamento/reflexão, invertendo a orientação relativa.</li>
-                            <li><strong>$\det(M) = 0$</strong>: o espaço bidimensional entra em colapso e perde dimensões, sendo projetado em uma reta ou na origem. A matriz é não inversível (singular).</li>
-                        </ul>
+                    <!-- Card Didático 1: A Matriz e os Vetores da Base -->
+                    <div class="control-group">
+                        <div class="theory-card">
+                            <h4><img src="../assets/icons/book-open.svg" class="icon-svg icon-accent" alt="Teoria"> Imagens da Base Canônica</h4>
+                            <p>
+                                Toda transformação linear $T: \mathbb{R}^2 \to \mathbb{R}^2$ é unicamente determinada pelo destino dos vetores da base $\hat{i}$ e $\hat{j}$:
+                            </p>
+                            $$M = \begin{bmatrix} T(\hat{i}) & T(\hat{j}) \end{bmatrix} = \begin{bmatrix} a & b \\ c & d \end{bmatrix}$$
+                            <p>
+                                As colunas de $M$ são exatamente as coordenadas de $\hat{i}' = (a, c)$ (amarelo) e $\hat{j}' = (b, d)$ (ciano).
+                            </p>
+                        </div>
+                    </div>
 
-                        <h3>Autovalores e Autovetores</h3>
-                        <p>
-                            Autovetores são vetores não nulos $\mathbf{v}$ cuja direção não é alterada pela transformação, sofrendo apenas alongamento ou contração por um fator $\lambda$ (o autovalor correspondente):
-                        </p>
-                        $$M\mathbf{v} = \lambda \mathbf{v} \iff (M - \lambda I)\mathbf{v} = \mathbf{0}$$
-                        <p>
-                            Os autovalores são as raízes da equação característica:
-                        </p>
-                        $$\det(M - \lambda I) = \lambda^2 - \operatorname{tr}(M)\lambda + \det(M) = 0$$
-                        <p>
-                            onde $\operatorname{tr}(M) = a + d$ é o traço da matriz. Quando as raízes são reais, as retas geradas pelos autovetores permanecem invariantes sob a transformação!
-                        </p>
-                    </article>
+                    <!-- Card Didático 2: Determinante & Área -->
+                    <div class="control-group">
+                        <div class="theory-card">
+                            <h4><img src="../assets/icons/sparkles.svg" class="icon-svg icon-accent" alt="Determinante"> Determinante & Deformação de Áreas</h4>
+                            <p>
+                                O determinante $\det(M) = ad - bc$ quantifica a variação de área orientada no plano:
+                            </p>
+                            $$\text{Área}(M \cdot S) = |\det(M)| \cdot \text{Área}(S)$$
+                            <p>
+                                Se $\det(M) < 0$, a orientação do plano é invertida (espelhamento). Se $\det(M) = 0$, o espaço colapsa para uma dimensão inferior.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Card Didático 3: Autovalores e Autovetores -->
+                    <div class="control-group">
+                        <div class="theory-card">
+                            <h4><img src="../assets/icons/compass.svg" class="icon-svg icon-accent" alt="Autovalores"> Autovalores & Direções Invariantes</h4>
+                            <p>
+                                Autovetores definem retas invariantes onde os vetores sofrem apenas dilatação ou contração pelo autovalor escalar $\lambda$:
+                            </p>
+                            $$M\mathbf{v} = \lambda \mathbf{v} \iff \lambda^2 - \operatorname{tr}(M)\lambda + \det(M) = 0$$
+
+                            <button class="btn-secondary" id="btn-abrir-modal-teoria" style="width: 100%; margin-top: 12px;">
+                                <img src="../assets/icons/book-open.svg" class="icon-svg" alt="Teoria">
+                                Ver Dedução Matemática Completa (Modal)
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
 
             <!-- Rodapé do Painel -->
             <footer class="panel-footer">
-                <span class="shortcut-tip">Pressione <kbd>F</kbd> para Modo Foco</span>
-                <span class="panel-version">DS 2.0 • Álgebra Linear</span>
+                <div class="sim-badge" id="footer-status-badge">
+                    <span class="status-dot"></span>
+                    <span id="footer-status-text">Espaço Cartesiano $\mathbb{R}^2$</span>
+                </div>
+                <span class="footer-meta" id="footer-sim-info">DS 2.0 • Álgebra Linear</span>
             </footer>
         </aside>
     </main>
+
+    <!-- Modal Didático de Teoria e Fórmulas Matemáticas -->
+    <div id="modal-theory-matrizes" class="sim-modal-overlay hidden" aria-hidden="true" role="dialog">
+        <div class="sim-modal-container">
+            <div class="sim-modal-header">
+                <div class="sim-modal-title">
+                    <img src="../assets/icons/book-open.svg" class="icon-svg icon-accent" alt="Teoria">
+                    <span>Modelagem Teórica: Transformações Lineares & Geometria Matricial</span>
+                </div>
+                <button class="sim-modal-close" data-modal-close title="Fechar Modal (Esc)">✕</button>
+            </div>
+
+            <div class="sim-modal-body">
+                <div class="theory-section">
+                    <h4>1. Definição Axiomática de Transformação Linear</h4>
+                    <p>
+                        Uma aplicação $T: \mathbb{R}^2 \to \mathbb{R}^2$ é denominada <strong>transformação linear</strong> se, e somente se, satisfaz os princípios fundamentais da superposição e da homogeneidade para quaisquer vetores $\mathbf{u}, \mathbf{v} \in \mathbb{R}^2$ e qualquer escalar $c \in \mathbb{R}$:
+                    </p>
+                    $$T(\mathbf{u} + \mathbf{v}) = T(\mathbf{u}) + T(\mathbf{v})$$
+                    $$T(c\mathbf{u}) = c T(\mathbf{u})$$
+                    <p>
+                        Geometricamente, essas duas condições impõem que:
+                    </p>
+                    <ul>
+                        <li><strong>Linhas retas permanecem estritamente retas</strong>: o espaço não sofre curvatura nem dobras.</li>
+                        <li><strong>Linhas paralelas continuam paralelas</strong> após a deformação.</li>
+                        <li><strong>A origem $(0, 0)$ permanece fixa</strong> ($T(\mathbf{0}) = \mathbf{0}$).</li>
+                        <li><strong>A malha da grade cartesiana mantém espaçamento uniforme</strong> em todas as direções.</li>
+                    </ul>
+                </div>
+
+                <div class="theory-callout">
+                    <strong>💡 As Colunas da Matriz como Imagens da Base Canônica:</strong>
+                    <p>
+                        Seja a base canônica ortonormal do plano cartesiano $\mathbb{R}^2$:
+                    </p>
+                    $$\hat{i} = \begin{bmatrix} 1 \\ 0 \end{bmatrix}, \quad \hat{j} = \begin{bmatrix} 0 \\ 1 \end{bmatrix}$$
+                    <p>
+                        Qualquer vetor arbitrário $\mathbf{v} = \begin{bmatrix} x \\ y \end{bmatrix}$ pode ser decomposto como combinação linear dessa base:
+                    </p>
+                    $$\mathbf{v} = x\hat{i} + y\hat{j}$$
+                    <p>
+                        Pela linearidade de $T$, calcular $T(\mathbf{v})$ resume-se a determinar o destino dos vetores unitários:
+                    </p>
+                    $$T(\mathbf{v}) = T(x\hat{i} + y\hat{j}) = x T(\hat{i}) + y T(\hat{j})$$
+                    <p>
+                        Se denotarmos $T(\hat{i}) = \begin{bmatrix} a \\ c \end{bmatrix}$ e $T(\hat{j}) = \begin{bmatrix} b \\ d \end{bmatrix}$, a representação matricial surge diretamente:
+                    </p>
+                    $$T(\mathbf{v}) = x \begin{bmatrix} a \\ c \end{bmatrix} + y \begin{bmatrix} b \\ d \end{bmatrix} = \begin{bmatrix} a & b \\ c & d \end{bmatrix} \begin{bmatrix} x \\ y \end{bmatrix} = \begin{bmatrix} ax + by \\ cx + dy \end{bmatrix}$$
+                    <p>
+                        Portanto, <em>as colunas da matriz de transformação $M$ são exatamente as coordenadas onde os vetores da base $\hat{i}$ e $\hat{j}$ foram mapeados</em>! Na simulação, a 1ª coluna corresponde ao vetor amarelo $\hat{i}'$ e a 2ª coluna ao vetor ciano $\hat{j}'$.
+                    </p>
+                </div>
+
+                <div class="theory-section">
+                    <h4>2. Interpretação Geométrica do Determinante</h4>
+                    <p>
+                        O determinante da matriz $M = \begin{bmatrix} a & b \\ c & d \end{bmatrix}$ é calculado algebricamente por:
+                    </p>
+                    $$\det(M) = ad - bc$$
+                    <p>
+                        Seu significado físico e geométrico fundamental é o <strong>fator de escala de área orientada</strong>:
+                    </p>
+                    <ul>
+                        <li><strong>Dilatação de Área</strong>: O quadrado unitário delimitado por $\hat{i}$ e $\hat{j}$ possui área $1$. Sob a ação da transformação $M$, ele deforma-se no paralelogramo com arestas $\hat{i}' = (a, c)$ e $\hat{j}' = (b, d)$, cuja área geométrica é exatamente $|\det(M)|$. Qualquer forma bidimensional de área inicial $A$ terá sua área transformada para $|\det(M)| \cdot A$.</li>
+                        <li><strong>Orientação Preservada ($\det > 0$)</strong>: A orientação relativa do espaço é mantida. O vetor $\hat{j}'$ continua à esquerda do vetor $\hat{i}'$ (sentido anti-horário mantido).</li>
+                        <li><strong>Orientação Invertida ($\det < 0$)</strong>: O plano sofreu uma reflexão (espelhamento especular). A quiralidade do plano é invertida, como se tivesse sido virado do avesso.</li>
+                        <li><strong>Colapso Dimensional ($\det = 0$)</strong>: Os vetores $\hat{i}'$ e $\hat{j}'$ tornam-se colineares (linearmente dependentes). O espaço bidimensional colapsa para uma reta unidimensional ou um único ponto. A área final é zero e a transformação é irreversível (singular, não inversível).</li>
+                    </ul>
+                </div>
+
+                <div class="theory-section">
+                    <h4>3. Autovalores, Autovetores e Direções Invariantes</h4>
+                    <p>
+                        Geralmente, ao aplicar uma matriz $M$ a um vetor $\mathbf{v}$, ele tem tanto sua magnitude alterada quanto sofre rotação angular. Porém, existem direções privilegiadas no espaço chamadas <strong>autovetores</strong> ($\mathbf{v} \neq \mathbf{0}$) que sofrem apenas mudança de escala:
+                    </p>
+                    $$M\mathbf{v} = \lambda \mathbf{v} \iff (M - \lambda I)\mathbf{v} = \mathbf{0}$$
+                    <p>
+                        Para a existência de soluções não-triviais ($\mathbf{v} \neq \mathbf{0}$), a matriz $(M - \lambda I)$ deve ter determinante nulo, originando o <strong>polinômio característico</strong>:
+                    </p>
+                    $$\det(M - \lambda I) = \det \begin{bmatrix} a - \lambda & b \\ c & d - \lambda \end{bmatrix} = \lambda^2 - \operatorname{tr}(M)\lambda + \det(M) = 0$$
+                    <p>
+                        onde $\operatorname{tr}(M) = a + d$ é o traço da matriz. As raízes dessa equação quadrática determinam a geometria dos autovalores:
+                    </p>
+                    $$\lambda_{1, 2} = \frac{\operatorname{tr}(M) \pm \sqrt{\Delta}}{2}, \quad \text{com} \quad \Delta = (\operatorname{tr}(M))^2 - 4\det(M)$$
+                    <ul>
+                        <li><strong>$\Delta > 0$ (Autovalores Reais Distintos)</strong>: Existem duas retas invariantes reais no plano (indicadas pelas linhas tracejadas roxas na simulação). Vetores situados sobre essas retas permanecem sobre elas, sendo apenas esticados ($\lambda > 1$) ou contraídos ($0 < \lambda < 1$).</li>
+                        <li><strong>$\Delta = 0$ (Autovalor Real Degenerado)</strong>: Pode representar uma escala uniforme isotrópica ($\lambda I$) ou um cisalhamento com apenas uma reta invariante.</li>
+                        <li><strong>$\Delta < 0$ (Autovalores Complexos Conjugados)</strong>: Não existem direções reais invariantes. A transformação possui uma componente rotacional contínua intrínseca que gira todos os vetores do plano.</li>
+                    </ul>
+                </div>
+
+                <div class="theory-section">
+                    <h4>4. Transformações Notáveis no Plano $\mathbb{R}^2$</h4>
+                    <p>
+                        As principais operações elementares do plano cartesiano expressam-se em formas canônicas:
+                    </p>
+                    <ul>
+                        <li><strong>Rotação Anti-horária por Ângulo $\theta$</strong>:
+                            $$R(\theta) = \begin{bmatrix} \cos\theta & -\sin\theta \\ \sin\theta & \cos\theta \end{bmatrix}, \quad \det(R) = \cos^2\theta + \sin^2\theta = 1$$
+                            Preserva distâncias Euclidianas e ângulos relativos (isometria direta pertencente ao grupo $SO(2)$).
+                        </li>
+                        <li><strong>Cisalhamento Horizontal (Shear X de fator $k$)</strong>:
+                            $$S_x(k) = \begin{bmatrix} 1 & k \\ 0 & 1 \end{bmatrix}, \quad \det(S_x) = 1$$
+                            Desloca pontos horizontalmente com magnitude proporcional à sua coordenada vertical $y$, preservando rigorosamente a área.
+                        </li>
+                        <li><strong>Cisalhamento Vertical (Shear Y de fator $k$)</strong>:
+                            $$S_y(k) = \begin{bmatrix} 1 & 0 \\ k & 1 \end{bmatrix}, \quad \det(S_y) = 1$$
+                        </li>
+                        <li><strong>Escala Assimétrica (Fatores $s_x$ e $s_y$)</strong>:
+                            $$E(s_x, s_y) = \begin{bmatrix} s_x & 0 \\ 0 & s_y \end{bmatrix}, \quad \det(E) = s_x s_y$$
+                        </li>
+                        <li><strong>Reflexão Ortogonal (Eixo X)</strong>:
+                            $$\text{Ref}_x = \begin{bmatrix} 1 & 0 \\ 0 & -1 \end{bmatrix}, \quad \det(\text{Ref}_x) = -1$$
+                        </li>
+                        <li><strong>Projeção Ortogonal sobre o Eixo X</strong>:
+                            $$P_x = \begin{bmatrix} 1 & 0 \\ 0 & 0 \end{bmatrix}, \quad \det(P_x) = 0$$
+                            Colapsa o plano bidimensional sobre a reta $y = 0$, com perda irreversível de informação (singular).
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="sim-modal-footer">
+                <span class="sim-modal-hint">Pressione <kbd>Esc</kbd> para fechar</span>
+                <button class="btn-primary" data-modal-close style="min-width: 100px;">Entendido</button>
+            </div>
+        </div>
+    </div>
 
     <!-- Script Modular DS 2.0 -->
     <script type="module" src="scripts/matrizes.js"></script>

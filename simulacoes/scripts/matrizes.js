@@ -11,7 +11,8 @@ import {
     inlineSVGImages,
     initKaTeXAutoRender,
     eigen2x2,
-    det2x2
+    det2x2,
+    initModal
 } from './sim-ui.js';
 
 class PlanoCartesiano {
@@ -640,6 +641,21 @@ document.addEventListener('DOMContentLoaded', () => {
         setInputsFromMatrix(targetMatrix);
         triggerAnimation();
     });
+
+    // Modal Didático de Teoria e Deduções Matemáticas
+    const modalTeoria = initModal('#modal-theory-matrizes');
+    const btnAbrirModal = document.getElementById('btn-abrir-modal-teoria');
+    if (btnAbrirModal && modalTeoria) {
+        btnAbrirModal.addEventListener('click', () => modalTeoria.open());
+    }
+
+    // Botão de Reset Rápido Flutuante no Canvas
+    const btnQuickReset = document.getElementById('btn-quick-reset');
+    if (btnQuickReset) {
+        btnQuickReset.addEventListener('click', () => {
+            btnReset.click();
+        });
+    }
 
     presetSelect.addEventListener('change', (e) => {
         const val = e.target.value;

@@ -618,12 +618,17 @@ export function initModal(modalTarget) {
         modal.setAttribute('aria-hidden', 'false');
         document.body.style.overflow = 'hidden';
 
-        if (window.renderMathInElement) {
+        if (typeof initKaTeXAutoRender === 'function') {
+            initKaTeXAutoRender(modal);
+        } else if (window.renderMathInElement) {
             window.renderMathInElement(modal, {
                 delimiters: [
                     { left: '$$', right: '$$', display: true },
-                    { left: '$', right: '$', display: false }
-                ]
+                    { left: '$', right: '$', display: false },
+                    { left: '\\(', right: '\\)', display: false },
+                    { left: '\\[', right: '\\]', display: true }
+                ],
+                throwOnError: false
             });
         }
     };
@@ -750,33 +755,46 @@ export function initTabs(root = document, onTabChange = null) {
     const tabNavs = el.querySelectorAll('.tab-nav');
     tabNavs.forEach(nav => {
         const buttons = nav.querySelectorAll('.tab-btn');
-        buttons.forEach(btn => {
-            btn.addEventListener('click', () => {
-                const targetId = btn.dataset.tab;
-                if (!targetId) return;
+        const panelContainer = nav.closest('.controls-panel')?.querySelector('.panel-body') || el;
+        const panes = panelContainer.querySelectorAll('.tab-pane, .tab-content');
 
-                buttons.forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
+        const switchTab = (targetId) => {
+            if (!targetId) return;
 
-                const panelContainer = nav.closest('.controls-panel')?.querySelector('.panel-body') || el;
-                const panes = panelContainer.querySelectorAll('.tab-pane, .tab-content');
-                panes.forEach(pane => {
-                    const matches = pane.id === targetId || pane.dataset.tab === targetId;
-                    if (matches) {
-                        pane.classList.add('active');
-                        pane.style.display = 'block';
+            buttons.forEach(b => {
+                b.classList.toggle('active', b.dataset.tab === targetId);
+            });
+
+            panes.forEach(pane => {
+                const matches = pane.id === targetId || pane.dataset.tab === targetId;
+                if (matches) {
+                    pane.classList.add('active');
+                    pane.style.display = 'block';
+                    if (typeof initKaTeXAutoRender === 'function') {
                         initKaTeXAutoRender(pane);
-                    } else {
-                        pane.classList.remove('active');
-                        pane.style.display = 'none';
                     }
-                });
-
-                if (typeof onTabChange === 'function') {
-                    onTabChange(targetId);
+                } else {
+                    pane.classList.remove('active');
+                    pane.style.display = 'none';
                 }
             });
+
+            if (typeof onTabChange === 'function') {
+                onTabChange(targetId);
+            }
+        };
+
+        buttons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                switchTab(btn.dataset.tab);
+            });
         });
+
+        // Sincronização inicial da aba ativa no DOM
+        const activeBtn = nav.querySelector('.tab-btn.active') || buttons[0];
+        if (activeBtn && activeBtn.dataset.tab) {
+            switchTab(activeBtn.dataset.tab);
+        }
     });
 }
 

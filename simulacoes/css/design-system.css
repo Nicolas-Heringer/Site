@@ -1084,6 +1084,17 @@ input[type="text"].sim-input:focus {
     cursor: not-allowed;
 }
 
+/* Painéis de Conteúdo das Abas (.tab-pane / .tab-content) */
+.tab-pane,
+.tab-content {
+    display: none;
+}
+
+.tab-pane.active,
+.tab-content.active {
+    display: block;
+}
+
 /* =============================================================================
    7. CABEÇALHOS DE ABA, BADGES DE STATUS, HUDS & CARDS DIDÁTICOS (LATEX)
    ============================================================================= */
