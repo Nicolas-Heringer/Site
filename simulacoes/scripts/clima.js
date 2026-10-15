@@ -110,19 +110,31 @@ function getGeographicLocation(latDeg, lonDeg) {
     return 'Oceano Pacífico';
 }
 
-function getZodiacConstellationInfo(dayOfYear) {
-    const months = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
-    const shortMonths = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
-    const daysInMonth = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+const CALENDAR_MONTHS = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+const CALENDAR_SHORT_MONTHS = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+const DAYS_IN_MONTH = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
 
-    let d = Math.floor(dayOfYear);
+function getDayOfYearFromDate(dayOfMonth, monthIdx) {
+    const safeMonth = Math.max(0, Math.min(11, monthIdx));
+    const maxDays = DAYS_IN_MONTH[safeMonth] || 31;
+    const clampedDay = Math.max(1, Math.min(maxDays, Math.floor(dayOfMonth) || 1));
+    let doy = 0;
+    for (let m = 0; m < safeMonth; m++) {
+        doy += DAYS_IN_MONTH[m];
+    }
+    doy += clampedDay;
+    return Math.max(1, Math.min(365, doy));
+}
+
+function getZodiacConstellationInfo(dayOfYear) {
+    let d = Math.max(1, Math.min(365, Math.floor(dayOfYear)));
     let monthIdx = 0;
-    while (d > daysInMonth[monthIdx] && monthIdx < 11) {
-        d -= daysInMonth[monthIdx];
+    while (d > DAYS_IN_MONTH[monthIdx] && monthIdx < 11) {
+        d -= DAYS_IN_MONTH[monthIdx];
         monthIdx++;
     }
-    const dateFormatted = `${d} de ${months[monthIdx]}`;
-    const dateShort = `${d}/${shortMonths[monthIdx]}`;
+    const dateFormatted = `${d} de ${CALENDAR_MONTHS[monthIdx]}`;
+    const dateShort = `${d}/${CALENDAR_SHORT_MONTHS[monthIdx]}`;
 
     const lambdaOrbit = ((dayOfYear - 80 + 365) % 365) * (2.0 * Math.PI / 365.0);
     const sunDeclDeg = (Math.asin(Math.sin(AXIAL_TILT_RAD) * Math.sin(lambdaOrbit)) * 180.0 / Math.PI);
@@ -149,7 +161,9 @@ function getZodiacConstellationInfo(dayOfYear) {
         lambdaOrbit,
         sunDeclDeg,
         sunZodiac,
-        midnightZodiac
+        midnightZodiac,
+        dayOfMonth: d,
+        monthIdx
     };
 }
 
@@ -849,7 +863,7 @@ function switchTab(newTab) {
         if (eclipticPlaneMesh) eclipticPlaneMesh.visible = false;
         if (sunVisualGroup) sunVisualGroup.visible = false;
 
-        earthTiltGroup.rotation.z = 0;
+        earthTiltGroup.rotation.set(0, 0, 0);
         ambientLight.intensity = 1.35;
         sunLight.intensity = 1.4;
         sunLight.position.set(5, 3, 4);
@@ -880,7 +894,7 @@ function switchTab(newTab) {
         if (eclipticPlaneMesh) eclipticPlaneMesh.visible = false;
         if (sunVisualGroup) sunVisualGroup.visible = false;
 
-        earthTiltGroup.rotation.z = 0;
+        earthTiltGroup.rotation.set(0, 0, 0);
         ambientLight.intensity = 1.35;
         sunLight.intensity = 1.4;
         sunLight.position.set(5, 3, 4);
@@ -910,11 +924,11 @@ function switchTab(newTab) {
         if (eclipticPlaneMesh) eclipticPlaneMesh.visible = state.showEclipticPlane;
         if (sunVisualGroup) sunVisualGroup.visible = true;
 
-        earthTiltGroup.rotation.z = state.showAxialTilt ? AXIAL_TILT_RAD : 0;
+        earthTiltGroup.rotation.set(state.showAxialTilt ? -AXIAL_TILT_RAD : 0, 0, 0);
 
         if (state.showSunTerminator) {
-            ambientLight.intensity = 0.28;
-            sunLight.intensity = 2.4;
+            ambientLight.intensity = 0.05;
+            sunLight.intensity = 2.6;
         }
 
         if (globeMaterial) {
@@ -944,7 +958,7 @@ function switchTab(newTab) {
         if (eclipticPlaneMesh) eclipticPlaneMesh.visible = false;
         if (sunVisualGroup) sunVisualGroup.visible = false;
 
-        earthTiltGroup.rotation.z = AXIAL_TILT_RAD;
+        earthTiltGroup.rotation.set(-AXIAL_TILT_RAD, 0, 0);
         ambientLight.intensity = 1.35;
         sunLight.intensity = 1.4;
         sunLight.position.set(5, 3, 4);
@@ -1052,8 +1066,17 @@ function updateAstronomicalState() {
 
     if (spanSeasonDate) spanSeasonDate.textContent = info.dateFormatted;
     if (spanSunDecl) spanSunDecl.textContent = `${info.sunDeclDeg >= 0 ? '+' : ''}${info.sunDeclDeg.toFixed(1)}° (${info.sunDeclDeg >= 0 ? 'Norte' : 'Sul'})`;
-    if (spanZodiac) spanZodiac.textContent = info.sunZodiac;
-    if (valDay) valDay.textContent = `Dia ${Math.floor(state.dayOfYear)} • ${info.dateShort}`;
+    if (valDay) valDay.textContent = `Dia ${Math.max(1, Math.min(365, Math.floor(state.dayOfYear)))}`;
+
+    const inputDateDay = document.getElementById('input-date-day');
+    const selectDateMonth = document.getElementById('select-date-month');
+    if (inputDateDay && document.activeElement !== inputDateDay) {
+        inputDateDay.value = info.dayOfMonth;
+        inputDateDay.max = DAYS_IN_MONTH[info.monthIdx];
+    }
+    if (selectDateMonth && document.activeElement !== selectDateMonth) {
+        selectDateMonth.value = String(info.monthIdx);
+    }
 
     const h = Math.floor(state.hourOfDay);
     const m = Math.floor((state.hourOfDay - h) * 60);
@@ -1141,9 +1164,15 @@ function renderMiniOrrery(info) {
     ctx.strokeStyle = '#ffffff';
     ctx.lineWidth = 2;
     ctx.beginPath();
-    ctx.moveTo(earthX - 6, earthY + 3);
-    ctx.lineTo(earthX + 6, earthY - 3);
+    ctx.moveTo(earthX, earthY - 6);
+    ctx.lineTo(earthX, earthY + 6);
     ctx.stroke();
+
+    // Indicador do Polo Norte (amarelo) alinhado com o eixo dos solstícios
+    ctx.fillStyle = '#facc15';
+    ctx.beginPath();
+    ctx.arc(earthX, earthY + 5, 2, 0, Math.PI * 2);
+    ctx.fill();
 }
 
 // =============================================================================
@@ -1552,11 +1581,48 @@ function setupUIListeners() {
     if (btnSeasonDec) btnSeasonDec.addEventListener('click', () => setSeasonDay(355, btnSeasonDec));
     if (btnSeasonMar) btnSeasonMar.addEventListener('click', () => setSeasonDay(80, btnSeasonMar));
 
+    const inputDateDay = document.getElementById('input-date-day');
+    const selectDateMonth = document.getElementById('select-date-month');
+
+    function applyDateFromInputs() {
+        if (!inputDateDay || !selectDateMonth) return;
+        const monthIdx = parseInt(selectDateMonth.value, 10) || 0;
+        const safeMonth = Math.max(0, Math.min(11, monthIdx));
+        const maxDays = DAYS_IN_MONTH[safeMonth] || 31;
+        let dayVal = parseInt(inputDateDay.value, 10);
+        if (isNaN(dayVal) || dayVal < 1) dayVal = 1;
+        if (dayVal > maxDays) dayVal = maxDays;
+
+        inputDateDay.value = dayVal;
+        inputDateDay.max = maxDays;
+
+        const targetDoy = getDayOfYearFromDate(dayVal, safeMonth);
+        state.dayOfYear = targetDoy;
+        if (sliderDay) sliderDay.value = targetDoy;
+        seasonBtns.forEach(b => b && b.classList.remove('active'));
+        updateAstronomicalState();
+    }
+
+    if (inputDateDay) {
+        inputDateDay.addEventListener('input', () => {
+            applyDateFromInputs();
+        });
+        inputDateDay.addEventListener('change', () => {
+            applyDateFromInputs();
+        });
+    }
+
+    if (selectDateMonth) {
+        selectDateMonth.addEventListener('change', () => {
+            applyDateFromInputs();
+        });
+    }
+
     const toggleAxialTilt = document.getElementById('toggle-axial-tilt');
     if (toggleAxialTilt) {
         toggleAxialTilt.addEventListener('change', (e) => {
             state.showAxialTilt = e.target.checked;
-            earthTiltGroup.rotation.z = state.showAxialTilt ? AXIAL_TILT_RAD : 0;
+            earthTiltGroup.rotation.set(state.showAxialTilt ? -AXIAL_TILT_RAD : 0, 0, 0);
         });
     }
 
@@ -1572,8 +1638,8 @@ function setupUIListeners() {
     if (toggleSunTerminator) {
         toggleSunTerminator.addEventListener('change', (e) => {
             state.showSunTerminator = e.target.checked;
-            ambientLight.intensity = state.showSunTerminator ? 0.28 : 1.35;
-            sunLight.intensity = state.showSunTerminator ? 2.4 : 1.4;
+            ambientLight.intensity = state.showSunTerminator ? 0.05 : 1.35;
+            sunLight.intensity = state.showSunTerminator ? 2.6 : 1.4;
         });
     }
 

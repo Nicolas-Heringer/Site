@@ -167,6 +167,92 @@
     flex-shrink: 0;
 }
 
+/* ---------- Dual-Input de Calendário (Dia & Mês Sincronizados) ---------- */
+.date-dual-wrapper {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-subtle);
+    padding: 2px 6px;
+    border-radius: var(--radius-sm);
+    transition: border-color var(--trans-fast), box-shadow var(--trans-fast);
+}
+
+.date-dual-wrapper:focus-within {
+    border-color: var(--accent-slider, var(--accent-color));
+    box-shadow: 0 0 8px color-mix(in srgb, var(--accent-slider, var(--accent-color)) 30%, transparent);
+}
+
+.date-day-counter {
+    font-family: var(--font-mono);
+    font-size: 0.74rem;
+    font-weight: 600;
+    color: var(--accent-color);
+    white-space: nowrap;
+    user-select: none;
+}
+
+.date-sep,
+.date-slash {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    opacity: 0.75;
+    user-select: none;
+}
+
+.date-input-day {
+    width: 24px;
+    background: transparent;
+    border: none;
+    outline: none;
+    font-family: var(--font-mono);
+    font-size: 0.80rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    text-align: center;
+    padding: 0;
+    -moz-appearance: textfield;
+    appearance: textfield;
+}
+
+.date-input-day::-webkit-inner-spin-button,
+.date-input-day::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.date-select-month {
+    appearance: none;
+    -webkit-appearance: none;
+    background: transparent;
+    border: none;
+    color: var(--text-primary);
+    font-family: var(--font-mono);
+    font-size: 0.80rem;
+    font-weight: 600;
+    cursor: pointer;
+    outline: none;
+    padding: 0 13px 0 2px;
+    background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%2394a3b8%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
+    background-repeat: no-repeat;
+    background-position: right 1px center;
+    background-size: 8px auto;
+    transition: color var(--trans-fast);
+}
+
+.date-select-month:hover,
+.date-select-month:focus {
+    color: var(--accent-color);
+}
+
+.date-select-month option {
+    background-color: var(--bg-surface);
+    color: var(--text-primary);
+    font-family: var(--font-sans);
+}
+
 /* ---------- Tooltip Flutuante de Inspeção de Célula (Hover) ---------- */
 .cell-tooltip {
     position: absolute;

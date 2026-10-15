@@ -18,7 +18,7 @@
 
     <!-- Design System Unificado e Estilos Específicos -->
     <link rel="stylesheet" href="css/design-system.css">
-    <link rel="stylesheet" href="css/clima.css?v=3.5">
+    <link rel="stylesheet" href="css/clima.css?v=3.6">
 
     <!-- Suporte a Fórmulas Matemáticas com KaTeX -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" crossorigin="anonymous">
@@ -367,10 +367,30 @@
 
                         <!-- Controles Orbitais e Temporais -->
                         <div class="control-group">
-                            <div class="slider-container">
+                            <div class="slider-container sim-dual-slider">
                                 <div class="slider-header">
-                                    <span>Dia do Ano (Translação)</span>
-                                    <span id="val-day-of-year" class="slider-val">Dia 172 • 21/Jun</span>
+                                    <label for="slider-day-of-year" class="slider-label">Translação Orbital</label>
+                                    <div class="dual-input-wrapper date-dual-wrapper">
+                                        <span id="val-day-of-year" class="slider-val date-day-counter">Dia 172</span>
+                                        <span class="date-sep">•</span>
+                                        <input type="number" id="input-date-day" class="dual-input-number date-input-day"
+                                            min="1" max="31" step="1" value="21" title="Dia do Mês" aria-label="Dia do Mês">
+                                        <span class="date-slash">/</span>
+                                        <select id="select-date-month" class="date-select-month" title="Mês do Ano" aria-label="Mês do Ano">
+                                            <option value="0">Jan</option>
+                                            <option value="1">Fev</option>
+                                            <option value="2">Mar</option>
+                                            <option value="3">Abr</option>
+                                            <option value="4">Mai</option>
+                                            <option value="5" selected>Jun</option>
+                                            <option value="6">Jul</option>
+                                            <option value="7">Ago</option>
+                                            <option value="8">Set</option>
+                                            <option value="9">Out</option>
+                                            <option value="10">Nov</option>
+                                            <option value="11">Dez</option>
+                                        </select>
+                                    </div>
                                 </div>
                                 <input type="range" class="sim-slider" id="slider-day-of-year" min="1" max="365"
                                     step="1" value="172">
@@ -662,7 +682,7 @@
     </div>
 
     <!-- Script Principal da Simulação -->
-    <script type="module" src="scripts/clima.js?v=3.5"></script>
+    <script type="module" src="scripts/clima.js?v=3.8"></script>
 </body>
 
 </html>
