@@ -358,9 +358,13 @@ p {
     border: 1px solid rgba(56, 189, 248, 0.4);
 }
 
-/* Card oculto pelo filtro */
-.card-link.card-hidden {
-    display: none;
+/* Card oculto pelo filtro ou ocultação manual (atributo hidden e classes hide/hidden) */
+.card-link.card-hidden,
+.card-link[hidden],
+[hidden],
+.hide,
+.hidden {
+    display: none !important;
 }
 
 /* Mensagem de resultado vazio */

@@ -40,6 +40,15 @@
     --color-emerald: #22c55e;
     --color-purple: #a855f7;
     --color-rose: #f43f5e;
+    --color-pink: #f472b6;
+    --color-orange: #fb923c;
+
+    /* Estados Semânticos de Intencionalidade (válido / inválido / aviso / pronto / indisponível) */
+    --state-valid: var(--color-emerald);
+    --state-invalid: var(--color-rose);
+    --state-warning: var(--color-orange);
+    --state-ready: var(--accent-color);
+    --state-disabled: var(--text-muted);
 
     /* Tipografia e Cores de Texto */
     --text-primary: #f8fafc;
@@ -1803,6 +1812,112 @@ input[type="text"].sim-input:focus {
     box-shadow: 0 0 10px color-mix(in srgb, var(--accent-color) 30%, transparent);
 }
 
+/* =============================================================================
+   9.1 BARRA FLUTUANTE DE FOCO REATIVA / ESPELHADA (.focus-mirror-toolbar)
+   ============================================================================= */
+
+/* Container da Barra Flutuante Espelhada */
+.focus-mirror-toolbar {
+    position: absolute;
+    top: 15px;
+    left: 15px;
+    z-index: 60;
+    max-width: calc(100% - 170px);
+    overflow-x: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(-8px);
+    transition: opacity var(--trans-normal), transform var(--trans-normal);
+}
+
+.focus-mirror-toolbar::-webkit-scrollbar {
+    display: none;
+}
+
+/* Visibilidade ativada no Modo Foco (.sidebar-collapsed) ou classe forçada */
+.sim-layout.sidebar-collapsed .focus-mirror-toolbar,
+.focus-mirror-toolbar.is-visible {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(0);
+}
+
+/* Botão Espelhado no Modo Foco */
+.focus-mirror-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+    user-select: none;
+}
+
+.focus-mirror-btn:disabled,
+.focus-mirror-btn.is-disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+/* Seletor Compacto Espelhado */
+.focus-mirror-select {
+    background: rgba(15, 23, 42, 0.92);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    padding: 4px 8px;
+    font-size: 0.74rem;
+    font-family: inherit;
+    border-radius: var(--radius-sm);
+    outline: none;
+    cursor: pointer;
+    transition: border-color var(--trans-fast);
+}
+
+.focus-mirror-select:hover,
+.focus-mirror-select:focus {
+    border-color: var(--accent-color);
+}
+
+/* Badge de Leitura / Telemetria Espelhado */
+.focus-mirror-badge {
+    font-family: var(--font-mono);
+    font-size: 0.74rem;
+    font-weight: 600;
+    color: var(--accent-color);
+    background: rgba(0, 0, 0, 0.45);
+    padding: 3px 8px;
+    border-radius: var(--radius-sm);
+    border: 1px solid color-mix(in srgb, var(--accent-color) 30%, transparent);
+    white-space: nowrap;
+    user-select: none;
+}
+
+/* Mini Slider Espelhado */
+.focus-mirror-slider {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.72rem;
+    color: var(--text-secondary);
+    padding: 2px 6px;
+    background: rgba(255, 255, 255, 0.04);
+    border-radius: var(--radius-sm);
+}
+
+.focus-mirror-slider input[type="range"] {
+    width: 75px;
+    height: 4px;
+    accent-color: var(--accent-color);
+    cursor: pointer;
+}
+
+.focus-mirror-slider .slider-mirror-val {
+    font-family: var(--font-mono);
+    font-size: 0.70rem;
+    color: var(--text-primary);
+}
+
 /* Popover Flutuante Universal (.sim-popover) */
 .sim-popover,
 .color-tooltip-popover {
@@ -2235,3 +2350,198 @@ input[type="text"].sim-input:focus {
     }
 }
 
+
+
+/* =============================================================================
+   ESTADOS SEMÂNTICOS DE INTENCIONALIDADE
+   Comunicam visualmente se uma ação está disponível, se uma entrada é válida,
+   incorreta ou duvidosa. Controlados por setFieldState() em sim-ui.js.
+
+     .is-valid    → entrada aceita / ação concluída        (--state-valid)
+     .is-invalid  → entrada incorreta / ação impossível    (--state-invalid)
+     .is-warning  → válido, porém com ressalva             (--state-warning)
+     .is-ready    → ação disponível e recomendada (pulso)  (--state-ready)
+     .is-disabled → indisponível no contexto atual         (--state-disabled)
+   ============================================================================= */
+[hidden] {
+    display: none !important;
+}
+
+.is-valid   { --field-state-color: var(--state-valid); }
+.is-invalid { --field-state-color: var(--state-invalid); }
+.is-warning { --field-state-color: var(--state-warning); }
+.is-ready   { --field-state-color: var(--state-ready); }
+
+/* Entradas de texto, número, seleção e wrappers de entrada dual */
+input.sim-input.is-valid,
+input.sim-input.is-invalid,
+input.sim-input.is-warning,
+select.sim-control.is-invalid,
+select.sim-control.is-warning,
+.dual-input-wrapper.is-valid,
+.dual-input-wrapper.is-invalid,
+.dual-input-wrapper.is-warning {
+    border-color: var(--field-state-color);
+}
+
+input.sim-input.is-invalid,
+input.sim-input.is-warning,
+select.sim-control.is-invalid,
+select.sim-control.is-warning,
+.dual-input-wrapper.is-invalid,
+.dual-input-wrapper.is-warning {
+    box-shadow: 0 0 0 1px color-mix(in srgb, var(--field-state-color) 40%, transparent),
+                0 0 10px color-mix(in srgb, var(--field-state-color) 28%, transparent);
+}
+
+/* Sliders: trilho, thumb e valor numérico seguem a cor do estado via --accent-slider */
+.sim-dual-slider.is-valid,
+.sim-dual-slider.is-invalid,
+.sim-dual-slider.is-warning,
+.slider-container.is-valid,
+.slider-container.is-invalid,
+.slider-container.is-warning {
+    --accent-slider: var(--field-state-color);
+    border-color: color-mix(in srgb, var(--field-state-color) 55%, transparent);
+}
+
+/* Interruptores segmentados e switches herdam a cor de estado */
+.sim-switch.is-invalid,
+.sim-switch.is-warning,
+.segmented-control.is-invalid,
+.segmented-control.is-warning {
+    --accent-switch: var(--field-state-color);
+}
+
+/* Botões: a cor de acento passa a refletir o estado */
+button.is-valid,
+button.is-invalid,
+button.is-warning {
+    --accent-btn: var(--field-state-color);
+}
+
+button.is-ready:not(:disabled) {
+    --accent-btn: var(--state-ready);
+    animation: stateReadyPulse 1.3s ease-in-out infinite alternate;
+}
+
+@keyframes stateReadyPulse {
+    from { box-shadow: 0 0 4px color-mix(in srgb, var(--state-ready) 30%, transparent); }
+    to   { box-shadow: 0 0 18px color-mix(in srgb, var(--state-ready) 80%, transparent); }
+}
+
+/* Ícones SVG nativos adotam a cor do estado */
+.icon-svg.is-valid,
+.icon-svg.is-invalid,
+.icon-svg.is-warning,
+.icon-svg.is-ready {
+    color: var(--field-state-color);
+}
+
+/* Indisponível */
+button:disabled,
+.is-disabled,
+[aria-disabled="true"] {
+    cursor: not-allowed;
+}
+
+.sim-dual-slider.is-disabled,
+.slider-container.is-disabled,
+.sim-switch.is-disabled {
+    opacity: 0.4;
+    pointer-events: none;
+}
+
+/* Mensagem de apoio abaixo de um campo (herda a cor do estado) */
+.field-hint {
+    display: flex;
+    align-items: flex-start;
+    gap: 6px;
+    font-size: 0.72rem;
+    line-height: 1.4;
+    color: var(--field-state-color, var(--text-muted));
+}
+
+.field-hint::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    margin-top: 0.4em;
+    border-radius: 50%;
+    background: currentColor;
+    flex-shrink: 0;
+}
+
+.field-hint:empty {
+    display: none;
+}
+
+/* =============================================================================
+   LEITURAS NUMÉRICAS (READOUT) & BADGE INFORMATIVO NO CANVAS
+   ============================================================================= */
+.sim-readout {
+    background: rgba(15, 23, 42, 0.55);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 10px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.sim-readout-title {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    padding-bottom: 6px;
+    margin-bottom: 2px;
+    border-bottom: 1px solid var(--border-subtle);
+}
+
+.sim-readout-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 10px;
+    font-size: 0.8rem;
+}
+
+.sim-readout-label {
+    color: var(--text-secondary);
+}
+
+.sim-readout-value {
+    font-family: var(--font-mono);
+    font-weight: 600;
+    font-size: 0.82rem;
+    text-align: right;
+    color: var(--text-primary);
+}
+
+.tone-accent  { color: var(--accent-color); }
+.tone-cyan    { color: var(--color-cyan); }
+.tone-emerald { color: var(--color-emerald); }
+.tone-purple  { color: var(--color-purple); }
+.tone-pink    { color: var(--color-pink); }
+.tone-rose    { color: var(--color-rose); }
+.tone-orange  { color: var(--color-orange); }
+
+.canvas-info-badge {
+    position: absolute;
+    top: 15px;
+    left: 18px;
+    z-index: 10;
+    padding: 6px 12px;
+    font-family: var(--font-mono);
+    font-size: 0.84rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    background: rgba(15, 23, 42, 0.85);
+    border: 1px solid color-mix(in srgb, var(--accent-color) 40%, transparent);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+    pointer-events: none;
+}

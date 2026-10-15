@@ -92,6 +92,11 @@ document.addEventListener("DOMContentLoaded", function () {
         let visiveis = 0;
 
         cardLinks.forEach(link => {
+          // Ignora cards ocultos manualmente (atributo hidden ou classes hide/hidden)
+          if (link.hasAttribute('hidden') || link.classList.contains('hide') || link.classList.contains('hidden')) {
+            return;
+          }
+
           const categorias = (link.getAttribute('data-categorias') || '').split(' ');
           const mostrar = filtro === 'todas' || categorias.includes(filtro);
           link.classList.toggle('card-hidden', !mostrar);

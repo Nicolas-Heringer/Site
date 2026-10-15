@@ -65,8 +65,9 @@ Para atualizar uma simulação existente que ainda não segue o Design System 2.
 
 3. **Refatoração do JavaScript**:
    * Converter o script para módulo ES (`type="module"`).
-   * Importar `initSidebarCollapse` e `initBottomSheet` de `./sim-ui.js` e inicializá-los.
+   * Importar `initSidebarCollapse`, `initBottomSheet` e `initFocusMirrorToolbar` de `./sim-ui.js` e inicializá-los.
    * Eliminar implementações manuais de redimensionamento e sincronização de sliders, adotando `syncDualSlider` e o callback `onResize`.
+   * Adicionar anotações `data-focus-control` nos controles prioritários para popularem a barra flutuante no Modo Foco sem duplicação de listeners.
    * Adicionar `touch-action: none;` no container Three.js.
 
 ---
@@ -76,6 +77,7 @@ Para atualizar uma simulação existente que ainda não segue o Design System 2.
 Antes de concluir a tarefa, verifique os seguintes pontos:
 - [ ] O layout possui as duas experiências: Desktop (com modo foco `F`) e Mobile (Bottom Sheet deslizante).
 - [ ] A alça `.sheet-drag-handle` está presente no topo do `.controls-panel`.
+- [ ] Os controles vitais para Modo Foco possuem `data-focus-control` e são sincronizados via `initFocusMirrorToolbar()`.
 - [ ] Os sliders de parâmetros físicos estão sincronizados bidirecionalmente com os inputs numéricos.
 - [ ] Todos os ícones utilizam `../assets/icons/<nome>.svg` com a classe `.icon-svg`.
 - [ ] Todas as equações matemáticas estão formatadas com KaTeX (`$$...$$` ou `$...$`) e renderizadas.

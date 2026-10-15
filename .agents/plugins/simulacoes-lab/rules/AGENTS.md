@@ -24,6 +24,7 @@ Este conjunto de regras define os padrões de arquitetura, interface e performan
 * **Sliders Numéricos**: Parâmetros físicos devem utilizar a estrutura `.sim-dual-slider` sincronizada via `syncDualSlider(sliderSelector, numberInputSelector, onChange)`.
 * **Evolução Temporal**: Simulações que evoluem no tempo devem implementar a barra `.sim-transport-bar` e o botão toggle com `initToggleButton()`.
 * **Mini-Gráficos 2D**: Plotagens em tempo real de grandezas (energia, velocidade, etc.) devem utilizar a classe `RealtimePlot`.
+* **Barra Flutuante de Modo Foco**: Controles que sobem para o menu flutuante em tela cheia/foco DEVEM utilizar a convenção declarativa `data-focus-control` (`action`, `toggle`, `select`, `slider`, `badge`) e ser inicializados via `initFocusMirrorToolbar()`. É proibido duplicar marcação HTML ou adicionar listeners manuais para replicar botões no canvas.
 * **Teoria & Deduções**: Conteúdo pedagógico e deduções formais devem ser apresentados na aba "Teoria" ou em modal imersivo via `initModal()`.
 
 ---

@@ -1,13 +1,132 @@
-/* 
-  Estilos Específicos para a Simulação de Transformações Matriciais
-*/
+/* =============================================================================
+   Estilos Específicos para a Simulação de Transformações Matriciais 2D
+   Compatível com o Design System 2.0 e 4 Modos Operacionais
+   ============================================================================= */
 
-/* --- MATRIX 2x2 DISPLAY & INPUTS --- */
-.group-title {
-    font-size: 0.95rem;
+/* --- SELETOR DE MODOS NO TOPO DO PAINEL --- */
+.mode-selector-wrapper {
+    margin-bottom: 12px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border-subtle);
+}
+
+.mode-selector-label {
+    font-size: 0.72rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+    margin-bottom: 6px;
+    display: block;
+}
+
+#mode-selector .segment-btn {
+    padding: 7px 4px;
+    font-size: 0.72rem;
+    gap: 4px;
+}
+
+#mode-selector .segment-btn .icon-svg {
+    width: 14px;
+    height: 14px;
+}
+
+/* --- CANVAS AREA: SUPORTE A TELA ÚNICA OU DIVIDIDA (SPLIT) --- */
+.canvas-single-container,
+.canvas-split-container {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    inset: 0;
+}
+
+.canvas-single-container canvas {
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+
+.canvas-split-container {
+    display: flex;
+    flex-direction: row;
+    background: rgba(0, 0, 0, 0.4);
+}
+
+.canvas-split-container.hidden {
+    display: none !important;
+}
+
+.canvas-single-container.hidden {
+    display: none !important;
+}
+
+.canvas-split-pane {
+    flex: 1;
+    height: 100%;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.canvas-split-pane canvas {
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+
+.canvas-split-divider {
+    width: 2px;
+    background: var(--border-color);
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.6);
+    position: relative;
+    z-index: 2;
+    flex-shrink: 0;
+}
+
+.split-pane-tag {
+    position: absolute;
+    top: 14px;
+    left: 14px;
+    z-index: 5;
+    background: rgba(15, 23, 42, 0.85);
+    backdrop-filter: blur(8px);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    padding: 4px 10px;
+    font-size: 0.74rem;
     font-weight: 600;
     color: var(--text-primary);
-    margin-bottom: 10px;
+    pointer-events: none;
+    box-shadow: var(--shadow-sm);
+}
+
+#pane-left .split-pane-tag {
+    border-left: 3px solid var(--accent-color);
+}
+
+#pane-right .split-pane-tag {
+    border-left: 3px solid var(--color-cyan);
+}
+
+/* Modo Mobile: empilha as duas telas do Modo 2 verticalmente */
+@media (max-width: 900px) {
+    .canvas-split-container {
+        flex-direction: column;
+    }
+
+    .canvas-split-divider {
+        width: 100%;
+        height: 2px;
+    }
+}
+
+/* --- MATRIX 2x2 DISPLAY & INPUTS (MODOS 1 E 4) --- */
+.group-title {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 8px;
     display: block;
 }
 
@@ -17,19 +136,24 @@
     justify-content: center;
     background: rgba(15, 23, 42, 0.6);
     border: 1px solid var(--border-color);
-    border-radius: 10px;
-    padding: 12px;
-    margin-bottom: 10px;
+    border-radius: var(--radius-md);
+    padding: 10px 14px;
+    margin-bottom: 8px;
     box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
+    transition: border-color var(--trans-normal), box-shadow var(--trans-normal);
 }
 
 .matrix-bracket {
     font-family: 'Times New Roman', serif;
-    font-size: 3.5rem;
+    font-size: 5.8rem;
     font-weight: 300;
     color: #94a3b8;
-    line-height: 1;
+    line-height: 0.82;
     user-select: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transform: scaleY(1.35) scaleX(0.85);
 }
 
 .matrix-grid {
@@ -45,247 +169,265 @@
     align-items: center;
 }
 
-.matrix-cell input[type="number"] {
-    width: 68px;
-    height: 38px;
+.matrix-cell input[type="number"],
+.matrix-cell input[type="text"] {
+    width: 72px;
+    height: 36px;
     text-align: center;
     background-color: var(--bg-surface);
     border: 1px solid rgba(255, 255, 255, 0.15);
-    border-radius: 6px;
+    border-radius: var(--radius-sm);
     color: #ffffff;
-    font-family: var(--font-family);
+    font-family: var(--font-mono);
     font-weight: 600;
-    font-size: 1rem;
+    font-size: 0.95rem;
     outline: none;
-    transition: all 0.2s ease;
+    transition: all var(--trans-fast);
 }
 
-.cell-i input[type="number"] {
-    border-color: rgba(250, 204, 21, 0.4);
+/* Coluna î (Amarelo) */
+.cell-i input {
+    border-color: rgba(250, 204, 21, 0.45);
+}
+.cell-i input:focus {
+    border-color: var(--accent-color);
+    box-shadow: 0 0 8px color-mix(in srgb, var(--accent-color) 40%, transparent);
 }
 
-.cell-i input[type="number"]:focus {
-    border-color: #facc15;
-    box-shadow: 0 0 8px rgba(250, 204, 21, 0.3);
+/* Coluna ĵ (Ciano) */
+.cell-j input {
+    border-color: rgba(56, 189, 248, 0.45);
 }
-
-.cell-j input[type="number"] {
-    border-color: rgba(56, 189, 248, 0.4);
-}
-
-.cell-j input[type="number"]:focus {
-    border-color: #38bdf8;
-    box-shadow: 0 0 8px rgba(56, 189, 248, 0.3);
+.cell-j input:focus {
+    border-color: var(--color-cyan);
+    box-shadow: 0 0 8px color-mix(in srgb, var(--color-cyan) 40%, transparent);
 }
 
 .cell-sub {
-    font-size: 0.7rem;
+    font-size: 0.68rem;
     color: var(--text-secondary);
     margin-top: 2px;
+    font-family: var(--font-mono);
 }
 
-/* Bases vetoriais etiquetas */
+/* Badges da base vetorial */
 .basis-info {
     display: flex;
     justify-content: space-between;
     gap: 8px;
+    margin-top: 4px;
 }
 
 .basis-badge {
     flex: 1;
     text-align: center;
-    padding: 6px 8px;
-    border-radius: 6px;
-    font-size: 0.8rem;
+    padding: 5px 8px;
+    border-radius: var(--radius-sm);
+    font-size: 0.78rem;
     font-weight: 600;
-    font-family: monospace;
+    font-family: var(--font-mono);
 }
 
 .badge-i {
-    background: rgba(250, 204, 21, 0.15);
-    color: #facc15;
-    border: 1px solid rgba(250, 204, 21, 0.3);
+    background: rgba(250, 204, 21, 0.12);
+    color: var(--accent-color);
+    border: 1px solid rgba(250, 204, 21, 0.28);
 }
 
 .badge-j {
-    background: rgba(56, 189, 248, 0.15);
-    color: #38bdf8;
-    border: 1px solid rgba(56, 189, 248, 0.3);
+    background: rgba(56, 189, 248, 0.12);
+    color: var(--color-cyan);
+    border: 1px solid rgba(56, 189, 248, 0.28);
 }
 
-/* --- SELECT STYLING --- */
-.styled-select {
-    width: 100%;
-    padding: 10px 12px;
-    background-color: var(--bg-surface);
+/* --- MATRIZ FUNCIONAL (MODO 3) --- */
+.matrix-grid-fn {
+    gap: 8px 10px;
+}
+
+.matrix-cell-fn input[type="text"] {
+    width: 105px;
+    height: 38px;
+    font-size: 0.82rem;
+    padding: 4px 6px;
+    text-align: center;
+}
+
+/* --- READOUT CARD ESPECÍFICO --- */
+.readout-card {
+    background: rgba(15, 23, 42, 0.6);
     border: 1px solid var(--border-color);
-    border-radius: 8px;
+    border-radius: var(--radius-md);
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+}
+
+.readout-header {
+    font-size: 0.85rem;
+    font-weight: 600;
     color: var(--text-primary);
-    font-family: var(--font-family);
-    font-size: 0.9rem;
-    outline: none;
-    cursor: pointer;
-    transition: border-color 0.2s;
+    padding-bottom: 6px;
+    border-bottom: 1px solid var(--border-subtle);
+    display: flex;
+    align-items: center;
+    gap: 6px;
 }
 
-.styled-select:hover, .styled-select:focus {
-    border-color: var(--accent-color);
-}
-
-/* --- SLIDERS & HEADERS --- */
-.slider-header {
+.readout-item {
     display: flex;
     justify-content: space-between;
-    align-items: center;
-    font-size: 0.85rem;
+    align-items: baseline;
+    font-size: 0.82rem;
+}
+
+.readout-label {
     color: var(--text-secondary);
-    margin-bottom: 4px;
 }
 
-.slider-val {
+.readout-value {
+    font-family: var(--font-mono);
     font-weight: 600;
-    color: var(--accent-color);
-    font-family: monospace;
 }
 
-input[type="range"] {
-    width: 100%;
-    accent-color: var(--accent-color);
-    cursor: pointer;
-}
+.highlight-yellow { color: var(--accent-color); }
+.highlight-cyan   { color: var(--color-cyan); }
+.highlight-green  { color: var(--color-emerald); }
+.highlight-purple { color: var(--color-purple); }
+.highlight-pink   { color: var(--color-pink); }
+.highlight-rose   { color: var(--color-rose); }
 
-/* --- BUTTONS --- */
+/* --- BOTÕES E FILEIRAS --- */
 .button-row {
     display: flex;
-    gap: 10px;
-    margin-top: 6px;
+    gap: 8px;
+    margin-top: 4px;
 }
 
 .btn-action {
     flex: 1;
-    padding: 10px;
-    border: none;
-    border-radius: 8px;
-    font-family: var(--font-family);
+    padding: 9px 12px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
     font-weight: 600;
-    font-size: 0.9rem;
+    font-size: 0.82rem;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: all var(--trans-fast);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
 }
 
 .btn-action.primary {
-    background-color: #facc15;
-    color: #0f172a;
-}
-
-.btn-action.primary.pulse-accent {
-    animation: pulseGlow 1.2s infinite alternate;
-}
-
-@keyframes pulseGlow {
-    0% {
-        box-shadow: 0 0 6px rgba(250, 204, 21, 0.4);
-        transform: scale(1);
-    }
-    100% {
-        box-shadow: 0 0 16px rgba(250, 204, 21, 0.9);
-        transform: scale(1.02);
-    }
+    background-color: var(--accent-color);
+    color: var(--bg-main);
+    border-color: var(--accent-color);
 }
 
 .btn-action.primary:hover {
-    background-color: #eab308;
-    box-shadow: 0 0 12px rgba(250, 204, 21, 0.4);
+    background-color: var(--accent-color-hover);
+    box-shadow: 0 0 12px color-mix(in srgb, var(--accent-color) 40%, transparent);
 }
 
 .btn-action.secondary {
-    background-color: rgba(255, 255, 255, 0.1);
+    background-color: rgba(255, 255, 255, 0.08);
     color: var(--text-primary);
-    border: 1px solid var(--border-color);
 }
 
 .btn-action.secondary:hover {
-    background-color: rgba(255, 255, 255, 0.2);
+    background-color: rgba(255, 255, 255, 0.16);
 }
 
-/* --- READOUT CARD --- */
-.readout-header {
-    font-size: 0.9rem;
-    font-weight: 600;
-    color: var(--text-primary);
-    margin-bottom: 10px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    padding-bottom: 6px;
+/* --- BARRA DE CONTEXTO RÁPIDO NO MODO FOCO (CANTO SUPERIOR ESQUERDO) --- */
+.focus-context-toolbar {
+    position: absolute;
+    top: 15px;
+    left: 15px;
+    z-index: 60;
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(-8px);
+    transition: opacity var(--trans-normal), transform var(--trans-normal);
 }
 
-/* --- CUSTOM VECTOR CONTROLS --- */
-.checkbox-label {
-    display: flex;
+.sim-layout.sidebar-collapsed .focus-context-toolbar {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(0);
+}
+
+.focus-toolbar-pane {
+    display: inline-flex;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
+}
+
+.focus-toolbar-pane.hidden {
+    display: none !important;
+}
+
+.focus-badge-det {
+    font-family: var(--font-mono);
+    font-size: 0.76rem;
+    font-weight: 600;
+    color: var(--accent-color);
+    background: rgba(0, 0, 0, 0.4);
+    padding: 3px 8px;
+    border-radius: var(--radius-sm);
+    border: 1px solid rgba(250, 204, 21, 0.25);
+}
+
+.focus-select {
+    background: rgba(15, 23, 42, 0.9);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    padding: 4px 6px;
+    font-size: 0.74rem;
+    border-radius: var(--radius-sm);
+    outline: none;
     cursor: pointer;
-    font-size: 0.9rem;
-    user-select: none;
 }
 
-.checkbox-label input[type="checkbox"] {
-    accent-color: #f472b6;
-    width: 16px;
-    height: 16px;
-}
-
-.custom-vector-inputs {
-    margin-top: 8px;
-    padding: 8px 10px;
-    background: rgba(244, 114, 182, 0.08);
-    border: 1px solid rgba(244, 114, 182, 0.2);
-    border-radius: 8px;
+/* --- MINI-GRÁFICO DE TELEMETRIA (MODO 4) --- */
+.telemetry-container {
+    background: rgba(15, 23, 42, 0.7);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 10px;
     display: flex;
     flex-direction: column;
     gap: 6px;
 }
 
-.input-pair {
+.telemetry-header {
     display: flex;
+    justify-content: space-between;
     align-items: center;
-    gap: 8px;
-    font-size: 0.85rem;
-    color: #f472b6;
+    font-size: 0.78rem;
+    color: var(--text-secondary);
     font-weight: 500;
 }
 
-.input-pair input[type="number"] {
-    width: 60px;
-    padding: 4px 6px;
-    background: var(--bg-surface);
-    border: 1px solid rgba(244, 114, 182, 0.4);
-    border-radius: 4px;
-    color: white;
-    font-weight: 600;
-    text-align: center;
+.telemetry-canvas {
+    width: 100%;
+    height: 70px;
+    display: block;
+    background: rgba(0, 0, 0, 0.35);
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-subtle);
 }
 
-.transformed-v-badge {
-    font-size: 0.8rem;
-    font-weight: 600;
-    color: #f472b6;
-    text-align: center;
-    padding-top: 4px;
-    font-family: monospace;
+/* Sub-panes de controle por modo */
+.subpane-controls,
+.subpane-theory {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
 }
 
-/* --- CANVAS OVERLAYS --- */
-#determinantBadge {
-    top: 15px;
-    left: 20px;
-    font-size: 0.95rem;
-    font-weight: 600;
-    font-family: monospace;
-    background: rgba(15, 23, 42, 0.85);
-    border: 1px solid rgba(250, 204, 21, 0.4);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
-}
-
-#badgeDetValue {
-    color: #facc15;
+.subpane-controls.hidden,
+.subpane-theory.hidden {
+    display: none !important;
 }

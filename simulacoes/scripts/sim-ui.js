@@ -782,6 +782,15 @@ export function initTabs(root = document, onTabChange = null) {
             if (typeof onTabChange === 'function') {
                 onTabChange(targetId);
             }
+
+            el.dispatchEvent(new CustomEvent('tabchange', {
+                detail: { tabId: targetId },
+                bubbles: true
+            }));
+            document.dispatchEvent(new CustomEvent('tabchange', {
+                detail: { tabId: targetId },
+                bubbles: true
+            }));
         };
 
         buttons.forEach(btn => {
@@ -911,6 +920,407 @@ export function initBottomSheet(opts = {}) {
         toggle: () => {
             const next = currentState === 'peek' ? 'half' : 'peek';
             applyState(next);
+        }
+    };
+}
+
+/**
+ * =============================================================================
+ * BARRA FLUTUANTE DE FOCO DECLARATIVA & REATIVA (Design System 2.0)
+ * =============================================================================
+ * Varre o painel de controles em busca de elementos marcados com [data-focus-control]
+ * e monta dinamicamente uma barra de ferramentas compacta no canvas, sensível à aba ativa
+ * e sincronizada de forma bi-direcional via proxies de eventos e MutationObserver.
+ * 
+ * Atributos HTML suportados nos elementos originais:
+ * - data-focus-control: "action" | "toggle" | "select" | "slider" | "badge"
+ * - data-focus-label: Rótulo curto no modo foco (ou "" para apenas ícone)
+ * - data-focus-icon: Nome do ícone SVG em ../assets/icons/ (sem .svg)
+ * - data-focus-order: Posição numérica de ordenação (ex: 1, 2, 3...)
+ * - data-focus-tab: Aba ou modo associado ("base", "construir", etc. ou "global")
+ * - data-focus-divider: "before" | "after" | "both" (insere divisores verticais)
+ * - data-focus-tooltip: Dica de hover (fallback para title)
+ * 
+ * @param {Object} [options]
+ * @param {string|HTMLElement} [options.toolbarTarget] - Seletor ou container da toolbar
+ * @param {string|HTMLElement} [options.scopeSelector='.controls-panel'] - Container raiz dos controles originais
+ * @param {string} [options.layoutSelector='.sim-layout'] - Seletor do layout principal
+ * @param {boolean} [options.onlyInFocusMode=true] - Se visível apenas no Modo Foco
+ * @param {Function} [options.onRebuild] - Callback disparado após reconstrução: (contextId, toolbarEl) => void
+ * @returns {Object} Controlador com .rebuild(contextId), .getContainer(), .destroy()
+ */
+export function initFocusMirrorToolbar(options = {}) {
+    const {
+        toolbarTarget,
+        scopeSelector = '.controls-panel',
+        layoutSelector = '.sim-layout',
+        onlyInFocusMode = true,
+        onRebuild = null
+    } = options;
+
+    // 1. Localiza ou cria dinamicamente o container flutuante no canvas
+    let container = null;
+    if (toolbarTarget) {
+        container = typeof toolbarTarget === 'string' ? document.querySelector(toolbarTarget) : toolbarTarget;
+    }
+    if (!container) {
+        container = document.querySelector('#focus-context-toolbar, .focus-mirror-toolbar');
+    }
+    if (!container) {
+        const canvasArea = document.querySelector('.canvas-area');
+        if (canvasArea) {
+            container = document.createElement('div');
+            container.className = 'canvas-toolbar pos-top-left focus-mirror-toolbar';
+            canvasArea.appendChild(container);
+        }
+    }
+    if (!container) return null;
+
+    container.classList.add('canvas-toolbar', 'pos-top-left', 'focus-mirror-toolbar');
+    if (onlyInFocusMode) {
+        container.classList.add('focus-mirror-only-focus');
+    }
+
+    // Pool de MutationObservers ativos para evitar memory leaks
+    let activeObservers = [];
+
+    const cleanupObservers = () => {
+        activeObservers.forEach(obs => obs.disconnect());
+        activeObservers = [];
+    };
+
+    /**
+     * Detecta o contexto operacional ou aba atualmente ativa na interface
+     */
+    const detectActiveContext = () => {
+        // 1. Seletor de Modo Segmentado (ex: 1. Base, 2. Construir, etc.)
+        const activeSegment = document.querySelector('.mode-selector .segment-btn.active, .segmented-control .segment-btn.active');
+        if (activeSegment) {
+            const mode = activeSegment.dataset.mode || activeSegment.dataset.tab;
+            if (mode) return mode;
+        }
+
+        // 2. Subpainéis visíveis no DOM
+        const visibleSubpane = document.querySelector('.subpane-controls:not(.hidden)');
+        if (visibleSubpane && visibleSubpane.id) {
+            return visibleSubpane.id.replace(/^subpane-controls-/, '').replace(/^pane-/, '');
+        }
+
+        // 3. Abas tradicionais ativas (.tab-btn.active)
+        const activeTabBtn = document.querySelector('.tab-nav .tab-btn.active');
+        if (activeTabBtn && activeTabBtn.dataset.tab) {
+            return activeTabBtn.dataset.tab.replace(/^tab-/, '');
+        }
+
+        // 4. Painel de aba ativo (.tab-pane.active)
+        const activePane = document.querySelector('.tab-pane.active, .tab-content.active');
+        if (activePane && activePane.id) {
+            return activePane.id.replace(/^tab-/, '');
+        }
+
+        return 'global';
+    };
+
+    /**
+     * Identifica a qual aba ou contexto um elemento pertence
+     */
+    const getElementContext = (el) => {
+        const explicitTab = el.getAttribute('data-focus-tab') || el.getAttribute('data-focus-mode');
+        if (explicitTab) return explicitTab;
+
+        const subpane = el.closest('.subpane-controls');
+        if (subpane && subpane.id) {
+            return subpane.id.replace(/^subpane-controls-/, '').replace(/^pane-/, '');
+        }
+
+        const tabPane = el.closest('.tab-pane, .tab-content');
+        if (tabPane && (tabPane.id || tabPane.dataset.tab)) {
+            return (tabPane.id || tabPane.dataset.tab).replace(/^tab-/, '');
+        }
+
+        return 'global';
+    };
+
+    /**
+     * Verifica compatibilidade entre o contexto do controle e o contexto ativo
+     */
+    const isContextMatching = (ctrlCtx, activeCtx) => {
+        if (!ctrlCtx || ctrlCtx === 'global') return true;
+        if (!activeCtx || activeCtx === 'global') return true;
+
+        const parts = ctrlCtx.split(',').map(s => s.trim().toLowerCase());
+        const act = activeCtx.trim().toLowerCase();
+
+        return parts.some(p => p === act || act.includes(p) || p.includes(act));
+    };
+
+    /**
+     * Reconstrói a barra de ferramentas flutuante para o contexto especificado
+     */
+    const rebuild = async (targetContext = null) => {
+        cleanupObservers();
+        container.innerHTML = '';
+
+        const activeCtx = targetContext || detectActiveContext();
+        const scope = typeof scopeSelector === 'string' ? document.querySelector(scopeSelector) : scopeSelector;
+        if (!scope) return;
+
+        // Coleta todos os elementos declarados com [data-focus-control]
+        const allCandidates = Array.from(scope.querySelectorAll('[data-focus-control]'));
+        
+        // Filtra os que pertencem ao contexto ativo ou são globais
+        const matched = allCandidates.filter(el => {
+            const ctx = getElementContext(el);
+            return isContextMatching(ctx, activeCtx);
+        });
+
+        // Ordena por data-focus-order (crescente)
+        matched.sort((a, b) => {
+            const orderA = parseFloat(a.getAttribute('data-focus-order') || '999');
+            const orderB = parseFloat(b.getAttribute('data-focus-order') || '999');
+            return orderA - orderB;
+        });
+
+        if (matched.length === 0) {
+            container.style.display = 'none';
+            if (typeof onRebuild === 'function') onRebuild(activeCtx, container);
+            return;
+        }
+
+        container.style.display = '';
+
+        // Cria os espelhos dinâmicos
+        for (const orig of matched) {
+            const controlType = (orig.getAttribute('data-focus-control') || '').toLowerCase() || 
+                                (orig.tagName === 'SELECT' ? 'select' : 
+                                 orig.tagName === 'INPUT' && orig.type === 'range' ? 'slider' : 'action');
+
+            const divider = orig.getAttribute('data-focus-divider') || '';
+            const addDivider = () => {
+                const div = document.createElement('div');
+                div.className = 'toolbar-divider';
+                container.appendChild(div);
+            };
+
+            if (divider === 'before' || divider === 'both') {
+                addDivider();
+            }
+
+            // --- CASO 1: BOTÕES DE AÇÃO E TOGGLE ---
+            if (controlType === 'action' || controlType === 'toggle') {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'toolbar-btn focus-mirror-btn';
+
+                const tooltip = orig.getAttribute('data-focus-tooltip') || orig.title || orig.getAttribute('data-text-idle') || '';
+                if (tooltip) btn.title = tooltip;
+
+                // Ícone
+                const customIcon = orig.getAttribute('data-focus-icon');
+                if (customIcon) {
+                    const img = document.createElement('img');
+                    img.src = `../assets/icons/${customIcon}.svg`;
+                    img.className = 'icon-svg';
+                    img.alt = '';
+                    btn.appendChild(img);
+                } else {
+                    const iconEl = orig.querySelector('.icon-svg, svg, img');
+                    if (iconEl) {
+                        btn.appendChild(iconEl.cloneNode(true));
+                    }
+                }
+
+                // Rótulo de Texto
+                const rawLabel = orig.getAttribute('data-focus-label');
+                if (rawLabel !== null) {
+                    if (rawLabel.trim() !== '') {
+                        const span = document.createElement('span');
+                        span.className = 'focus-btn-text';
+                        span.textContent = rawLabel.trim();
+                        btn.appendChild(span);
+                    }
+                } else {
+                    const origText = (orig.querySelector('.btn-text')?.textContent || orig.textContent || '').trim();
+                    if (origText) {
+                        const span = document.createElement('span');
+                        span.className = 'focus-btn-text';
+                        span.textContent = origText;
+                        btn.appendChild(span);
+                    }
+                }
+
+                // Sincroniza classes iniciais
+                const syncButtonClasses = () => {
+                    const isActive = orig.classList.contains('is-active') || orig.classList.contains('active') || orig.getAttribute('data-state') === '1';
+                    btn.classList.toggle('is-active', isActive);
+                    btn.classList.toggle('active', isActive);
+
+                    const isDisabled = orig.disabled || orig.classList.contains('is-disabled');
+                    btn.disabled = isDisabled;
+                    btn.classList.toggle('is-disabled', isDisabled);
+                };
+                syncButtonClasses();
+
+                // Disparo: Forwarding direto de clique para o elemento original
+                btn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    if (!orig.disabled && !orig.classList.contains('is-disabled')) {
+                        orig.click();
+                    }
+                });
+
+                // Observer de mutações no elemento original
+                const obs = new MutationObserver(() => {
+                    syncButtonClasses();
+
+                    // Se for toggle sem data-focus-label fixo, atualiza texto dinâmico
+                    if (rawLabel === null) {
+                        const newText = (orig.querySelector('.btn-text')?.textContent || orig.textContent || '').trim();
+                        const span = btn.querySelector('.focus-btn-text');
+                        if (span && newText && span.textContent !== newText) {
+                            span.textContent = newText;
+                        }
+                    }
+                });
+                obs.observe(orig, { attributes: true, attributeFilter: ['class', 'disabled', 'data-state', 'aria-pressed'], childList: true, subtree: true });
+                activeObservers.push(obs);
+
+                container.appendChild(btn);
+            }
+
+            // --- CASO 2: SELETORES (SELECT) ---
+            else if (controlType === 'select') {
+                const sel = document.createElement('select');
+                sel.className = 'focus-mirror-select';
+                const tooltip = orig.getAttribute('data-focus-tooltip') || orig.title || '';
+                if (tooltip) sel.title = tooltip;
+
+                // Clona as opções
+                Array.from(orig.options).forEach(opt => {
+                    const newOpt = document.createElement('option');
+                    newOpt.value = opt.value;
+                    newOpt.textContent = opt.textContent;
+                    newOpt.selected = opt.selected;
+                    sel.appendChild(newOpt);
+                });
+                sel.value = orig.value;
+
+                // Clone -> Original
+                sel.addEventListener('change', () => {
+                    orig.value = sel.value;
+                    orig.dispatchEvent(new Event('change', { bubbles: true }));
+                });
+
+                // Original -> Clone
+                const onOrigChange = () => {
+                    if (sel.value !== orig.value) {
+                        sel.value = orig.value;
+                    }
+                };
+                orig.addEventListener('change', onOrigChange);
+
+                const obs = new MutationObserver(() => {
+                    sel.disabled = orig.disabled || orig.classList.contains('is-disabled');
+                });
+                obs.observe(orig, { attributes: true, attributeFilter: ['disabled', 'class'] });
+                activeObservers.push(obs);
+
+                container.appendChild(sel);
+            }
+
+            // --- CASO 3: BADGES DE TELEMETRIA / LEITURA DINÂMICA ---
+            else if (controlType === 'badge' || controlType === 'telemetry') {
+                const badge = document.createElement('span');
+                badge.className = 'focus-mirror-badge';
+                badge.textContent = orig.textContent.trim();
+
+                const obs = new MutationObserver(() => {
+                    badge.textContent = orig.textContent.trim();
+                });
+                obs.observe(orig, { characterData: true, childList: true, subtree: true });
+                activeObservers.push(obs);
+
+                container.appendChild(badge);
+            }
+
+            // --- CASO 4: SLIDERS COMPACTOS ---
+            else if (controlType === 'slider') {
+                const sliderBox = document.createElement('div');
+                sliderBox.className = 'focus-mirror-slider';
+
+                const label = orig.getAttribute('data-focus-label');
+                if (label) {
+                    const lblSpan = document.createElement('span');
+                    lblSpan.textContent = label;
+                    sliderBox.appendChild(lblSpan);
+                }
+
+                const range = document.createElement('input');
+                range.type = 'range';
+                range.min = orig.min || '0';
+                range.max = orig.max || '100';
+                range.step = orig.step || '1';
+                range.value = orig.value;
+
+                range.addEventListener('input', () => {
+                    orig.value = range.value;
+                    orig.dispatchEvent(new Event('input', { bubbles: true }));
+                });
+                range.addEventListener('change', () => {
+                    orig.value = range.value;
+                    orig.dispatchEvent(new Event('change', { bubbles: true }));
+                });
+
+                const onOrigInput = () => { range.value = orig.value; };
+                orig.addEventListener('input', onOrigInput);
+
+                sliderBox.appendChild(range);
+                container.appendChild(sliderBox);
+            }
+
+            if (divider === 'after' || divider === 'both') {
+                addDivider();
+            }
+        }
+
+        // Inline SVGs recém-adicionados para herdar cores
+        await inlineSVGImages();
+
+        if (typeof onRebuild === 'function') {
+            onRebuild(activeCtx, container);
+        }
+    };
+
+    // Listeners Automáticos de Navegação por Abas e Modos
+    const handleNavClick = (e) => {
+        const btn = e.target.closest('.segment-btn, .tab-btn, [data-mode], [data-tab]');
+        if (btn) {
+            // Aguarda atualização da classe .active no DOM
+            setTimeout(() => {
+                const mode = btn.dataset.mode || btn.dataset.tab;
+                rebuild(mode || null);
+            }, 30);
+        }
+    };
+    document.addEventListener('click', handleNavClick);
+
+    const handleTabChange = (e) => {
+        const tabId = e.detail?.tabId;
+        rebuild(tabId || null);
+    };
+    document.addEventListener('tabchange', handleTabChange);
+
+    // Inicialização da primeira montagem
+    rebuild();
+
+    return {
+        rebuild: (ctx) => rebuild(ctx),
+        getContainer: () => container,
+        destroy: () => {
+            cleanupObservers();
+            document.removeEventListener('click', handleNavClick);
+            document.removeEventListener('tabchange', handleTabChange);
+            if (container) container.innerHTML = '';
         }
     };
 }
@@ -1342,6 +1752,49 @@ export class MatrixTensorEditor {
             };
         }
         this.options.onChange(M, analysis);
+    }
+}
+
+/**
+ * Define o estado semântico de um campo ou controle (.is-valid, .is-invalid, .is-warning, .is-ready, .is-disabled).
+ * Atualiza classes CSS, acessibilidade (aria-invalid) e mensagem de apoio (.field-hint).
+ * @param {HTMLElement|string} target - Elemento ou seletor CSS do controle ou container
+ * @param {'valid'|'invalid'|'warning'|'ready'|'disabled'|null} state - Novo estado semântico
+ * @param {string} [hintText] - Texto explicativo opcional para exibir no .field-hint
+ */
+export function setFieldState(target, state = null, hintText = '') {
+    const el = typeof target === 'string' ? document.querySelector(target) : target;
+    if (!el) return;
+
+    el.classList.remove('is-valid', 'is-invalid', 'is-warning', 'is-ready', 'is-disabled');
+
+    if (state) {
+        el.classList.add(`is-${state}`);
+        if (state === 'invalid') {
+            el.setAttribute('aria-invalid', 'true');
+        } else {
+            el.removeAttribute('aria-invalid');
+        }
+        if (state === 'disabled') {
+            el.setAttribute('aria-disabled', 'true');
+        } else {
+            el.removeAttribute('aria-disabled');
+        }
+    } else {
+        el.removeAttribute('aria-invalid');
+        el.removeAttribute('aria-disabled');
+    }
+
+    let hintEl = el.querySelector?.('.field-hint');
+    if (!hintEl && el.id && el.parentElement) {
+        hintEl = el.parentElement.querySelector(`.field-hint[data-for="${el.id}"]`);
+    }
+    if (!hintEl && el.nextElementSibling?.classList?.contains('field-hint')) {
+        hintEl = el.nextElementSibling;
+    }
+    if (hintEl) {
+        hintEl.textContent = hintText || '';
+        hintEl.className = 'field-hint' + (state ? ` is-${state}` : '');
     }
 }
 
